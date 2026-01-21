@@ -15,23 +15,27 @@
             background-color: #fffaf0;
             transform: scale(1.01);
         }
+        .tab-active { color: #fb923c; border-bottom: 3px solid #fb923c; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-white to-orange-50 min-h-screen flex items-center justify-center p-4">
 
     <div class="max-w-md w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-white animate-in fade-in zoom-in duration-500">
-        <div class="bg-orange-400 p-8 text-center text-white">
-            <h1 class="text-3xl font-bold">🍎 EducaMarket</h1>
-            <p class="text-orange-100 mt-1 italic">Sua biblioteca pedagógica online</p>
+        <div class="bg-orange-400 p-6 text-center text-white">
+            <h1 class="text-2xl font-bold">🍎 EducaMarket</h1>
+        </div>
+
+        <div class="flex border-b border-gray-100">
+            <button onclick="switchTab('login')" id="tab-login" class="flex-1 py-4 font-bold text-gray-400 transition-all tab-active">Entrar</button>
+            <button onclick="switchTab('cadastro')" id="tab-cadastro" class="flex-1 py-4 font-bold text-gray-400 transition-all">Cadastrar</button>
         </div>
 
         <div class="p-8">
-            <h2 class="text-xl font-bold text-gray-800 mb-6 text-center">Faça seu cadastro para baixar</h2>
-            
-            <form id="form-cadastro" class="space-y-4" onsubmit="salvarESeguir(event)">
-                <div>
+            <form id="form-auth" class="space-y-4" onsubmit="processarAuth(event)">
+                
+                <div id="campo-nome" class="hidden">
                     <label class="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">Nome Completo</label>
-                    <input type="text" id="nome" required placeholder="Ex: Prof. Maria Silva" 
+                    <input type="text" id="nome" placeholder="Ex: Prof. Maria Silva" 
                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-100 input-pedagogico">
                 </div>
 
@@ -41,70 +45,83 @@
                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-100 input-pedagogico">
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">Telefone</label>
-                        <input type="tel" id="telefone" oninput="mask(this, mphone)" placeholder="(00) 0000-0000" 
-                               class="w-full px-4 py-3 rounded-xl border-2 border-gray-100 input-pedagogico">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">WhatsApp</label>
-                        <input type="tel" id="whatsapp" required oninput="mask(this, mphone)" placeholder="(00) 90000-0000" 
-                               class="w-full px-4 py-3 rounded-xl border-2 border-gray-100 input-pedagogico">
-                    </div>
+                <div id="campo-whats" class="hidden">
+                    <label class="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">WhatsApp</label>
+                    <input type="tel" id="whatsapp" oninput="mask(this, mphone)" placeholder="(00) 90000-0000" 
+                           class="w-full px-4 py-3 rounded-xl border-2 border-gray-100 input-pedagogico">
                 </div>
 
-                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95 mt-4 uppercase tracking-wider">
-                    Acessar Dashboard ✨
+                <button type="submit" id="btn-submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95 mt-4 uppercase tracking-wider">
+                    Entrar Agora ✨
                 </button>
             </form>
             
             <p class="text-[10px] text-gray-400 text-center mt-6 uppercase leading-relaxed">
-                🔒 Seus dados estão seguros. Usaremos seu WhatsApp apenas para suporte e envio dos seus PDFs.
+                🔒 Seus dados estão protegidos em nossa biblioteca pedagógica.
             </p>
         </div>
     </div>
 
     <script>
-        // Função para salvar dados e navegar
-        function salvarESeguir(e) {
+        let abaAtual = 'login';
+
+        function switchTab(tipo) {
+            abaAtual = tipo;
+            const tabL = document.getElementById('tab-login');
+            const tabC = document.getElementById('tab-cadastro');
+            const campoNome = document.getElementById('campo-nome');
+            const campoWhats = document.getElementById('campo-whats');
+            const btn = document.getElementById('btn-submit');
+
+            if (tipo === 'login') {
+                tabL.classList.add('tab-active');
+                tabC.classList.remove('tab-active');
+                campoNome.classList.add('hidden');
+                campoWhats.classList.add('hidden');
+                btn.innerText = 'Entrar Agora ✨';
+                document.getElementById('nome').required = false;
+                document.getElementById('whatsapp').required = false;
+            } else {
+                tabC.classList.add('tab-active');
+                tabL.classList.remove('tab-active');
+                campoNome.classList.remove('hidden');
+                campoWhats.classList.remove('hidden');
+                btn.innerText = 'Criar Minha Conta ✨';
+                document.getElementById('nome').required = true;
+                document.getElementById('whatsapp').required = true;
+            }
+        }
+
+        function processarAuth(e) {
             e.preventDefault();
             
-            const nomeValue = document.getElementById('nome').value;
-            const whatsValue = document.getElementById('whatsapp').value;
+            // Se for cadastro, salvamos o novo nome. Se for login, simulamos o acesso.
+            const nomeValue = document.getElementById('nome').value || "Professor(a)";
+            const emailValue = document.getElementById('email').value;
             
-            // Salva no LocalStorage para o index.html ler depois
             localStorage.setItem('prof_nome', nomeValue);
-            localStorage.setItem('prof_whats', whatsValue);
+            localStorage.setItem('prof_email', emailValue);
             
-            // Pequeno delay para efeito visual de clique antes de mudar de página
             setTimeout(() => {
                 window.location.href = 'index.html';
             }, 300);
         }
 
-        // Máscara de Telefone Automática
+        // Funções de Máscara (Mantidas do seu código original)
         function mask(o, f) {
             setTimeout(function() {
                 var v = mphone(o.value);
-                if (v != o.value) {
-                    o.value = v;
-                }
+                if (v != o.value) o.value = v;
             }, 1);
         }
 
         function mphone(v) {
             var r = v.replace(/\D/g, "");
             r = r.replace(/^0/, "");
-            if (r.length > 10) {
-                r = r.replace(/^(\d\d)(\d{5})(\d{4}).*/, "($1) $2-$3");
-            } else if (r.length > 5) {
-                r = r.replace(/^(\d\d)(\d{4})(\d{0,4}).*/, "($1) $2-$3");
-            } else if (r.length > 2) {
-                r = r.replace(/^(\d\d)(\d{0,5})/, "($1) $2");
-            } else {
-                r = r.replace(/^(\d*)/, "($1");
-            }
+            if (r.length > 10) r = r.replace(/^(\d\d)(\d{5})(\d{4}).*/, "($1) $2-$3");
+            else if (r.length > 5) r = r.replace(/^(\d\d)(\d{4})(\d{0,4}).*/, "($1) $2-$3");
+            else if (r.length > 2) r = r.replace(/^(\d\d)(\d{0,5})/, "($1) $2");
+            else r = r.replace(/^(\d*)/, "($1");
             return r;
         }
     </script>
