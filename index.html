@@ -25,7 +25,7 @@
                 </button>
                 
                 <div class="flex items-center gap-2 border-l pl-4 cursor-pointer" onclick="window.location.href='login.html'">
-                    <img src="https://ui-avatars.com/api/?name=Prof&background=bfdbfe" class="w-8 h-8 rounded-full">
+                    <img src="https://ui-avatars.com/api/?name=Prof&background=bfdbfe" class="w-8 h-8 rounded-full" alt="Perfil">
                     <span id="nome-professor" class="hidden md:block text-sm font-medium text-gray-700">Olá, Entrar</span>
                 </div>
             </div>
@@ -39,17 +39,17 @@
         </header>
 
         <div class="flex gap-3 overflow-x-auto pb-4 mb-8 no-scrollbar">
-            <span class="bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-semibold cursor-pointer whitespace-nowrap">Alfabetização</span>
-            <span class="bg-pink-100 text-pink-600 px-4 py-2 rounded-full text-sm font-semibold cursor-pointer whitespace-nowrap">Matemática</span>
-            <span class="bg-green-100 text-green-600 px-4 py-2 rounded-full text-sm font-semibold cursor-pointer whitespace-nowrap">Educação Infantil</span>
-            <span class="bg-purple-100 text-purple-600 px-4 py-2 rounded-full text-sm font-semibold cursor-pointer whitespace-nowrap">Datas Comemorativas</span>
+            <span class="bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-semibold cursor-pointer whitespace-nowrap hover:bg-blue-200 transition">Alfabetização</span>
+            <span class="bg-pink-100 text-pink-600 px-4 py-2 rounded-full text-sm font-semibold cursor-pointer whitespace-nowrap hover:bg-pink-200 transition">Matemática</span>
+            <span class="bg-green-100 text-green-600 px-4 py-2 rounded-full text-sm font-semibold cursor-pointer whitespace-nowrap hover:bg-green-200 transition">Educação Infantil</span>
+            <span class="bg-purple-100 text-purple-600 px-4 py-2 rounded-full text-sm font-semibold cursor-pointer whitespace-nowrap hover:bg-purple-200 transition">Datas Comemorativas</span>
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             
             <div class="product-card bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100">
                 <div class="h-48 bg-blue-50 flex items-center justify-center overflow-hidden">
-                    <img src="https://img.freepik.com/vetores-gratis/modelo-de-planilha-de-letras-do-alfabeto_23-2148906649.jpg" class="object-cover w-full h-full">
+                    <img src="https://img.freepik.com/vetores-gratis/modelo-de-planilha-de-letras-do-alfabeto_23-2148906649.jpg" class="object-cover w-full h-full" alt="Combo Alfabetização">
                 </div>
                 <div class="p-4">
                     <h3 class="font-bold text-gray-800 text-sm md:text-base mb-1 uppercase">Combo Alfabetização</h3>
@@ -65,7 +65,7 @@
 
             <div class="product-card bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100">
                 <div class="h-48 bg-pink-50 flex items-center justify-center overflow-hidden">
-                    <img src="https://img.freepik.com/vetores-gratis/planilha-de-numeros-coloridos-para-criancas_23-2148906645.jpg" class="object-cover w-full h-full">
+                    <img src="https://img.freepik.com/vetores-gratis/planilha-de-numeros-coloridos-para-criancas_23-2148906645.jpg" class="object-cover w-full h-full" alt="Números">
                 </div>
                 <div class="p-4">
                     <h3 class="font-bold text-gray-800 text-sm md:text-base mb-1 uppercase">Números</h3>
@@ -97,7 +97,7 @@
                 <span class="font-bold text-gray-600">Total:</span>
                 <span id="total-carrinho" class="font-bold text-2xl text-green-600">R$ 0,00</span>
             </div>
-            <button onclick="window.location.href='checkout.html'" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all">
+            <button onclick="window.location.href='checkout.html'" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95">
                 PAGAR COM PIX
             </button>
         </div>
@@ -115,9 +115,7 @@
             carrinho.push({id, nome, preco, img});
             salvar();
             renderizar();
-            // Abre o carrinho para dar feedback ao usuário
-            document.getElementById('carrinho-lateral').classList.remove('translate-x-full');
-            document.getElementById('cart-overlay').classList.remove('hidden');
+            toggleCarrinho(); // Abre para mostrar o item adicionado
         }
 
         function removerItem(index) {
@@ -155,12 +153,15 @@
             totalTxt.innerText = `R$ ${total.toFixed(2)}`;
             contador.innerText = carrinho.length;
             
-            // Atualiza nome do professor se houver no localStorage
+            // Lógica de saudação segura
             const nomeSalvo = localStorage.getItem('prof_nome');
-            if(nomeSalvo) document.getElementById('nome-professor').innerText = "Olá, " + nomeSalvo.split(' ')[0];
+            if(nomeSalvo && nomeSalvo.trim() !== "") {
+                document.getElementById('nome-professor').innerText = "Olá, " + nomeSalvo.split(' ')[0];
+            } else {
+                document.getElementById('nome-professor').innerText = "Olá, Entrar";
+            }
         }
 
-        // Inicia o site lendo o que já está salvo
         window.onload = renderizar;
     </script>
 </body>
