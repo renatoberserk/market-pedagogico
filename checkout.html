@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento PIX - EducaMarket</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-50 font-['Quicksand'] min-h-screen flex flex-col items-center p-4">
+
+    <header class="w-full max-w-md py-6 flex justify-between items-center">
+        <button onclick="window.location.href='index.html'" class="text-gray-400 hover:text-gray-600 font-bold">← Voltar</button>
+        <h1 class="text-orange-400 font-bold text-xl uppercase tracking-tighter">✏️ EducaMarket</h1>
+        <div class="w-10"></div> </header>
+
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden">
+        <div class="bg-green-500 p-6 text-center text-white">
+            <p class="text-green-100 text-sm font-bold uppercase tracking-widest">Aguardando Pagamento</p>
+            <h2 id="valor-final" class="text-4xl font-bold mt-1 text-white">R$ 0,00</h2>
+        </div>
+
+        <div class="p-8 text-center">
+            <div class="bg-gray-100 p-4 rounded-2xl inline-block mb-6 shadow-inner">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=EducaMarketPix" class="w-40 h-40">
+            </div>
+
+            <h3 class="font-bold text-gray-700 mb-2 leading-tight">Escaneie o QR Code ou use o Pix Copia e Cola</h3>
+            
+            <div class="mt-6 space-y-3">
+                <div class="bg-gray-50 border border-dashed border-gray-300 p-3 rounded-xl flex items-center justify-between">
+                    <span class="text-[10px] text-gray-400 truncate w-40">00020126580014br.gov.bcb.pix0136educamarketpix...</span>
+                    <button onclick="copyPix()" class="bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-xs font-bold active:bg-blue-300">COPIAR</button>
+                </div>
+                
+                <button class="w-full bg-green-500 text-white font-bold py-4 rounded-xl shadow-md flex items-center justify-center gap-2">
+                   <span>✓ JÁ REALIZEI O PAGAMENTO</span>
+                </button>
+            </div>
+
+            <div class="mt-8 flex gap-4 items-center p-4 bg-blue-50 rounded-2xl text-left border border-blue-100">
+                <span class="text-2xl">📧</span>
+                <p class="text-[11px] text-blue-800 leading-snug">
+                    <strong>IMPORTANTE:</strong> O link para download do material pedagógico será enviado automaticamente para o seu e-mail cadastrado assim que o pagamento for confirmado.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Pega o valor que estava no carrinho do localStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            const carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
+            let total = 0;
+            carrinho.forEach(item => total += item.preco);
+            document.getElementById('valor-final').innerText = `R$ ${total.toFixed(2)}`;
+        });
+
+        function copyPix() {
+            navigator.clipboard.writeText("00020126580014br.gov.bcb.pix0136educamarketpix...");
+            alert("Código PIX copiado! Cole no seu App de banco.");
+        }
+    </script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
