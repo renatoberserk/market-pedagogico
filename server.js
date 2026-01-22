@@ -105,38 +105,38 @@ app.post('/criar-pagamento-pix', async (req, res) => {
     try {
         const { email, total } = req.body;
 
+        // Verificação de segurança: se o e-mail ou total sumirem, o MP dá erro 400/500
+        if (!email || !total) {
+            return res.status(400).json({ erro: "E-mail ou total não informados" });
+        }
+
         const body = {
-            transaction_amount: Number(total),
+            transaction_amount: Number(parseFloat(total).toFixed(2)), // Garante número com 2 casas decimais
             description: 'Compra Educa Materiais',
             payment_method_id: 'pix',
-            payer: { 
-                email: email 
-            },
-            // Opcional: tempo de expiração do PIX (ex: 30 minutos)
-            date_of_expiration: new Date(Date.now() + 30 * 60000).toISOString()
+            payer: {
+                email: email.trim() // Remove espaços acidentais
+            }
         };
 
         const response = await payment.create({ body });
+        
+        // A resposta do SDK v2 pode vir dentro de 'body' ou direto no objeto
+        const data = response.body || response;
 
-        // Verificação de segurança: alguns SDKs retornam os dados em response.point_of_interaction
-        // outros retornam em response.body.point_of_interaction
-        const result = response.body || response; 
-
-        if (result.point_of_interaction) {
-            const data = result.point_of_interaction.transaction_data;
-            
-            res.json({
-                id: result.id,
-                qr_code: data.qr_code, // Este é o código "Copia e Cola"
-                qr_code_base64: data.qr_code_base64 // Esta é a imagem do QR Code
-            });
-        } else {
-            throw new Error("Estrutura de resposta inesperada do Mercado Pago");
-        }
+        res.json({
+            id: data.id,
+            qr_code: data.point_of_interaction.transaction_data.qr_code,
+            qr_code_base64: data.point_of_interaction.transaction_data.qr_code_base64
+        });
 
     } catch (error) {
-        console.error("Erro detalhado MP:", error.message);
-        res.status(500).json({ erro: 'Erro ao gerar Pix', detalhes: error.message });
+        console.error("ERRO DETALHADO NO SERVIDOR:", error);
+        // Retorna o erro real para o seu checkout.js conseguir ler no console
+        res.status(500).json({ 
+            erro: 'Erro interno no servidor', 
+            detalhes: error.message 
+        });
     }
 });
 
