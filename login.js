@@ -1,6 +1,6 @@
 let abaAtual = 'login';
         // Defina aqui seu email de admin
-        const MEU_EMAIL_ADMIN = process.env.ADMIN_EMAIL;
+        const MEU_EMAIL_ADMIN = "elitonnrenato@gmail.com";
 
         function switchTab(tipo) {
             abaAtual = tipo;
