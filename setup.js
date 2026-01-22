@@ -10,19 +10,12 @@
 
 
 
-
-
-
-
 const mysql = require('mysql2');
-
-// Ajuste suas credenciais
 const db = mysql.createConnection({
-    host: '127.0.0.1',
-    user: 'root',
-    password: 'Emilly00@jade', 
-    database: 'educamarket'
+    host: '127.0.0.1', user: 'root', 
+    password: 'Emilly00@jade', database: 'educamarket'
 });
+
 // Criando a tabela para bater IGUAL ao seu código JS
 const sql = `
 DROP TABLE IF EXISTS produtos;
