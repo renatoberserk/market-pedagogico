@@ -1,85 +1,92 @@
-/* NAVBAR COMPACTA */
-.navbar {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    background: #fff;
-    height: 60px;
-    z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    display: flex;
-    align-items: center;
-}
-
-.nav-content {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 10px;
-}
-
-.nav-right {
-    display: flex;
-    align-items: center;
-    gap: 8px; /* Espaço entre os botões */
-}
-
-/* BOTÕES ESTILIZADOS (Baseados na sua foto) */
-.btn-admin {
-    background: #a259ff;
-    color: white;
-    border: none;
-    padding: 5px 12px;
-    border-radius: 8px;
-    font-weight: bold;
-    font-size: 12px;
-}
-
-.btn-pdfs {
-    background: #eef6ff;
-    color: #3b82f6;
-    border: none;
-    padding: 5px 12px;
-    border-radius: 8px;
-    font-weight: bold;
-    font-size: 12px;
-}
-
-.user-name {
-    font-size: 14px;
-    color: #444;
-}
-
-/* HERO SECTION: Logo Centralizado */
 .hero-section {
-    padding: 80px 20px 40px 20px; /* 80px para não ficar atrás da navbar */
+    width: 100%;
+    padding: 60px 20px;
+    background-color: #fff; /* Ou a cor de fundo do seu site */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-container {
     text-align: center;
-    background-color: #fff;
+    max-width: 800px;
+}
+
+/* A "coisa redonda" (logo) */
+.logo-wrapper {
+    margin-bottom: 20px;
 }
 
 .main-logo {
-    width: 120px; /* Tamanho médio para o logo central */
-    height: auto;
-    margin-bottom: 15px;
+    width: 150px; /* Ajuste o tamanho da "coisa redonda" aqui */
+    height: 150px;
+    border-radius: 50%; /* Garante que fique redondo */
+    object-fit: cover;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
 }
 
+.main-logo:hover {
+    transform: scale(1.05);
+}
+
+/* Fonte Elegante */
 .main-title {
-    font-size: 2.2rem;
-    color: #ff6b00;
-    font-style: italic;
+    font-family: 'Playfair Display', serif; /* Fonte elegante serifada */
+    font-size: 3.5rem;
     font-weight: 800;
+    font-style: italic;
+    color: #fb923c; /* Laranja do seu tema */
+    margin: 0;
+    line-height: 1.1;
 }
 
 .main-subtitle {
-    color: #888;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #9ca3af;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    margin-top: 5px;
+    margin-bottom: 30px;
 }
 
-/* AJUSTE MOBILE */
-@media (max-width: 480px) {
-    .user-name { display: none; } /* Esconde o nome no celular se ficar apertado */
-    .main-title { font-size: 1.8rem; }
+/* Botões centralizados abaixo do título */
+.hero-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.action-btn {
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: bold;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-admin { background: #a855f7; color: white; }
+.btn-pdfs { background: #dbeafe; color: #1e40af; }
+.btn-login { background: #fb923c; color: white; }
+.btn-carrinho { background: #f3f4f6; color: #374151; }
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+/* Ajuste para Celular */
+@media (max-width: 600px) {
+    .main-title { font-size: 2.5rem; }
+    .main-logo { width: 120px; height: 120px; }
+    .hero-actions { gap: 10px; }
 }
