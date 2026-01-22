@@ -1,44 +1,28 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Educa Materiais - Vitrine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        body { font-family: 'Quicksand', sans-serif; background-color: #fcfaf7; margin: 0; }
-        header { 
-            background: white; padding: 10px 20px; display: flex; 
-            justify-content: space-between; align-items: center; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 50;
-        }
-        .btn-carrinho {
-            background: #3b82f6; color: white; border: none; padding: 10px 15px;
-            border-radius: 15px; font-weight: bold; cursor: pointer; position: relative;
-        }
-        .cart-badge {
-            position: absolute; top: -5px; right: -5px; background: #ef4444;
-            color: white; font-size: 11px; width: 22px; height: 22px;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            border: 2px solid white;
-        }
-        #modal-carrinho { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; justify-content: flex-end; z-index: 100; }
-        .modal-body { background: white; width: 100%; max-width: 380px; height: 100%; display: flex; flex-direction: column; }
-    </style>
+
+    <link rel="stylesheet" href="assets/css/index.css">
 </head>
+
 <body>
 
     <header>
-    <div class="flex items-center gap-3 cursor-pointer transition-transform hover:scale-105" onclick="location.href='index.html'">
-    <img src="assets/img/logo.png" alt="Educa Materiais Logo" class="w-16 h-16 object-contain"> 
-    
-    <div class="flex flex-col">
-        <h1 class="text-4xl font-extrabold text-orange-500 italic leading-none">Educa Materiais</h1>
-        <span class="text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase">Premium Resources</span>
-    </div>
-</div>
+        <div class="flex items-center gap-3 cursor-pointer transition-transform hover:scale-105"
+            onclick="location.href='index.html'">
+            <img src="assets/img/logo.png" alt="Educa Materiais Logo" class="w-16 h-16 object-contain">
+
+            <div class="flex flex-col">
+                <h1 class="text-4xl font-extrabold text-orange-500 italic leading-none">Educa Materiais</h1>
+                <span class="text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase">Premium Resources</span>
+            </div>
+        </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
             <button class="btn-carrinho" onclick="toggleCarrinho()">
@@ -46,7 +30,8 @@
                 <span id="cart-count" class="cart-badge">0</span>
             </button>
             <div id="header-auth">
-                <button onclick="location.href='login.html'" style="background:#fb923c; color:white; border:none; padding:10px 15px; border-radius:12px; font-weight:bold; cursor:pointer;">Entrar</button>
+                <button onclick="location.href='login.html'"
+                    style="background:#fb923c; color:white; border:none; padding:10px 15px; border-radius:12px; font-weight:bold; cursor:pointer;">Entrar</button>
             </div>
         </div>
     </header>
@@ -58,7 +43,7 @@
 
     <main class="max-w-7xl mx-auto px-4 py-10">
         <h3 class="text-gray-700 mb-8 border-l-4 border-orange-400 pl-3 text-xl font-bold">Novidades para sua aula</h3>
-        
+
         <div id="vitrine-produtos" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <p class="text-gray-400 col-span-full text-center py-10">Carregando materiais...</p>
         </div>
@@ -76,11 +61,14 @@
                     <span>Total:</span>
                     <span id="total-carrinho" class="text-green-600 text-xl">R$ 0,00</span>
                 </div>
-                <button onclick="location.href='checkout.html'" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-2xl font-bold transition-colors">Finalizar Compra</button>
+                <button onclick="location.href='checkout.html'"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-2xl font-bold transition-colors">Finalizar
+                    Compra</button>
             </div>
         </div>
     </div>
 
-  <script src="index.js"></script>
+    <script src="index.js"></script>
 </body>
+
 </html>
