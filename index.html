@@ -3,166 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EducaMarket - Materiais Pedagógicos</title>
+    <title>Educa Materiais - Vitrine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Quicksand', sans-serif; background-color: #fcfaf7; }
-        .product-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        body { font-family: 'Quicksand', sans-serif; background-color: #fcfaf7; margin: 0; }
+        header { 
+            background: white; padding: 10px 20px; display: flex; 
+            justify-content: space-between; align-items: center; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 50;
+        }
+        .btn-carrinho {
+            background: #3b82f6; color: white; border: none; padding: 10px 15px;
+            border-radius: 15px; font-weight: bold; cursor: pointer; position: relative;
+        }
+        .cart-badge {
+            position: absolute; top: -5px; right: -5px; background: #ef4444;
+            color: white; font-size: 11px; width: 22px; height: 22px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            border: 2px solid white;
+        }
+        #modal-carrinho { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; justify-content: flex-end; z-index: 100; }
+        .modal-body { background: white; width: 100%; max-width: 380px; height: 100%; display: flex; flex-direction: column; }
     </style>
 </head>
-<body class="relative">
+<body>
 
-    <nav class="bg-white shadow-sm border-b border-orange-100 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-orange-400">✏️ Educa<span class="text-blue-400">Market</span></h1>
-            
-            <div class="flex items-center gap-4">
-                <button onclick="toggleCarrinho()" class="relative p-2 text-gray-600 hover:bg-orange-50 rounded-full transition">
-                    <span class="text-2xl">🛒</span>
-                    <span id="cart-count" class="absolute top-0 right-0 bg-red-400 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span>
-                </button>
-                
-                <div class="flex items-center gap-2 border-l pl-4 cursor-pointer" onclick="window.location.href='login.html'">
-                    <img src="https://ui-avatars.com/api/?name=Prof&background=bfdbfe" class="w-8 h-8 rounded-full" alt="Perfil">
-                    <span id="nome-professor" class="hidden md:block text-sm font-medium text-gray-700">Olá, Entrar</span>
-                </div>
+    <header>
+    <div class="flex items-center gap-3 cursor-pointer transition-transform hover:scale-105" onclick="location.href='index.html'">
+    <img src="assets/img/logo.png" alt="Educa Materiais Logo" class="w-16 h-16 object-contain"> 
+    
+    <div class="flex flex-col">
+        <h1 class="text-4xl font-extrabold text-orange-500 italic leading-none">Educa Materiais</h1>
+        <span class="text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase">Premium Resources</span>
+    </div>
+</div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn-carrinho" onclick="toggleCarrinho()">
+                🛒 <span class="hidden md:inline">Carrinho</span>
+                <span id="cart-count" class="cart-badge">0</span>
+            </button>
+            <div id="header-auth">
+                <button onclick="location.href='login.html'" style="background:#fb923c; color:white; border:none; padding:10px 15px; border-radius:12px; font-weight:bold; cursor:pointer;">Entrar</button>
             </div>
         </div>
-    </nav>
+    </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-8">
-        <header class="mb-10 text-center md:text-left">
-            <h2 class="text-3xl font-bold text-gray-800">Sala dos Professores 🍎</h2>
-            <p class="text-gray-500">Encontre os melhores recursos didáticos para suas aulas.</p>
-        </header>
+    <div style="background: #ffedd5; padding: 40px 20px; text-align: center;">
+        <h2 style="color: #9a3412; margin: 0; font-size: 24px;">Materiais Didáticos Criativos 🎨</h2>
+        <p style="color: #c2410c; margin: 5px 0 0 0; font-size: 16px;">Tudo para sua aula em um só lugar.</p>
+    </div>
 
-        <div class="flex gap-3 overflow-x-auto pb-4 mb-8 no-scrollbar">
-            <span class="bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-semibold cursor-pointer whitespace-nowrap hover:bg-blue-200 transition">Alfabetização</span>
-            <span class="bg-pink-100 text-pink-600 px-4 py-2 rounded-full text-sm font-semibold cursor-pointer whitespace-nowrap hover:bg-pink-200 transition">Matemática</span>
-            <span class="bg-green-100 text-green-600 px-4 py-2 rounded-full text-sm font-semibold cursor-pointer whitespace-nowrap hover:bg-green-200 transition">Educação Infantil</span>
-            <span class="bg-purple-100 text-purple-600 px-4 py-2 rounded-full text-sm font-semibold cursor-pointer whitespace-nowrap hover:bg-purple-200 transition">Datas Comemorativas</span>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            
-            <div class="product-card bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100">
-                <div class="h-48 bg-blue-50 flex items-center justify-center overflow-hidden">
-                    <img src="https://img.freepik.com/vetores-gratis/modelo-de-planilha-de-letras-do-alfabeto_23-2148906649.jpg" class="object-cover w-full h-full" alt="Combo Alfabetização">
-                </div>
-                <div class="p-4">
-                    <h3 class="font-bold text-gray-800 text-sm md:text-base mb-1 uppercase">Combo Alfabetização</h3>
-                    <p class="text-gray-500 text-xs mb-3 line-clamp-2">Atividades lúdicas para consciência fonológica.</p>
-                    <div class="flex justify-between items-center">
-                        <span class="text-green-600 font-bold text-lg">R$ 29,90</span>
-                        <button onclick="adicionarAoCarrinho(1, 'Combo Alfabetização', 29.90, 'https://img.freepik.com/vetores-gratis/modelo-de-planilha-de-letras-do-alfabeto_23-2148906649.jpg')" class="bg-orange-400 hover:bg-orange-500 text-white p-2 px-3 rounded-lg text-sm transition shadow-md">
-                            + 🛒
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="product-card bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100">
-                <div class="h-48 bg-pink-50 flex items-center justify-center overflow-hidden">
-                    <img src="https://img.freepik.com/vetores-gratis/planilha-de-numeros-coloridos-para-criancas_23-2148906645.jpg" class="object-cover w-full h-full" alt="Números">
-                </div>
-                <div class="p-4">
-                    <h3 class="font-bold text-gray-800 text-sm md:text-base mb-1 uppercase">Números</h3>
-                    <p class="text-gray-500 text-xs mb-3 line-clamp-2">Jogos matemáticos e quantidades.</p>
-                    <div class="flex justify-between items-center">
-                        <span class="text-green-600 font-bold text-lg">R$ 15,00</span>
-                        <button onclick="adicionarAoCarrinho(2, 'Números', 15.00, 'https://img.freepik.com/vetores-gratis/planilha-de-numeros-coloridos-para-criancas_23-2148906645.jpg')" class="bg-orange-400 hover:bg-orange-500 text-white p-2 px-3 rounded-lg text-sm transition shadow-md">
-                            + 🛒
-                        </button>
-                    </div>
-                </div>
-            </div>
-
+    <main class="max-w-7xl mx-auto px-4 py-10">
+        <h3 class="text-gray-700 mb-8 border-l-4 border-orange-400 pl-3 text-xl font-bold">Novidades para sua aula</h3>
+        
+        <div id="vitrine-produtos" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <p class="text-gray-400 col-span-full text-center py-10">Carregando materiais...</p>
         </div>
     </main>
 
-    <div id="cart-overlay" class="fixed inset-0 bg-black/50 z-[60] hidden" onclick="toggleCarrinho()"></div>
-    <div id="carrinho-lateral" class="fixed right-0 top-0 h-full w-full max-w-sm bg-white shadow-2xl z-[61] transform translate-x-full transition-transform duration-300 flex flex-col">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-orange-50">
-            <h2 class="font-bold text-gray-800 uppercase tracking-tight">🛍️ Meu Carrinho</h2>
-            <button onclick="toggleCarrinho()" class="text-2xl text-gray-400 hover:text-red-500">&times;</button>
-        </div>
-        
-        <div id="lista-carrinho" class="flex-1 overflow-y-auto p-4 space-y-4">
+    <div id="modal-carrinho" onclick="if(event.target == this) toggleCarrinho()">
+        <div class="modal-body">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h2 class="m-0 text-lg font-bold">Meu Carrinho 🛒</h2>
+                <button onclick="toggleCarrinho()" class="bg-none border-none text-3xl cursor-pointer">&times;</button>
             </div>
-
-        <div class="p-6 bg-gray-50 border-t">
-            <div class="flex justify-between mb-4">
-                <span class="font-bold text-gray-600">Total:</span>
-                <span id="total-carrinho" class="font-bold text-2xl text-green-600">R$ 0,00</span>
+            <div id="itens-carrinho" class="flex-grow overflow-y-auto p-5 bg-gray-50"></div>
+            <div class="p-5 border-top border-gray-100">
+                <div class="flex justify-between mb-4 font-bold">
+                    <span>Total:</span>
+                    <span id="total-carrinho" class="text-green-600 text-xl">R$ 0,00</span>
+                </div>
+                <button onclick="location.href='checkout.html'" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-2xl font-bold transition-colors">Finalizar Compra</button>
             </div>
-            <button onclick="window.location.href='checkout.html'" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95">
-                PAGAR COM PIX
-            </button>
         </div>
     </div>
 
     <script>
         let carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
 
-        function toggleCarrinho() {
-            document.getElementById('carrinho-lateral').classList.toggle('translate-x-full');
-            document.getElementById('cart-overlay').classList.toggle('hidden');
-        }
-
-        function adicionarAoCarrinho(id, nome, preco, img) {
-            carrinho.push({id, nome, preco, img});
-            salvar();
-            renderizar();
-            toggleCarrinho(); // Abre para mostrar o item adicionado
-        }
-
-        function removerItem(index) {
-            carrinho.splice(index, 1);
-            salvar();
-            renderizar();
-        }
-
-        function salvar() {
-            localStorage.setItem('edu_cart', JSON.stringify(carrinho));
-        }
-
-        function renderizar() {
-            const lista = document.getElementById('lista-carrinho');
-            const totalTxt = document.getElementById('total-carrinho');
-            const contador = document.getElementById('cart-count');
+        function verificarSessao() {
+            const nome = localStorage.getItem('prof_nome');
+            const isAdmin = localStorage.getItem('prof_admin') === 'true';
+            const authContainer = document.getElementById('header-auth');
             
-            lista.innerHTML = '';
-            let total = 0;
-
-            carrinho.forEach((item, index) => {
-                total += item.preco;
-                lista.innerHTML += `
-                    <div class="flex gap-3 bg-white p-3 rounded-lg border border-gray-100 shadow-sm items-center">
-                        <img src="${item.img}" class="w-12 h-12 rounded object-cover">
-                        <div class="flex-1">
-                            <p class="text-xs font-bold text-gray-700 uppercase">${item.nome}</p>
-                            <p class="text-blue-500 font-bold text-sm">R$ ${item.preco.toFixed(2)}</p>
-                        </div>
-                        <button onclick="removerItem(${index})" class="text-red-400 hover:text-red-600">✕</button>
-                    </div>
-                `;
-            });
-
-            totalTxt.innerText = `R$ ${total.toFixed(2)}`;
-            contador.innerText = carrinho.length;
-            
-            // Lógica de saudação segura
-            const nomeSalvo = localStorage.getItem('prof_nome');
-            if(nomeSalvo && nomeSalvo.trim() !== "") {
-                document.getElementById('nome-professor').innerText = "Olá, " + nomeSalvo.split(' ')[0];
-            } else {
-                document.getElementById('nome-professor').innerText = "Olá, Entrar";
+            if (nome) {
+                let btnAdmin = isAdmin ? `<button onclick="location.href='admin.html'" style="background:#8b5cf6; color:white; border:none; padding:8px 12px; border-radius:10px; font-weight:bold; cursor:pointer; font-size:12px; margin-right:5px;">👑 Admin</button>` : '';
+                
+                authContainer.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        ${btnAdmin}
+                        <button onclick="location.href='meus-materiais.html'" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-xl font-bold text-xs">Meus PDFs</button>
+                        <span class="text-xs font-bold text-gray-600">${nome.split(' ')[0]}</span>
+                        <button onclick="logout()" class="text-lg pl-2">🚪</button>
+                    </div>`;
             }
         }
 
-        window.onload = renderizar;
+        function logout() { localStorage.clear(); location.href = 'index.html'; }
+
+        async function carregarProdutos() {
+            const container = document.getElementById('vitrine-produtos');
+            try {
+                const response = await fetch('http://localhost:3000/produtos');
+                const produtos = await response.json();
+                
+                if (produtos.length === 0) {
+                    container.innerHTML = "<p class='col-span-full text-center text-gray-400'>Nenhum produto cadastrado.</p>";
+                    return;
+                }
+
+                container.innerHTML = produtos.map(p => {
+                    const imgFinal = p.imagem_url && p.imagem_url.includes('http') 
+                        ? p.imagem_url 
+                        : `https://placehold.co/400x300/f3f4f6/6366f1?text=Material+Didatico`;
+
+                    return `
+                        <div class="bg-white rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all border border-gray-100 flex flex-col h-full">
+                            <div class="bg-gray-50 rounded-2xl h-48 mb-4 overflow-hidden flex items-center justify-center">
+                                <img src="${imgFinal}" 
+                                     alt="${p.nome}"
+                                     class="w-full h-full object-cover"
+                                     onerror="this.src='https://placehold.co/400x300/f3f4f6/a855f7?text=Erro+na+Imagem'">
+                            </div>
+                            
+                            <div class="flex flex-col flex-grow">
+                                <h3 class="font-bold text-gray-800 text-base mb-1 leading-tight h-10 overflow-hidden">${p.nome}</h3>
+                                <p class="text-[10px] text-gray-400 mb-4 uppercase tracking-wider font-bold">PDF pronto para imprimir</p>
+                                
+                                <div class="mt-auto flex justify-between items-center">
+                                    <span class="text-green-600 font-bold text-lg">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
+                                    <button onclick="adicionarAoCarrinho(${p.id}, '${p.nome.replace(/'/g, "\\'")}', ${p.preco})" 
+                                            class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all active:scale-90 shadow-lg shadow-orange-100">
+                                        + Adicionar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                container.innerHTML = "<p class='col-span-full text-center text-red-400 font-bold'>Erro ao carregar o banco de dados. O servidor Node.js está ligado?</p>";
+            }
+        }
+
+        function toggleCarrinho() {
+            const m = document.getElementById('modal-carrinho');
+            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+            if(m.style.display === 'flex') renderCarrinho();
+        }
+
+        function adicionarAoCarrinho(id, nome, preco) {
+            carrinho.push({ id, nome, preco, uid: Date.now() });
+            localStorage.setItem('edu_cart', JSON.stringify(carrinho));
+            updateBadge();
+            toggleCarrinho();
+        }
+
+        function remover(uid) {
+            carrinho = carrinho.filter(i => i.uid !== uid);
+            localStorage.setItem('edu_cart', JSON.stringify(carrinho));
+            updateBadge();
+            renderCarrinho();
+        }
+
+        function updateBadge() {
+            document.getElementById('cart-count').innerText = carrinho.length;
+        }
+
+        function renderCarrinho() {
+            const cont = document.getElementById('itens-carrinho');
+            let total = 0;
+            if(carrinho.length === 0) {
+                cont.innerHTML = "<p style='text-align:center; color:#999; margin-top:50px;'>Carrinho vazio</p>";
+                document.getElementById('total-carrinho').innerText = "R$ 0,00";
+                return;
+            }
+            cont.innerHTML = carrinho.map(i => {
+                total += parseFloat(i.preco);
+                return `<div class="flex justify-between items-center bg-white p-3 rounded-2xl mb-3 border border-gray-100 shadow-sm text-left">
+                    <div>
+                        <p class="m-0 font-bold text-xs text-gray-700">${i.nome}</p>
+                        <p class="m-0 text-green-600 font-bold text-xs">R$ ${parseFloat(i.preco).toFixed(2).replace('.', ',')}</p>
+                    </div>
+                    <button onclick="remover(${i.uid})" class="bg-none border-none text-red-500 cursor-pointer p-1">🗑️</button>
+                </div>`;
+            }).join('');
+            document.getElementById('total-carrinho').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        }
+
+        window.onload = () => {
+            verificarSessao();
+            carregarProdutos();
+            updateBadge();
+        };
     </script>
 </body>
 </html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Educa Materiais</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Quicksand', sans-serif; }
+        #painel-admin { display: none; } 
+    </style>
+</head>
+<body class="bg-gray-50 p-4 md:p-10">
+
+    <div id="painel-admin" class="max-w-5xl mx-auto">
+        <header class="flex justify-between items-center mb-10 bg-white p-6 rounded-3xl shadow-sm">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Painel de Controle ⚙️</h1>
+                <p class="text-sm text-gray-500" id="admin-welcome">Verificando...</p>
+            </div>
+            <button onclick="window.location.href='index.html'" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-2 rounded-2xl font-bold transition-all">
+                Sair do Painel
+            </button>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1 bg-white p-8 rounded-3xl shadow-sm border border-gray-100 h-fit sticky top-10">
+                <h2 id="form-title" class="text-lg font-bold text-gray-700 mb-6">Cadastrar Novo PDF</h2>
+                <form id="form-produto" class="space-y-4">
+                    <input type="text" id="img-prod" placeholder="Link da Imagem (Capa)" class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                    <input type="text" id="nome-prod" required placeholder="Título do Material" class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                    <input type="number" step="0.01" id="preco-prod" required placeholder="Preço (Ex: 29.90)" class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                    <input type="text" id="link-prod" required placeholder="Link do PDF (Google Drive/Dropbox)" class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                    
+                    <button type="submit" id="btn-submit" class="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-orange-600 transition-all">
+                        Publicar Material
+                    </button>
+                    
+                    <button type="button" id="btn-cancelar" onclick="limparFormulario()" class="w-full hidden bg-gray-200 text-gray-600 font-bold py-2 rounded-2xl mt-2">
+                        Cancelar Edição
+                    </button>
+                </form>
+            </div>
+
+            <div class="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                <h2 class="text-lg font-bold text-gray-700 mb-6">Materiais na Loja</h2>
+                <div id="lista-admin" class="space-y-4">
+                    <p class="text-gray-400 italic">Carregando lista...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const emailLogado = localStorage.getItem('prof_email');
+        let modoEdicaoId = null; // Armazena o ID se estivermos editando
+
+        // 1. VERIFICAÇÃO DE ACESSO
+        async function validarAcesso() {
+            if (!emailLogado) { window.location.href = 'index.html'; return; }
+            try {
+                const resp = await fetch(`http://localhost:3000/verificar-admin?email=${emailLogado}`);
+                const data = await resp.json();
+                if (data.isAdmin) {
+                    document.getElementById('painel-admin').style.display = 'block';
+                    document.getElementById('admin-welcome').innerText = "Modo Administrador Ativo";
+                    carregarProdutosAdmin();
+                } else {
+                    alert("Acesso Negado!");
+                    window.location.href = 'index.html';
+                }
+            } catch (err) { window.location.href = 'index.html'; }
+        }
+
+        // 2. CARREGAR E EXIBIR PRODUTOS COM BOTÕES DE AÇÃO
+        async function carregarProdutosAdmin() {
+            const resp = await fetch('http://localhost:3000/produtos');
+            const produtos = await resp.json();
+            const container = document.getElementById('lista-admin');
+
+            container.innerHTML = produtos.length ? produtos.map(p => `
+                <div class="flex justify-between items-center p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-orange-200 transition-all">
+                    <div class="flex items-center gap-4">
+                        <img src="${p.imagem_url || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-lg object-cover shadow-sm">
+                        <div class="max-w-[150px] md:max-w-xs text-left">
+                            <h4 class="font-bold text-gray-800 truncate">${p.nome}</h4>
+                            <p class="text-xs text-green-600 font-bold">R$ ${parseFloat(p.preco).toFixed(2)}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick='prepararEdicao(${JSON.stringify(p)})' class="bg-blue-500 text-white p-2 rounded-xl hover:bg-blue-600 transition">✏️</button>
+                        <button onclick="excluirProduto(${p.id})" class="bg-red-500 text-white p-2 rounded-xl hover:bg-red-600 transition">🗑️</button>
+                    </div>
+                </div>
+            `).join('') : '<p class="text-gray-400">Nenhum produto cadastrado.</p>';
+        }
+
+        // 3. PREPARAR FORMULÁRIO PARA EDIÇÃO
+        function prepararEdicao(p) {
+            modoEdicaoId = p.id;
+            document.getElementById('form-title').innerText = "Editando Material";
+            document.getElementById('img-prod').value = p.imagem_url || '';
+            document.getElementById('nome-prod').value = p.nome;
+            document.getElementById('preco-prod').value = p.preco;
+            document.getElementById('link-prod').value = p.link_download;
+            
+            document.getElementById('btn-submit').innerText = "Salvar Alterações";
+            document.getElementById('btn-submit').classList.replace('bg-orange-500', 'bg-blue-600');
+            document.getElementById('btn-cancelar').classList.remove('hidden');
+        }
+
+        function limparFormulario() {
+            modoEdicaoId = null;
+            document.getElementById('form-produto').reset();
+            document.getElementById('form-title').innerText = "Cadastrar Novo PDF";
+            document.getElementById('btn-submit').innerText = "Publicar Material";
+            document.getElementById('btn-submit').classList.replace('bg-blue-600', 'bg-orange-500');
+            document.getElementById('btn-cancelar').classList.add('hidden');
+        }
+
+        // 4. AÇÃO DE EXCLUIR
+        async function excluirProduto(id) {
+            if (!confirm("Deseja realmente excluir este material?")) return;
+            const res = await fetch(`http://localhost:3000/produtos/${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email_admin: emailLogado })
+            });
+            if (res.ok) { carregarProdutosAdmin(); }
+        }
+
+        // 5. SALVAR (NOVO OU EDIÇÃO)
+        document.getElementById('form-produto').onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                email_admin: emailLogado,
+                nome: document.getElementById('nome-prod').value,
+                preco: document.getElementById('preco-prod').value,
+                link_download: document.getElementById('link-prod').value,
+                imagem_url: document.getElementById('img-prod').value
+            };
+
+            const url = modoEdicaoId ? `http://localhost:3000/produtos/${modoEdicaoId}` : 'http://localhost:3000/produtos';
+            const method = modoEdicaoId ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                alert("✅ Operação realizada com sucesso!");
+                limparFormulario();
+                carregarProdutosAdmin();
+            } else {
+                alert("❌ Erro no servidor.");
+            }
+        };
+
+        window.onload = validarAcesso;
+    </script>
+</body>
+</html>

@@ -1,66 +1,181 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pagamento PIX - EducaMarket</title>
+    <title>Pagamento PIX - Educa Materiais</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        .qr-gradient {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+        }
+    </style>
 </head>
-<body class="bg-slate-50 font-['Quicksand'] min-h-screen flex flex-col items-center p-4">
+
+<body class="bg-slate-50 min-h-screen flex flex-col items-center p-4">
 
     <header class="w-full max-w-md py-6 flex justify-between items-center">
-        <button onclick="window.location.href='index.html'" class="text-gray-400 hover:text-gray-600 font-bold">← Voltar</button>
-        <h1 class="text-orange-400 font-bold text-xl uppercase tracking-tighter">✏️ EducaMarket</h1>
-        <div class="w-10"></div> </header>
+        <button onclick="window.location.href='index.html'"
+            class="text-gray-400 hover:text-orange-500 font-bold flex items-center gap-1 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Voltar
+        </button>
+        <div class="flex items-center gap-1 italic">
+            <span class="text-2xl">🍎</span>
+            <h1 class="text-orange-400 font-bold text-xl uppercase tracking-tighter">Educa Materiais</h1>
+        </div>
+        <div class="w-10"></div>
+    </header>
 
-    <div class="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden">
-        <div class="bg-green-500 p-6 text-center text-white">
-            <p class="text-green-100 text-sm font-bold uppercase tracking-widest">Aguardando Pagamento</p>
-            <h2 id="valor-final" class="text-4xl font-bold mt-1 text-white">R$ 0,00</h2>
+    <div class="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100">
+        <div id="status-header" class="bg-green-500 p-8 text-center text-white relative transition-colors">
+            <div id="pulse-dot" class="absolute top-4 right-4 animate-pulse bg-green-400 w-3 h-3 rounded-full"></div>
+            <p id="status-text" class="text-green-100 text-xs font-bold uppercase tracking-widest mb-1">Aguardando
+                Pagamento</p>
+            <h2 id="valor-final" class="text-5xl font-bold mt-1 tracking-tight">R$ 0,00</h2>
         </div>
 
         <div class="p-8 text-center">
-            <div class="bg-gray-100 p-4 rounded-2xl inline-block mb-6 shadow-inner">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=EducaMarketPix" class="w-40 h-40">
+            <div id="qr-container"
+                class="qr-gradient p-6 rounded-[2rem] inline-block mb-6 border-2 border-dashed border-green-100 shadow-inner min-w-[200px] min-h-[200px] flex items-center justify-center">
+                <div id="qr-loader"
+                    class="animate-spin h-10 w-10 border-4 border-green-500 border-t-transparent rounded-full"></div>
+                <img id="qr-code-img" src="" alt="QR Code PIX" class="w-44 h-44 rounded-lg hidden">
             </div>
 
-            <h3 class="font-bold text-gray-700 mb-2 leading-tight">Escaneie o QR Code ou use o Pix Copia e Cola</h3>
-            
+            <h3 class="font-bold text-gray-700 mb-2 leading-tight px-4">Escaneie o QR Code acima com o app do seu banco:
+            </h3>
+
             <div class="mt-6 space-y-3">
-                <div class="bg-gray-50 border border-dashed border-gray-300 p-3 rounded-xl flex items-center justify-between">
-                    <span class="text-[10px] text-gray-400 truncate w-40">00020126580014br.gov.bcb.pix0136educamarketpix...</span>
-                    <button onclick="copyPix()" class="bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-xs font-bold active:bg-blue-300">COPIAR</button>
+                <div
+                    class="bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl flex items-center justify-between gap-3">
+                    <code id="pix-code"
+                        class="text-[10px] text-gray-400 truncate text-left flex-grow">Gerando código Pix...</code>
+                    <button onclick="copyPix()" id="btn-copy"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 active:scale-95 transition-all flex-shrink-0">
+                        COPIAR
+                    </button>
                 </div>
-                
-                <button class="w-full bg-green-500 text-white font-bold py-4 rounded-xl shadow-md flex items-center justify-center gap-2">
-                   <span>✓ JÁ REALIZEI O PAGAMENTO</span>
-                </button>
+
+                <p class="text-[10px] text-gray-400 font-bold italic">A confirmação é automática em poucos segundos.</p>
             </div>
 
-            <div class="mt-8 flex gap-4 items-center p-4 bg-blue-50 rounded-2xl text-left border border-blue-100">
-                <span class="text-2xl">📧</span>
-                <p class="text-[11px] text-blue-800 leading-snug">
-                    <strong>IMPORTANTE:</strong> O link para download do material pedagógico será enviado automaticamente para o seu e-mail cadastrado assim que o pagamento for confirmado.
+            <div class="mt-8 flex gap-4 items-start p-5 bg-orange-50 rounded-3xl text-left border border-orange-100">
+                <div class="bg-orange-200 p-2 rounded-full">📩</div>
+                <p class="text-[11px] text-orange-800 leading-snug">
+                    <strong>LIBERAÇÃO IMEDIATA:</strong> Assim que pagar, sua conta será atualizada e o material
+                    aparecerá em <strong>"Meus Materiais"</strong>.
                 </p>
             </div>
         </div>
     </div>
 
+    <p class="mt-8 text-gray-400 text-xs text-center">Pagamento processado pelo Mercado Pago <br> 🔒 Conexão Segura</p>
+
     <script>
-        // Pega o valor que estava no carrinho do localStorage
+        let paymentId = null;
+        let pixCopiaECola = "";
+        let checkInterval = null;
+
         document.addEventListener('DOMContentLoaded', () => {
             const carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
-            let total = 0;
-            carrinho.forEach(item => total += item.preco);
-            document.getElementById('valor-final').innerText = `R$ ${total.toFixed(2)}`;
+            if (carrinho.length === 0) return window.location.href = 'index.html';
+
+            const total = carrinho.reduce((acc, item) => acc + parseFloat(item.preco), 0);
+            document.getElementById('valor-final').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+
+            gerarPixReal(total);
         });
 
+        async function gerarPixReal(total) {
+            const email = localStorage.getItem('prof_email');
+
+            try {
+                const response = await fetch('http://localhost:3000/criar-pagamento-pix', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, total })
+                });
+
+                const data = await response.json();
+
+                if (data.qr_code_base64) {
+                    paymentId = data.id;
+                    pixCopiaECola = data.qr_code;
+
+                    // Atualiza Interface
+                    document.getElementById('qr-loader').classList.add('hidden');
+                    const img = document.getElementById('qr-code-img');
+                    img.src = `data:image/jpeg;base64,${data.qr_code_base64}`;
+                    img.classList.remove('hidden');
+                    document.getElementById('pix-code').innerText = pixCopiaECola;
+
+                    // Começa a verificar status
+                    iniciarVerificacaoStatus(data.id);
+                }
+            } catch (error) {
+                console.error("Erro ao gerar Pix:", error);
+                document.getElementById('pix-code').innerText = "Erro ao conectar com servidor.";
+            }
+        }
+
+        function iniciarVerificacaoStatus(id) {
+            checkInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`http://localhost:3000/verificar-pagamento/${id}`);
+                    const data = await res.json();
+
+                    if (data.status === 'approved') {
+                        clearInterval(checkInterval);
+                        finalizarCompraSucesso();
+                    }
+                } catch (e) {
+                    console.log("Aguardando rede...");
+                }
+            }, 5000); // Verifica a cada 5 segundos
+        }
+
+        async function finalizarCompraSucesso() {
+            const email = localStorage.getItem('prof_email');
+            const carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
+
+            // 1. Avisa o servidor para liberar esses itens para o e-mail do professor
+            await fetch('http://localhost:3000/registrar-venda', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, produtos: carrinho })
+            });
+
+            // 2. Limpa o carrinho
+            localStorage.removeItem('edu_cart');
+
+            // 3. Agora sim, redireciona!
+            window.location.href = 'meus-materiais.html';
+        }
+
         function copyPix() {
-            navigator.clipboard.writeText("00020126580014br.gov.bcb.pix0136educamarketpix...");
-            alert("Código PIX copiado! Cole no seu App de banco.");
+            if (!pixCopiaECola) return;
+            const btn = document.getElementById('btn-copy');
+
+            navigator.clipboard.writeText(pixCopiaECola).then(() => {
+                btn.innerText = "COPIADO!";
+                btn.classList.replace('bg-blue-600', 'bg-green-600');
+                setTimeout(() => {
+                    btn.innerText = "COPIAR";
+                    btn.classList.replace('bg-green-600', 'bg-blue-600');
+                }, 2000);
+            });
         }
     </script>
-    <script src="assets/js/main.js"></script>
 </body>
+
 </html>
