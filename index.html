@@ -26,18 +26,24 @@
 
         <div style="display: flex; align-items: center; gap: 10px;">
             <button class="btn-carrinho" onclick="toggleCarrinho()"
-                style="position: relative; display: flex; align-items: center; gap: 5px;">
+                style="position: relative; display: flex; align-items: center; gap: 5px; overflow: visible !important;">
+
                 🛒 <span class="hidden md:inline">Carrinho</span>
 
-                <span id="cart-count" class="cart-badge" style="display: none;">0</span>
+                <span id="cart-count" class="cart-badge" style="display: none; position: absolute; top: -8px; right: -8px; 
+                   background: #ef4444; color: white; border-radius: 50%; 
+                   width: 18px; height: 18px; font-size: 10px; font-weight: bold; 
+                   display: flex; align-items: center; justify-content: center; 
+                   border: 2px solid white; z-index: 10;">0</span>
             </button>
+        </div>
 
-            <div id="header-auth">
-                <button onclick="location.href='login.html'"
-                    style="background:#fb923c; color:white; border:none; padding:10px 15px; border-radius:12px; font-weight:bold; cursor:pointer;">
-                    Entrar
-                </button>
-            </div>
+        <div id="header-auth">
+            <button onclick="location.href='login.html'"
+                style="background:#fb923c; color:white; border:none; padding:10px 15px; border-radius:12px; font-weight:bold; cursor:pointer;">
+                Entrar
+            </button>
+        </div>
         </div>
     </header>
 
