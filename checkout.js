@@ -132,4 +132,64 @@ function copyPix() {
         document.body.removeChild(input);
         alert("Código Copiado!");
     });
+
+    // Efeitos visuais adicionais para a página de pagamento
+
+// Animação quando o código PIX é copiado
+function showCopiedMessage() {
+    const message = document.createElement('div');
+    message.className = 'copied-message';
+    message.textContent = 'Código PIX copiado!';
+    document.body.appendChild(message);
+    
+    setTimeout(() => message.classList.add('show'), 10);
+    
+    setTimeout(() => {
+        message.classList.remove('show');
+        setTimeout(() => message.remove(), 300);
+    }, 2000);
+}
+
+// Atualize sua função copyPix() para incluir:
+function copyPix() {
+    const pixCode = document.getElementById('pix-code').textContent;
+    navigator.clipboard.writeText(pixCode).then(() => {
+        const btn = document.getElementById('btn-copy');
+        const originalText = btn.textContent;
+        
+        // Efeito visual no botão
+        btn.classList.add('copied');
+        btn.textContent = '✓ COPIADO!';
+        showCopiedMessage();
+        
+        setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.textContent = originalText;
+        }, 2000);
+    });
+}
+
+// Simulação de confirmação de pagamento (para demonstração)
+function simulatePaymentConfirmation() {
+    const header = document.getElementById('status-header');
+    const statusText = document.getElementById('status-text');
+    const pulseDot = document.getElementById('pulse-dot');
+    
+    setTimeout(() => {
+        // Atualiza status
+        header.classList.add('pagamento-confirmado');
+        statusText.textContent = 'Pagamento Confirmado ✓';
+        pulseDot.style.background = '#059669';
+        pulseDot.style.animation = 'none';
+        
+        // Efeito de confetti
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti active';
+        confetti.style.background = 'radial-gradient(circle at 50% 50%, transparent 0%, transparent 20%, rgba(16, 185, 129, 0.1) 21%, transparent 22%)';
+        document.body.appendChild(confetti);
+        
+        setTimeout(() => confetti.remove(), 3000);
+    }, 5000); // Simula confirmação após 5 segundos
+}
+
 }
