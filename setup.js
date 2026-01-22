@@ -2,7 +2,7 @@ const mysql = require('mysql2');
 
 // Use as mesmas credenciais do seu server.js
 const connection = mysql.createConnection({
-  host: '191.252.214.27',
+  host: '127.0.0.1',
   user: 'root', 
   password: 'Emilly00@jade',
   database: 'educamarket'
