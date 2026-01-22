@@ -8,13 +8,580 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Quicksand', sans-serif;
-        }
+        /* assets/css/checkout.css */
 
-        .qr-gradient {
-            background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
-        }
+/* Configurações gerais */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    color: #334155;
+    line-height: 1.6;
+}
+
+/* Cabeçalho elegante */
+header {
+    width: 100%;
+    max-width: 500px;
+    padding: 1.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+/* Botão de voltar estilizado */
+.btn-voltar {
+    color: #64748b;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
+}
+
+.btn-voltar:hover {
+    color: #f97316;
+    transform: translateX(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    border-color: #fed7aa;
+}
+
+.btn-voltar svg {
+    transition: transform 0.3s ease;
+}
+
+.btn-voltar:hover svg {
+    transform: translateX(-2px);
+}
+
+/* Logo da marca */
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #f97316;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+    font-size: 1.25rem;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.emoji-logo {
+    font-size: 1.5rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+/* Container principal do pagamento */
+.payment-container {
+    width: 100%;
+    max-width: 500px;
+    background: white;
+    border-radius: 2.5rem;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f1f5f9;
+    margin: 1rem 0;
+    transform: translateY(0);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.payment-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.15);
+}
+
+/* Cabeçalho do status */
+.status-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    padding: 3rem 2rem;
+    text-align: center;
+    color: white;
+    position: relative;
+    transition: all 0.5s ease;
+}
+
+.status-header.pagamento-confirmado {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.status-header.pagamento-expirado {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Ponto de animação */
+.pulse-dot {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    50% { 
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+.status-text {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 0.5rem;
+}
+
+.valor-final {
+    font-size: 3.5rem;
+    font-weight: 900;
+    letter-spacing: -1px;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-feature-settings: "tnum";
+}
+
+/* Conteúdo do pagamento */
+.payment-content {
+    padding: 2.5rem;
+    text-align: center;
+}
+
+/* Container do QR Code */
+.qr-container {
+    background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+    padding: 2rem;
+    border-radius: 2rem;
+    display: inline-block;
+    margin-bottom: 2rem;
+    border: 2px dashed #a7f3d0;
+    box-shadow: 
+        inset 0 4px 12px rgba(16, 185, 129, 0.1),
+        0 8px 24px rgba(16, 185, 129, 0.1);
+    min-width: 220px;
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.qr-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+}
+
+/* Loader do QR Code */
+.qr-loader {
+    width: 3rem;
+    height: 3rem;
+    border: 3px solid #10b981;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Imagem do QR Code */
+.qr-code-img {
+    width: 180px;
+    height: 180px;
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.5s ease;
+    animation: qrAppear 0.5s ease forwards;
+}
+
+@keyframes qrAppear {
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Instruções */
+.instructions {
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    line-height: 1.4;
+    padding: 0 1rem;
+}
+
+/* Container do código PIX */
+.pix-code-container {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    padding: 1rem;
+    border-radius: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.pix-code-container:hover {
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+}
+
+.pix-code {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.65rem;
+    color: #475569;
+    word-break: break-all;
+    flex-grow: 1;
+    text-align: left;
+    line-height: 1.4;
+    padding: 0.5rem;
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+}
+
+/* Botão copiar */
+.btn-copy {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-copy:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.4);
+}
+
+.btn-copy:active {
+    transform: translateY(0);
+}
+
+.btn-copy.copied {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-copy::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.7s ease;
+}
+
+.btn-copy:hover::after {
+    left: 100%;
+}
+
+/* Nota de confirmação */
+.confirmation-note {
+    font-size: 0.65rem;
+    color: #64748b;
+    font-weight: 800;
+    font-style: italic;
+    margin-bottom: 2rem;
+}
+
+/* Aviso de liberação */
+.release-notice {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+    border-radius: 1.5rem;
+    text-align: left;
+    border: 1px solid #fdba74;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.release-icon {
+    background: #fb923c;
+    color: white;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.release-text {
+    font-size: 0.75rem;
+    color: #7c2d12;
+    line-height: 1.5;
+}
+
+.release-text strong {
+    color: #9a3412;
+}
+
+/* Rodapé de segurança */
+.security-footer {
+    margin-top: 2rem;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.security-footer strong {
+    color: #64748b;
+}
+
+.lock-icon {
+    color: #10b981;
+    display: inline-block;
+    margin: 0 0.25rem;
+    animation: lockShake 3s ease-in-out infinite;
+}
+
+@keyframes lockShake {
+    0%, 90%, 100% { transform: rotate(0); }
+    92% { transform: rotate(-5deg); }
+    96% { transform: rotate(5deg); }
+    98% { transform: rotate(0); }
+}
+
+/* Estados do pagamento */
+.pagamento-confirmado .status-text::after {
+    content: " ✓";
+    animation: checkmark 0.5s ease;
+}
+
+@keyframes checkmark {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Contador regressivo (se adicionar) */
+.countdown {
+    font-size: 0.75rem;
+    color: #ef4444;
+    font-weight: 700;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.countdown-icon {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Animação de confirmação */
+.confetti {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+}
+
+.confetti.active {
+    animation: confettiRain 3s ease forwards;
+}
+
+@keyframes confettiRain {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+    body {
+        padding: 0.5rem;
+    }
+    
+    header {
+        padding: 1rem 0;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    .brand-logo {
+        position: static;
+        transform: none;
+        order: -1;
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn-voltar {
+        order: 1;
+    }
+    
+    .payment-content {
+        padding: 1.5rem;
+    }
+    
+    .valor-final {
+        font-size: 2.75rem;
+    }
+    
+    .qr-container {
+        padding: 1.5rem;
+        min-width: 200px;
+        min-height: 200px;
+    }
+    
+    .qr-code-img {
+        width: 160px;
+        height: 160px;
+    }
+    
+    .pix-code {
+        font-size: 0.55rem;
+    }
+    
+    .btn-copy {
+        padding: 0.6rem 1rem;
+        font-size: 0.7rem;
+    }
+}
+
+/* Animações de entrada */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.payment-container {
+    animation: fadeIn 0.6s ease;
+}
+
+/* Efeito de brilho no valor */
+.valor-final {
+    position: relative;
+    display: inline-block;
+}
+
+.valor-final::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shine 3s ease-in-out infinite;
+}
+
+@keyframes shine {
+    0%, 100% { transform: translateX(-100%); }
+    50% { transform: translateX(100%); }
+}
+
+/* Estilo para código copiado */
+.copied-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #10b981;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+    z-index: 1000;
+    transform: translateX(150%);
+    transition: transform 0.3s ease;
+}
+
+.copied-message.show {
+    transform: translateX(0);
+}
     </style>
 </head>
 
