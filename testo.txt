@@ -1,0 +1,32 @@
+name: Deploy para VPS KingHost
+
+on:
+  push:
+    branches: [ main ] # Dispara quando você envia para a branch main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pegar o código do GitHub
+        uses: actions/checkout@v3
+
+      - name: Enviar arquivos via SSH (rsync)
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "./*"
+          target: "/var/www/educamarket" # Pasta onde o site ficará na VPS
+
+      - name: Executar comandos na VPS (Instalação e Reinicialização)
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/educamarket
+            npm install --production
+            pm2 restart educa-market || pm2 start server.js --name educa-market

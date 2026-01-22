@@ -187,6 +187,7 @@ app.post('/cadastro', (req, res) => {
     });
 });
 
-app.listen(3000, () => console.log("🚀 Servidor ON em http://localhost:3000"));
-
-//teste
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Servidor ON em http://0.0.0.0:${PORT}`);
+});
