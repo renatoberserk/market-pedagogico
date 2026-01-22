@@ -1,31 +1,33 @@
-/* Ajustes para telas de celular (até 768px) */
-@media (max-width: 768px) {
-    /* Faz os itens da vitrine ficarem em 1 ou 2 colunas no máximo */
-    .container-materiais {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 10px;
-        padding: 10px;
-    }
+  /* Ajustes para telas de celular (até 768px) */
+        @media (max-width: 768px) {
 
-    /* Reduz o tamanho das fontes para não quebrar o layout */
-    .nome-material {
-        font-size: 14px;
-        margin-bottom: 5px;
-        line-height: 1.2;
-    }
+            /* Faz os itens da vitrine ficarem em 1 ou 2 colunas no máximo */
+            .container-materiais {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 10px;
+                padding: 10px;
+            }
 
-    /* Posiciona o botão do carrinho de forma que não tampe o conteúdo */
-    .botao-carrinho-fixo {
-        bottom: 20px;
-        right: 20px;
-        width: 50px;
-        height: 50px;
-        z-index: 1000; /* Garante que fique acima de tudo, mas sem tampar o texto fixo */
-    }
+            /* Reduz o tamanho das fontes para não quebrar o layout */
+            .nome-material {
+                font-size: 14px;
+                margin-bottom: 5px;
+                line-height: 1.2;
+            }
 
-    /* Adiciona um recuo no final da página para o botão fixo não esconder o último item */
-    body {
-        padding-bottom: 80px;
-    }
-}
+            /* Posiciona o botão do carrinho de forma que não tampe o conteúdo */
+            .botao-carrinho-fixo {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                z-index: 1000;
+                /* Garante que fique acima de tudo, mas sem tampar o texto fixo */
+            }
+
+            /* Adiciona um recuo no final da página para o botão fixo não esconder o último item */
+            body {
+                padding-bottom: 80px;
+            }
+        }
