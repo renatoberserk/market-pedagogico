@@ -1,0 +1,117 @@
+ let carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
+
+        function verificarSessao() {
+            const nome = localStorage.getItem('prof_nome');
+            const isAdmin = localStorage.getItem('prof_admin') === 'true';
+            const authContainer = document.getElementById('header-auth');
+            
+            if (nome) {
+                let btnAdmin = isAdmin ? `<button onclick="location.href='admin.html'" style="background:#8b5cf6; color:white; border:none; padding:8px 12px; border-radius:10px; font-weight:bold; cursor:pointer; font-size:12px; margin-right:5px;">👑 Admin</button>` : '';
+                
+                authContainer.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        ${btnAdmin}
+                        <button onclick="location.href='meus-materiais.html'" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-xl font-bold text-xs">Meus PDFs</button>
+                        <span class="text-xs font-bold text-gray-600">${nome.split(' ')[0]}</span>
+                        <button onclick="logout()" class="text-lg pl-2">🚪</button>
+                    </div>`;
+            }
+        }
+
+        function logout() { localStorage.clear(); location.href = 'index.html'; }
+
+        async function carregarProdutos() {
+            const container = document.getElementById('vitrine-produtos');
+            try {
+                const response = await fetch('http://localhost:3000/produtos');
+                const produtos = await response.json();
+                
+                if (produtos.length === 0) {
+                    container.innerHTML = "<p class='col-span-full text-center text-gray-400'>Nenhum produto cadastrado.</p>";
+                    return;
+                }
+
+                container.innerHTML = produtos.map(p => {
+                    const imgFinal = p.imagem_url && p.imagem_url.includes('http') 
+                        ? p.imagem_url 
+                        : `https://placehold.co/400x300/f3f4f6/6366f1?text=Material+Didatico`;
+
+                    return `
+                        <div class="bg-white rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all border border-gray-100 flex flex-col h-full">
+                            <div class="bg-gray-50 rounded-2xl h-48 mb-4 overflow-hidden flex items-center justify-center">
+                                <img src="${imgFinal}" 
+                                     alt="${p.nome}"
+                                     class="w-full h-full object-cover"
+                                     onerror="this.src='https://placehold.co/400x300/f3f4f6/a855f7?text=Erro+na+Imagem'">
+                            </div>
+                            
+                            <div class="flex flex-col flex-grow">
+                                <h3 class="font-bold text-gray-800 text-base mb-1 leading-tight h-10 overflow-hidden">${p.nome}</h3>
+                                <p class="text-[10px] text-gray-400 mb-4 uppercase tracking-wider font-bold">PDF pronto para imprimir</p>
+                                
+                                <div class="mt-auto flex justify-between items-center">
+                                    <span class="text-green-600 font-bold text-lg">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
+                                    <button onclick="adicionarAoCarrinho(${p.id}, '${p.nome.replace(/'/g, "\\'")}', ${p.preco})" 
+                                            class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all active:scale-90 shadow-lg shadow-orange-100">
+                                        + Adicionar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                container.innerHTML = "<p class='col-span-full text-center text-red-400 font-bold'>Erro ao carregar o banco de dados. O servidor Node.js está ligado?</p>";
+            }
+        }
+
+        function toggleCarrinho() {
+            const m = document.getElementById('modal-carrinho');
+            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+            if(m.style.display === 'flex') renderCarrinho();
+        }
+
+        function adicionarAoCarrinho(id, nome, preco) {
+            carrinho.push({ id, nome, preco, uid: Date.now() });
+            localStorage.setItem('edu_cart', JSON.stringify(carrinho));
+            updateBadge();
+            toggleCarrinho();
+        }
+
+        function remover(uid) {
+            carrinho = carrinho.filter(i => i.uid !== uid);
+            localStorage.setItem('edu_cart', JSON.stringify(carrinho));
+            updateBadge();
+            renderCarrinho();
+        }
+
+        function updateBadge() {
+            document.getElementById('cart-count').innerText = carrinho.length;
+        }
+
+        function renderCarrinho() {
+            const cont = document.getElementById('itens-carrinho');
+            let total = 0;
+            if(carrinho.length === 0) {
+                cont.innerHTML = "<p style='text-align:center; color:#999; margin-top:50px;'>Carrinho vazio</p>";
+                document.getElementById('total-carrinho').innerText = "R$ 0,00";
+                return;
+            }
+            cont.innerHTML = carrinho.map(i => {
+                total += parseFloat(i.preco);
+                return `<div class="flex justify-between items-center bg-white p-3 rounded-2xl mb-3 border border-gray-100 shadow-sm text-left">
+                    <div>
+                        <p class="m-0 font-bold text-xs text-gray-700">${i.nome}</p>
+                        <p class="m-0 text-green-600 font-bold text-xs">R$ ${parseFloat(i.preco).toFixed(2).replace('.', ',')}</p>
+                    </div>
+                    <button onclick="remover(${i.uid})" class="bg-none border-none text-red-500 cursor-pointer p-1">🗑️</button>
+                </div>`;
+            }).join('');
+            document.getElementById('total-carrinho').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        }
+
+        window.onload = () => {
+            verificarSessao();
+            carregarProdutos();
+            updateBadge();
+        };
