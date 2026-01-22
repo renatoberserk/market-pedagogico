@@ -1,95 +1,85 @@
-/* Reset Geral */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Arial', sans-serif;
-    background-color: #fffaf0;
-    padding-top: 80px; /* Dá espaço para a Navbar fixa */
-}
-
-/* NAVBAR FIXA E ORGANIZADA */
+/* NAVBAR COMPACTA */
 .navbar {
     position: fixed;
     top: 0;
-    left: 0;
     width: 100%;
-    height: 70px;
     background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 15px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    height: 60px;
     z-index: 1000;
-}
-
-/* LIMITANDO O LOGO (O segredo para não ficar gigante) */
-.logo-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none;
-}
-
-.logo-container img {
-    height: 45px; /* Tamanho controlado para celular */
-    width: auto;
-}
-
-.logo-text {
-    font-size: 18px;
-    font-weight: bold;
-    color: #ff6b00;
-}
-
-/* MENU E BOTÕES */
-.nav-menu {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Esconde links de texto no celular para não amontoar */
-@media (max-width: 600px) {
-    .nav-links-desktop {
-        display: none;
-    }
-}
-
-/* CARD DE MATERIAIS */
-.container-materiais {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 15px;
-    padding: 15px;
-}
-
-.card-material {
-    background: white;
-    border-radius: 10px;
-    padding: 10px;
-    text-align: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
 }
 
-.card-material img {
+.nav-content {
     width: 100%;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
 }
 
-/* AJUSTE DO ERRO DO BANCO */
-.erro-banco {
-    background: #ffe5e5;
-    color: #d63031;
-    padding: 20px;
-    margin: 20px;
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espaço entre os botões */
+}
+
+/* BOTÕES ESTILIZADOS (Baseados na sua foto) */
+.btn-admin {
+    background: #a259ff;
+    color: white;
+    border: none;
+    padding: 5px 12px;
     border-radius: 8px;
-    text-align: center;
     font-weight: bold;
+    font-size: 12px;
+}
+
+.btn-pdfs {
+    background: #eef6ff;
+    color: #3b82f6;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.user-name {
+    font-size: 14px;
+    color: #444;
+}
+
+/* HERO SECTION: Logo Centralizado */
+.hero-section {
+    padding: 80px 20px 40px 20px; /* 80px para não ficar atrás da navbar */
+    text-align: center;
+    background-color: #fff;
+}
+
+.main-logo {
+    width: 120px; /* Tamanho médio para o logo central */
+    height: auto;
+    margin-bottom: 15px;
+}
+
+.main-title {
+    font-size: 2.2rem;
+    color: #ff6b00;
+    font-style: italic;
+    font-weight: 800;
+}
+
+.main-subtitle {
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.8rem;
+}
+
+/* AJUSTE MOBILE */
+@media (max-width: 480px) {
+    .user-name { display: none; } /* Esconde o nome no celular se ficar apertado */
+    .main-title { font-size: 1.8rem; }
 }

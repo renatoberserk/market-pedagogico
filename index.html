@@ -13,31 +13,42 @@
 
 <body>
 
-   <nav class="navbar">
-    <a href="index.html" class="logo-container">
-        <img src="assets/img/logo.png" alt="Logo"> <span class="logo-text">Educa Materiais</span>
-    </a>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-left">
+                <span class="cart-status">🛒 Carrinho: <b id="cart-count">0</b></span>
+            </div>
 
-    <div class="nav-menu">
-        <span class="nav-links-desktop">
-            <a href="login.html" style="text-decoration: none; color: #333;">Minha Conta</a>
-        </span>
-        <button id="cart-btn" style="background: none; border: none; font-size: 20px;">
-            🛒 <span id="cart-count">0</span>
-        </button>
-    </div>
-</nav>
-
-    <header>
-        <div class="flex items-center gap-3 cursor-pointer transition-transform hover:scale-105"
-            onclick="location.href='index.html'">
-            <img src="assets/img/logo.png" alt="Educa Materiais Logo" class="w-16 h-16 object-contain">
-
-            <div class="flex flex-col">
-                <h1 class="text-4xl font-extrabold text-orange-500 italic leading-none">Educa Materiais</h1>
-                <span class="text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase">Premium Resources</span>
+            <div class="nav-right">
+                <button class="btn-admin">👑 Admin</button>
+                <button class="btn-pdfs">Meus PDFs</button>
+                <span class="user-name">Renato</span>
+                <a href="/logout" class="btn-exit">🚪</a>
             </div>
         </div>
+    </nav>
+
+    <header class="hero-section">
+        <div class="hero-container">
+            <img src="assets/img/logo.png" alt="Educa Materiais" class="main-logo">
+            <h1 class="main-title">Educa Materiais</h1>
+            <p class="main-subtitle">Premium Resources</p>
+        </div>
+    </header>
+
+    <header>
+        <nav class="fixed top-0 w-full h-16 bg-white shadow-sm z-50 flex items-center justify-between px-4">
+            <div class="text-sm font-bold text-gray-700">
+                🛒 <span id="cart-count">0</span>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button class="bg-purple-500 text-white text-[10px] px-3 py-1 rounded-lg font-bold">👑 Admin</button>
+                <button class="bg-blue-50 text-blue-600 text-[10px] px-3 py-1 rounded-lg font-bold">Meus PDFs</button>
+                <span class="text-xs text-gray-600 hidden sm:block">Renato</span>
+                <button class="text-lg">🚪</button>
+            </div>
+        </nav>
 
         <div style="display: flex; align-items: center; gap: 10px;">
             <button class="btn-carrinho" onclick="toggleCarrinho()">
