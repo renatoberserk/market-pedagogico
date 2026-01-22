@@ -106,31 +106,54 @@ async function finalizarCompraSucesso() {
 }
 
 function copyPix() {
-    if (!pixCopiaECola) return alert("Aguarde o código ser gerado.");
-    
-    const btn = document.getElementById('btn-copy');
+    // 1. Tenta pegar o texto do elemento HTML (garantia visual)
+    const pixElement = document.getElementById('pix-code');
+    const textoParaCopiar = pixElement ? pixElement.innerText : pixCopiaECola;
 
-    navigator.clipboard.writeText(pixCopiaECola).then(() => {
-        const originalText = btn.innerText;
-        btn.innerText = "✅ COPIADO!";
-        
-        // Efeito visual de sucesso no botão
-        const originalClasses = btn.className;
-        btn.classList.add('bg-green-600');
-        
-        setTimeout(() => {
-            btn.innerText = originalText;
-            btn.classList.remove('bg-green-600');
-        }, 2500);
-    }).catch(err => {
-        // Fallback para navegadores que bloqueiam clipboard
-        const input = document.createElement('input');
-        input.value = pixCopiaECola;
-        document.body.appendChild(input);
-        input.select();
+    if (!textoParaCopiar || textoParaCopiar === "Gerando código..." || textoParaCopiar.includes("Erro")) {
+        alert("Aguarde o código ser gerado.");
+        return;
+    }
+
+    // 2. Tenta usar a API moderna (Clipboard)
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(textoParaCopiar).then(() => {
+            animarBotaoSucesso();
+        }).catch(err => {
+            fallbackCopyText(textoParaCopiar);
+        });
+    } else {
+        // 3. Fallback para navegadores antigos ou conexões HTTP
+        fallbackCopyText(textoParaCopiar);
+    }
+}
+
+// Função de suporte para copiar (Fallback)
+function fallbackCopyText(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
         document.execCommand('copy');
-        document.body.removeChild(input);
-        alert("Código Copiado!");
-    });
+        animarBotaoSucesso();
+    } catch (err) {
+        alert("Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.");
+    }
+    document.body.removeChild(textArea);
+}
+
+// Função para dar o feedback visual no botão
+function animarBotaoSucesso() {
+    const btn = document.getElementById('btn-copy');
+    if (!btn) return;
+
+    const originalText = btn.innerText;
+    btn.innerText = "✅ COPIADO!";
+    btn.classList.add('bg-green-600');
     
+    setTimeout(() => {
+        btn.innerText = originalText;
+        btn.classList.remove('bg-green-600');
+    }, 2000);
 }
