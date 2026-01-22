@@ -13,29 +13,20 @@
 
 <body>
 
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="/" class="logo">
-                <img src="assets/img/logo.png" alt="Educa Materiais">
-                <span>Educa Materiais</span>
-            </a>
+   <nav class="navbar">
+    <a href="index.html" class="logo-container">
+        <img src="assets/img/logo.png" alt="Logo"> <span class="logo-text">Educa Materiais</span>
+    </a>
 
-            <ul class="nav-links" id="nav-menu">
-                <li><a href="index.html">Início</a></li>
-                <li><a href="#materiais">Materiais</a></li>
-                <li><a href="login.html" class="btn-login">Minha Conta</a></li>
-            </ul>
-
-            <div class="nav-icons">
-                <button id="cart-button" class="cart-icon">
-                    🛒 <span id="cart-count">0</span>
-                </button>
-                <button class="mobile-menu-icon" onclick="toggleMenu()">
-                    ☰
-                </button>
-            </div>
-        </div>
-    </nav>
+    <div class="nav-menu">
+        <span class="nav-links-desktop">
+            <a href="login.html" style="text-decoration: none; color: #333;">Minha Conta</a>
+        </span>
+        <button id="cart-btn" style="background: none; border: none; font-size: 20px;">
+            🛒 <span id="cart-count">0</span>
+        </button>
+    </div>
+</nav>
 
     <header>
         <div class="flex items-center gap-3 cursor-pointer transition-transform hover:scale-105"
