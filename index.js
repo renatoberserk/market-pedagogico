@@ -126,6 +126,40 @@ function renderCarrinho() {
     if (totalElement) totalElement.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
+
+function renderizarProdutos() {
+    const grid = document.getElementById('vitrine-produtos');
+    grid.innerHTML = '';
+    
+    produtos.forEach(produto => {
+        const produtoHTML = `
+            <div class="product-card">
+                <div class="product-image-container">
+                    <img src="${produto.imagem}" alt="${produto.nome}" class="product-image" 
+                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23f1f5f9%22/><text x=%2250%22 y=%2250%22 font-family=%22Arial%22 font-size=%2214%22 fill=%22%2394a3b8%22 text-anchor=%22middle%22 dy=%22.3em%22>📚</text></svg>'">
+                    <div class="product-badge">NOVO</div>
+                    <button class="btn-favorite">♥</button>
+                </div>
+                <div class="product-info">
+                    <span class="product-category">${produto.categoria}</span>
+                    <h4 class="product-title">${produto.nome}</h4>
+                    <p class="product-description">${produto.descricao}</p>
+                    <div class="product-price-container">
+                        <div class="product-price">R$ ${produto.preco.toFixed(2)}</div>
+                        <div class="product-rating">★★★★☆</div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn-add-cart" onclick="adicionarAoCarrinho(${produto.id})">
+                            🛒 Adicionar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        grid.innerHTML += produtoHTML;
+    });
+}
+
 // INICIALIZAÇÃO ÚNICA
 window.onload = () => {
     verificarSessao();
