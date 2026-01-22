@@ -1,42 +1,42 @@
- let carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
+let carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
 
-        function verificarSessao() {
-            const nome = localStorage.getItem('prof_nome');
-            const isAdmin = localStorage.getItem('prof_admin') === 'true';
-            const authContainer = document.getElementById('header-auth');
-            
-            if (nome) {
-                let btnAdmin = isAdmin ? `<button onclick="location.href='admin.html'" style="background:#8b5cf6; color:white; border:none; padding:8px 12px; border-radius:10px; font-weight:bold; cursor:pointer; font-size:12px; margin-right:5px;">👑 Admin</button>` : '';
-                
-                authContainer.innerHTML = `
+function verificarSessao() {
+    const nome = localStorage.getItem('prof_nome');
+    const isAdmin = localStorage.getItem('prof_admin') === 'true';
+    const authContainer = document.getElementById('header-auth');
+
+    if (nome) {
+        let btnAdmin = isAdmin ? `<button onclick="location.href='admin.html'" style="background:#8b5cf6; color:white; border:none; padding:8px 12px; border-radius:10px; font-weight:bold; cursor:pointer; font-size:12px; margin-right:5px;">👑 Admin</button>` : '';
+
+        authContainer.innerHTML = `
                     <div class="flex items-center gap-2">
                         ${btnAdmin}
                         <button onclick="location.href='meus-materiais.html'" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-xl font-bold text-xs">Meus PDFs</button>
                         <span class="text-xs font-bold text-gray-600">${nome.split(' ')[0]}</span>
                         <button onclick="logout()" class="text-lg pl-2">🚪</button>
                     </div>`;
-            }
+    }
+}
+
+function logout() { localStorage.clear(); location.href = 'index.html'; }
+
+async function carregarProdutos() {
+    const container = document.getElementById('vitrine-produtos');
+    try {
+        const response = await fetch('http://191.252.214.27:3000/produtos');
+        const produtos = await response.json();
+
+        if (produtos.length === 0) {
+            container.innerHTML = "<p class='col-span-full text-center text-gray-400'>Nenhum produto cadastrado.</p>";
+            return;
         }
 
-        function logout() { localStorage.clear(); location.href = 'index.html'; }
+        container.innerHTML = produtos.map(p => {
+            const imgFinal = p.imagem_url && p.imagem_url.includes('http')
+                ? p.imagem_url
+                : `https://placehold.co/400x300/f3f4f6/6366f1?text=Material+Didatico`;
 
-        async function carregarProdutos() {
-            const container = document.getElementById('vitrine-produtos');
-            try {
-                const response = await fetch('http://191.252.214.27:3000/produtos');
-                const produtos = await response.json();
-                
-                if (produtos.length === 0) {
-                    container.innerHTML = "<p class='col-span-full text-center text-gray-400'>Nenhum produto cadastrado.</p>";
-                    return;
-                }
-
-                container.innerHTML = produtos.map(p => {
-                    const imgFinal = p.imagem_url && p.imagem_url.includes('http') 
-                        ? p.imagem_url 
-                        : `https://placehold.co/400x300/f3f4f6/6366f1?text=Material+Didatico`;
-
-                    return `
+            return `
                         <div class="bg-white rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all border border-gray-100 flex flex-col h-full">
                             <div class="bg-gray-50 rounded-2xl h-48 mb-4 overflow-hidden flex items-center justify-center">
                                 <img src="${imgFinal}" 
@@ -59,59 +59,95 @@
                             </div>
                         </div>
                     `;
-                }).join('');
-            } catch (error) {
-                container.innerHTML = "<p class='col-span-full text-center text-red-400 font-bold'>Erro ao carregar o banco de dados. O servidor Node.js está ligado?</p>";
-            }
-        }
+        }).join('');
+    } catch (error) {
+        container.innerHTML = "<p class='col-span-full text-center text-red-400 font-bold'>Erro ao carregar o banco de dados. O servidor Node.js está ligado?</p>";
+    }
+}
 
-        function toggleCarrinho() {
-            const m = document.getElementById('modal-carrinho');
-            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
-            if(m.style.display === 'flex') renderCarrinho();
-        }
+function toggleCarrinho() {
+    const m = document.getElementById('modal-carrinho');
+    m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+    if (m.style.display === 'flex') renderCarrinho();
+}
 
-        function adicionarAoCarrinho(id, nome, preco) {
-            carrinho.push({ id, nome, preco, uid: Date.now() });
-            localStorage.setItem('edu_cart', JSON.stringify(carrinho));
-            updateBadge();
-            toggleCarrinho();
-        }
+function adicionarAoCarrinho(id, nome, preco) {
+    carrinho.push({ id, nome, preco, uid: Date.now() });
+    localStorage.setItem('edu_cart', JSON.stringify(carrinho));
+    updateBadge();
+    toggleCarrinho();
+}
 
-        function remover(uid) {
-            carrinho = carrinho.filter(i => i.uid !== uid);
-            localStorage.setItem('edu_cart', JSON.stringify(carrinho));
-            updateBadge();
-            renderCarrinho();
-        }
+function remover(uid) {
+    carrinho = carrinho.filter(i => i.uid !== uid);
+    localStorage.setItem('edu_cart', JSON.stringify(carrinho));
+    updateBadge();
+    renderCarrinho();
+}
 
-        function updateBadge() {
-            document.getElementById('cart-count').innerText = carrinho.length;
-        }
+function updateBadge() {
+    document.getElementById('cart-count').innerText = carrinho.length;
+}
 
-        function renderCarrinho() {
-            const cont = document.getElementById('itens-carrinho');
-            let total = 0;
-            if(carrinho.length === 0) {
-                cont.innerHTML = "<p style='text-align:center; color:#999; margin-top:50px;'>Carrinho vazio</p>";
-                document.getElementById('total-carrinho').innerText = "R$ 0,00";
-                return;
-            }
-            cont.innerHTML = carrinho.map(i => {
-                total += parseFloat(i.preco);
-                return `<div class="flex justify-between items-center bg-white p-3 rounded-2xl mb-3 border border-gray-100 shadow-sm text-left">
+function renderCarrinho() {
+    const cont = document.getElementById('itens-carrinho');
+    let total = 0;
+    if (carrinho.length === 0) {
+        cont.innerHTML = "<p style='text-align:center; color:#999; margin-top:50px;'>Carrinho vazio</p>";
+        document.getElementById('total-carrinho').innerText = "R$ 0,00";
+        return;
+    }
+    cont.innerHTML = carrinho.map(i => {
+        total += parseFloat(i.preco);
+        return `<div class="flex justify-between items-center bg-white p-3 rounded-2xl mb-3 border border-gray-100 shadow-sm text-left">
                     <div>
                         <p class="m-0 font-bold text-xs text-gray-700">${i.nome}</p>
                         <p class="m-0 text-green-600 font-bold text-xs">R$ ${parseFloat(i.preco).toFixed(2).replace('.', ',')}</p>
                     </div>
                     <button onclick="remover(${i.uid})" class="bg-none border-none text-red-500 cursor-pointer p-1">🗑️</button>
                 </div>`;
-            }).join('');
-            document.getElementById('total-carrinho').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
-        }
+    }).join('');
+    document.getElementById('total-carrinho').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+}
 
-        window.onload = () => {
-            verificarSessao();
-            carregarProdutos();
-            updateBadge();
-        };
+window.onload = () => {
+    verificarSessao();
+    carregarProdutos();
+    updateBadge();
+};
+
+// 1. FUNÇÃO PRINCIPAL: Atualiza o número na tela
+function atualizarContadorCarrinho() {
+    // Busca o carrinho no localStorage
+    const carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
+    const contador = document.getElementById('cart-count');
+
+    if (contador) {
+        const quantidade = carrinho.length;
+
+        if (quantidade > 0) {
+            contador.innerText = quantidade;
+            contador.style.display = 'inline-block'; // Mostra o badge
+
+            // Pequeno efeito visual de atualização
+            contador.classList.add('pulse');
+            setTimeout(() => contador.classList.remove('pulse'), 200);
+        } else {
+            contador.style.display = 'none'; // Esconde se estiver vazio
+        }
+    }
+}
+
+// 2. INTEGRAÇÃO: Quando adicionar um material
+// Certifique-se de chamar atualizarContadorCarrinho() dentro da sua função de compra
+function adicionarAoCarrinho(produto) {
+    let carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
+    carrinho.push(produto);
+    localStorage.setItem('edu_cart', JSON.stringify(carrinho));
+
+    // ATUALIZAÇÃO IMEDIATA
+    atualizarContadorCarrinho();
+}
+
+// 3. INICIALIZAÇÃO: Quando a página carregar
+document.addEventListener('DOMContentLoaded', atualizarContadorCarrinho);

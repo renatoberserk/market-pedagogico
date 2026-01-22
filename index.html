@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="assets/css/index.css">
+    <link rel="stylesheet" href="assets/css/index.css">
 </head>
 
 <body>
@@ -25,13 +25,18 @@
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
-            <button class="btn-carrinho" onclick="toggleCarrinho()">
+            <button class="btn-carrinho" onclick="toggleCarrinho()"
+                style="position: relative; display: flex; align-items: center; gap: 5px;">
                 🛒 <span class="hidden md:inline">Carrinho</span>
-                <span id="cart-count" class="cart-badge">0</span>
+
+                <span id="cart-count" class="cart-badge" style="display: none;">0</span>
             </button>
+
             <div id="header-auth">
                 <button onclick="location.href='login.html'"
-                    style="background:#fb923c; color:white; border:none; padding:10px 15px; border-radius:12px; font-weight:bold; cursor:pointer;">Entrar</button>
+                    style="background:#fb923c; color:white; border:none; padding:10px 15px; border-radius:12px; font-weight:bold; cursor:pointer;">
+                    Entrar
+                </button>
             </div>
         </div>
     </header>
