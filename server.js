@@ -101,25 +101,42 @@ app.delete('/produtos/:id', (req, res) => {
 });
 
 // --- PAGAMENTO MERCADO PAGO ---
-
 app.post('/criar-pagamento-pix', async (req, res) => {
     try {
         const { email, total } = req.body;
+
         const body = {
             transaction_amount: Number(total),
             description: 'Compra Educa Materiais',
             payment_method_id: 'pix',
-            payer: { email: email },
+            payer: { 
+                email: email 
+            },
+            // Opcional: tempo de expiração do PIX (ex: 30 minutos)
+            date_of_expiration: new Date(Date.now() + 30 * 60000).toISOString()
         };
+
         const response = await payment.create({ body });
-        res.json({
-            id: response.id,
-            qr_code: response.point_of_interaction.transaction_data.qr_code,
-            qr_code_base64: response.point_of_interaction.transaction_data.qr_code_base64
-        });
+
+        // Verificação de segurança: alguns SDKs retornam os dados em response.point_of_interaction
+        // outros retornam em response.body.point_of_interaction
+        const result = response.body || response; 
+
+        if (result.point_of_interaction) {
+            const data = result.point_of_interaction.transaction_data;
+            
+            res.json({
+                id: result.id,
+                qr_code: data.qr_code, // Este é o código "Copia e Cola"
+                qr_code_base64: data.qr_code_base64 // Esta é a imagem do QR Code
+            });
+        } else {
+            throw new Error("Estrutura de resposta inesperada do Mercado Pago");
+        }
+
     } catch (error) {
-        console.error("Erro MP:", error);
-        res.status(500).json({ erro: 'Erro ao gerar Pix' });
+        console.error("Erro detalhado MP:", error.message);
+        res.status(500).json({ erro: 'Erro ao gerar Pix', detalhes: error.message });
     }
 });
 
