@@ -88,19 +88,28 @@ async function finalizarCompraSucesso() {
     const carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
 
     try {
-        // Registro da venda no banco de dados
+        // 1. Avisa o servidor para registrar a venda e liberar os arquivos
         await fetch('http://191.252.214.27:3000/registrar-venda', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, produtos: carrinho })
         });
 
-        // Limpeza e Redirecionamento
+        // 2. LIMPA O CARRINHO (Remove do armazenamento do navegador)
         localStorage.removeItem('edu_cart');
+        
+        // Opcional: Se você usa uma variável global 'carrinho', limpe-a também
+        // carrinho = []; 
+
+        console.log("Carrinho limpo e venda registrada!");
+
+        // 3. Redireciona para a página de sucesso ou de materiais
         window.location.href = 'meus-materiais.html?sucesso=true';
+
     } catch (err) {
-        console.error("Erro ao registrar venda, mas o pagamento foi feito:", err);
-        // Mesmo com erro no registro, redirecionamos para que o suporte possa ajudar
+        console.error("Erro ao registrar venda:", err);
+        // Mesmo com erro no registro, limpamos o carrinho para evitar compras duplicadas
+        localStorage.removeItem('edu_cart');
         window.location.href = 'meus-materiais.html?verificar=1';
     }
 }
