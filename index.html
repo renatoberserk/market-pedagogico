@@ -7,32 +7,57 @@
     <title>Educa Materiais - Vitrine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,800;1,800&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="assets/css/index.css">
 </head>
 
 <body>
 
-<header class="hero-section">
-    <div class="hero-container">
-        <div class="logo-wrapper">
-            <img src="assets/img/logo.png" alt="Educa Materiais" class="main-logo">
+<nav class="navbar">
+    <div class="nav-content">
+        <div class="nav-left">
+            <span class="cart-status">🛒 Carrinho: <b id="cart-count">0</b></span>
         </div>
-
-        <h1 class="main-title">Educa Materiais</h1>
-        <p class="main-subtitle">Premium Resources</p>
-
-        <div class="hero-actions">
-            <button class="action-btn btn-carrinho" onclick="toggleCarrinho()">
-                🛒 <span id="cart-count">0</span>
-            </button>
-            <button class="action-btn btn-admin">👑 Admin</button>
-            <button class="action-btn btn-pdfs">Meus PDFs</button>
-            <button class="action-btn btn-login" onclick="location.href='login.html'">Entrar</button>
+        
+        <div class="nav-right">
+            <button class="btn-admin">👑 Admin</button>
+            <button class="btn-pdfs">Meus PDFs</button>
+            <span class="user-name">Renato</span>
+            <a href="/logout" class="btn-exit">🚪</a>
         </div>
     </div>
+</nav>
+
+<header class="hero-section">
+    <div class="hero-container">
+        <img src="assets/img/logo.png" alt="Educa Materiais" class="main-logo">
+        <h1 class="main-title">Educa Materiais</h1>
+        <p class="main-subtitle">Premium Resources</p>
+    </div>
 </header>
+
+    <header>
+        <div class="flex items-center gap-3 cursor-pointer transition-transform hover:scale-105"
+            onclick="location.href='index.html'">
+            <img src="assets/img/logo.png" alt="Educa Materiais Logo" class="w-16 h-16 object-contain">
+
+            <div class="flex flex-col">
+                <h1 class="text-4xl font-extrabold text-orange-500 italic leading-none">Educa Materiais</h1>
+                <span class="text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase">Premium Resources</span>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn-carrinho" onclick="toggleCarrinho()">
+                🛒 <span class="hidden md:inline">Carrinho</span>
+                <span id="cart-count" class="cart-badge">0</span>
+            </button>
+            <div id="header-auth">
+                <button onclick="location.href='login.html'"
+                    style="background:#fb923c; color:white; border:none; padding:10px 15px; border-radius:12px; font-weight:bold; cursor:pointer;">Entrar</button>
+            </div>
+        </div>
+    </header>
 
     <div style="background: #ffedd5; padding: 40px 20px; text-align: center;">
         <h2 style="color: #9a3412; margin: 0; font-size: 24px;">Materiais Didáticos Criativos 🎨</h2>
