@@ -32,7 +32,7 @@
                 whatsapp: document.getElementById('whatsapp').value
             };
 
-            const url = `http://localhost:3000/${abaAtual}`;
+            const url = `http://191.252.214.27:3000/${abaAtual}`;
 
             try {
                 btn.innerText = 'Processando... 🍎';

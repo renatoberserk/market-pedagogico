@@ -5,7 +5,7 @@
         async function validarAcesso() {
             if (!emailLogado) { window.location.href = 'index.html'; return; }
             try {
-                const resp = await fetch(`http://localhost:3000/verificar-admin?email=${emailLogado}`);
+                const resp = await fetch(`http://191.252.214.27:3000/verificar-admin?email=${emailLogado}`);
                 const data = await resp.json();
                 if (data.isAdmin) {
                     document.getElementById('painel-admin').style.display = 'block';
@@ -20,7 +20,7 @@
 
         // 2. CARREGAR E EXIBIR PRODUTOS COM BOTÕES DE AÇÃO
         async function carregarProdutosAdmin() {
-            const resp = await fetch('http://localhost:3000/produtos');
+            const resp = await fetch('http://191.252.214.27:3000/produtos');
             const produtos = await resp.json();
             const container = document.getElementById('lista-admin');
 
@@ -67,7 +67,7 @@
         // 4. AÇÃO DE EXCLUIR
         async function excluirProduto(id) {
             if (!confirm("Deseja realmente excluir este material?")) return;
-            const res = await fetch(`http://localhost:3000/produtos/${id}`, {
+            const res = await fetch(`http://191.252.214.27:3000/produtos/${id}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email_admin: emailLogado })
@@ -86,7 +86,7 @@
                 imagem_url: document.getElementById('img-prod').value
             };
 
-            const url = modoEdicaoId ? `http://localhost:3000/produtos/${modoEdicaoId}` : 'http://localhost:3000/produtos';
+            const url = modoEdicaoId ? `http://191.252.214.27:3000/produtos/${modoEdicaoId}` : 'http://191.252.214.27:3000/produtos';
             const method = modoEdicaoId ? 'PUT' : 'POST';
 
             const response = await fetch(url, {

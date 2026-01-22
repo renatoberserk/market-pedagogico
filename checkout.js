@@ -16,7 +16,7 @@
             const email = localStorage.getItem('prof_email');
 
             try {
-                const response = await fetch('http://localhost:3000/criar-pagamento-pix', {
+                const response = await fetch('http://191.252.214.27:3000/criar-pagamento-pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, total })
@@ -47,7 +47,7 @@
         function iniciarVerificacaoStatus(id) {
             checkInterval = setInterval(async () => {
                 try {
-                    const res = await fetch(`http://localhost:3000/verificar-pagamento/${id}`);
+                    const res = await fetch(`http://191.252.214.27:3000/verificar-pagamento/${id}`);
                     const data = await res.json();
 
                     if (data.status === 'approved') {
@@ -65,7 +65,7 @@
             const carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
 
             // 1. Avisa o servidor para liberar esses itens para o e-mail do professor
-            await fetch('http://localhost:3000/registrar-venda', {
+            await fetch('http://191.252.214.27:3000/registrar-venda', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, produtos: carrinho })

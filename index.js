@@ -23,7 +23,7 @@
         async function carregarProdutos() {
             const container = document.getElementById('vitrine-produtos');
             try {
-                const response = await fetch('http://localhost:3000/produtos');
+                const response = await fetch('http://191.252.214.27:3000/produtos');
                 const produtos = await response.json();
                 
                 if (produtos.length === 0) {
