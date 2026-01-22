@@ -7,10 +7,12 @@ const connection = mysql.createConnection({
   password: 'Emilly00@jade',
   database: 'educamarket'
 });
-const mysql = require('mysql2');
+
+
 
 const sql = `
-CREATE TABLE IF NOT EXISTS produtos (
+DROP TABLE IF EXISTS produtos;
+CREATE TABLE produtos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     preco DECIMAL(10,2) NOT NULL,
@@ -19,11 +21,20 @@ CREATE TABLE IF NOT EXISTS produtos (
     data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )`;
 
-db.query(sql, (err) => {
-    if (err) {
-        console.error('❌ Erro:', err.message);
-    } else {
-        console.log('✅ Tabela produtos criada com sucesso!');
-    }
-    process.exit();
+console.log("Limpando e recriando a tabela produtos...");
+
+// O mysql2 permite múltiplas queries se configurado, mas aqui faremos uma por uma por segurança
+db.query("DROP TABLE IF EXISTS produtos", (err) => {
+    if (err) return console.error("Erro ao dropar tabela:", err.message);
+    
+    db.query(sql.split(';')[1], (err) => {
+        if (err) {
+            console.error("❌ Erro ao criar a nova estrutura:", err.message);
+        } else {
+            console.log("✅ Tabela produtos atualizada com sucesso!");
+            console.log("Estrutura atual: id, nome, preco, imagem_url, categoria, data_cadastro.");
+        }
+        db.end();
+        process.exit();
+    });
 });
