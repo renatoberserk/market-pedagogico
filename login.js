@@ -1,6 +1,4 @@
- require('dotenv').config();
- 
- let abaAtual = 'login';
+let abaAtual = 'login';
         // Defina aqui seu email de admin
         const MEU_EMAIL_ADMIN = process.env.ADMIN_EMAIL;
 
