@@ -132,6 +132,5 @@ function copyPix() {
         document.body.removeChild(input);
         alert("Código Copiado!");
     });
-
     
 }
