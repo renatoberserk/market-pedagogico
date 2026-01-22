@@ -33,29 +33,38 @@ async function carregarProdutos() {
             return;
         }
 
-        container.innerHTML = produtos.map(p => {
-            const imgFinal = p.imagem_url && p.imagem_url.includes('http')
-                ? p.imagem_url
-                : `https://placehold.co/400x300/f3f4f6/6366f1?text=Material+Didatico`;
+     container.innerHTML = produtos.map(p => {
+    const imgFinal = p.imagem_url && p.imagem_url.includes('http')
+        ? p.imagem_url
+        : `https://placehold.co/400x300/f3f4f6/6366f1?text=Material+Didatico`;
 
-            return `
-                <div class="bg-white rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all border border-gray-100 flex flex-col h-full">
-                    <div class="bg-gray-50 rounded-2xl h-48 mb-4 overflow-hidden flex items-center justify-center">
-                        <img src="${imgFinal}" alt="${p.nome}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x300/f3f4f6/a855f7?text=Erro+na+Imagem'">
-                    </div>
-                    <div class="flex flex-col flex-grow">
-                        <h3 class="font-bold text-gray-800 text-base mb-1 leading-tight h-10 overflow-hidden">${p.nome}</h3>
-                        <p class="text-[10px] text-gray-400 mb-4 uppercase tracking-wider font-bold">PDF pronto para imprimir</p>
-                        <div class="mt-auto flex justify-between items-center">
-                            <span class="text-green-600 font-bold text-lg">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
-                            <button onclick="adicionarAoCarrinho(${p.id}, '${p.nome.replace(/'/g, "\\'")}', ${p.preco})" 
-                                    class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all active:scale-90 shadow-lg shadow-orange-100">
-                                + Adicionar
-                            </button>
-                        </div>
-                    </div>
-                </div>`;
-        }).join('');
+    return `
+        <div class="bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col h-full">
+            <div class="bg-gray-50 rounded-xl h-32 md:h-40 mb-3 overflow-hidden flex items-center justify-center">
+                <img src="${imgFinal}" 
+                     alt="${p.nome}" 
+                     class="w-full h-full object-cover" 
+                     onerror="this.src='https://placehold.co/400x300/f3f4f6/a855f7?text=Erro'">
+            </div>
+            
+            <div class="flex flex-col flex-grow">
+                <h3 class="font-bold text-gray-800 text-xs md:text-sm mb-1 leading-tight h-8 overflow-hidden line-clamp-2">
+                    ${p.nome}
+                </h3>
+                <p class="text-[8px] md:text-[10px] text-gray-400 mb-3 uppercase font-bold">PDF Digital</p>
+                
+                <div class="mt-auto flex flex-col gap-2">
+                    <span class="text-green-600 font-bold text-sm md:text-base">
+                        R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}
+                    </span>
+                    <button onclick="adicionarAoCarrinho(${p.id}, '${p.nome.replace(/'/g, "\\'")}', ${p.preco})" 
+                            class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-lg font-bold text-[10px] md:text-xs transition-all active:scale-95">
+                        + Adicionar
+                    </button>
+                </div>
+            </div>
+        </div>`;
+}).join('');
     } catch (error) {
         container.innerHTML = "<p class='col-span-full text-center text-red-400 font-bold'>Erro ao conectar com o servidor.</p>";
     }
@@ -124,40 +133,6 @@ function renderCarrinho() {
     }).join('');
     
     if (totalElement) totalElement.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
-}
-
-
-function renderizarProdutos() {
-    const grid = document.getElementById('vitrine-produtos');
-    grid.innerHTML = '';
-    
-    produtos.forEach(produto => {
-        const produtoHTML = `
-            <div class="product-card">
-                <div class="product-image-container">
-                    <img src="${produto.imagem}" alt="${produto.nome}" class="product-image" 
-                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23f1f5f9%22/><text x=%2250%22 y=%2250%22 font-family=%22Arial%22 font-size=%2214%22 fill=%22%2394a3b8%22 text-anchor=%22middle%22 dy=%22.3em%22>📚</text></svg>'">
-                    <div class="product-badge">NOVO</div>
-                    <button class="btn-favorite">♥</button>
-                </div>
-                <div class="product-info">
-                    <span class="product-category">${produto.categoria}</span>
-                    <h4 class="product-title">${produto.nome}</h4>
-                    <p class="product-description">${produto.descricao}</p>
-                    <div class="product-price-container">
-                        <div class="product-price">R$ ${produto.preco.toFixed(2)}</div>
-                        <div class="product-rating">★★★★☆</div>
-                    </div>
-                    <div class="product-actions">
-                        <button class="btn-add-cart" onclick="adicionarAoCarrinho(${produto.id})">
-                            🛒 Adicionar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-        grid.innerHTML += produtoHTML;
-    });
 }
 
 // INICIALIZAÇÃO ÚNICA

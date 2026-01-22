@@ -365,9 +365,9 @@ header {
 /* ===== GRID DE PRODUTOS COM 2 POR LINHA ===== */
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 colunas fixas */
-    gap: var(--space-md);
-    margin-top: var(--space-md);
+    grid-template-columns: 1fr 1fr; /* Força as 2 colunas */
+    gap: 10px; /* Espaço entre os cards */
+    padding: 10px;
 }
 
 /* Estado de carregamento */
@@ -1164,5 +1164,38 @@ header {
         break-inside: avoid;
         box-shadow: none !important;
         border: 1px solid #ddd !important;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+/* Grade de produtos fixada em 2 colunas */
+.products-grid {
+    display: grid;
+    /* Define exatamente 2 colunas de larguras iguais */
+    grid-template-columns: 1fr 1fr; 
+    gap: 1rem; /* Espaçamento entre os cards */
+    margin-top: 1rem;
+}
+
+/* Ajuste opcional para os cards não ficarem muito grandes em telas largas */
+@media (min-width: 1024px) {
+    .main-content {
+        max-width: 900px; /* Limita a largura total para manter o visual elegante */
+        margin: 0 auto;
+    }
+}
+
+/* Ajuste para telas muito pequenas (celulares antigos) */
+@media (max-width: 350px) {
+    .products-grid {
+        grid-template-columns: 1fr; /* Volta para 1 coluna se o espaço for mínimo */
     }
 }
