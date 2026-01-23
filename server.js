@@ -155,8 +155,11 @@ app.post('/registrar-venda', (req, res) => {
     const { email, produtos } = req.body;
     if (!produtos || produtos.length === 0) return res.status(400).json({ error: "Carrinho vazio" });
 
-    const valores = produtos.map(p => [email, p.id, new Date()]);
-    const sql = "INSERT INTO vendas (usuario_email, produto_id, data_venda) VALUES ?";
+    // ADICIONADO: Agora incluímos p.preco no mapeamento dos valores
+    const valores = produtos.map(p => [email, p.id, p.preco, new Date()]);
+
+    // ADICIONADO: Incluindo a coluna 'preco' na query SQL
+    const sql = "INSERT INTO vendas (usuario_email, produto_id, preco, data_venda) VALUES ?";
     
     db.query(sql, [valores], (err) => {
         if (err) {
