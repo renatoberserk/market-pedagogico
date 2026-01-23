@@ -238,6 +238,20 @@ app.get('/admin/stats', async (req, res) => {
     }
 });
 
+// Rota exclusiva para listar clientes recentes
+app.get('/admin/clientes-recentes', async (req, res) => {
+    try {
+        // Usando as colunas exatas que vimos no seu DESCRIBE
+        const [clientes] = await dbPromise.query(
+            "SELECT nome, email, data_cadastro FROM usuarios ORDER BY data_cadastro DESC LIMIT 5"
+        );
+        res.json(clientes);
+    } catch (error) {
+        console.error("Erro ao buscar clientes:", error);
+        res.status(500).json({ error: "Erro ao buscar clientes" });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Servidor ON em http://0.0.0.0:${PORT}`);

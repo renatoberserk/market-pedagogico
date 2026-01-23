@@ -109,6 +109,32 @@ async function carregarProdutosAdmin() {
             </div>
         `).join('') : '<p class="text-gray-400">Nenhum produto cadastrado.</p>';
     } catch (err) { console.error("Erro ao listar produtos:", err); }
+
+    // Chame esta função dentro do seu window.onload ou onde você inicia o painel
+async function carregarClientesRecentes() {
+    try {
+        const resposta = await fetch('/admin/clientes-recentes');
+        const clientes = await resposta.json();
+        
+        const tabelaBody = document.getElementById('tabela-clientes-recentes');
+        if (!tabelaBody) return;
+
+        // Atualiza o contador de clientes com base no tamanho da lista ou faça fetch de count
+        document.getElementById('total-clientes').innerText = clientes.length;
+
+        tabelaBody.innerHTML = clientes.map(cliente => `
+            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                <td class="py-4 text-sm font-bold text-gray-700">${cliente.nome}</td>
+                <td class="py-4 text-sm text-gray-500">${cliente.email}</td>
+                <td class="py-4 text-xs text-gray-400">
+                    ${new Date(cliente.data_cadastro).toLocaleDateString('pt-BR')}
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error("Erro ao carregar tabela de clientes:", error);
+    }
+}
 }
 
 // Mantenha suas funções prepararEdicao, limparFormulario, excluirProduto e o onsubmit aqui...
