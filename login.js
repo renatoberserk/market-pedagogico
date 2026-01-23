@@ -30,7 +30,7 @@ let abaAtual = 'login';
                 whatsapp: document.getElementById('whatsapp').value
             };
 
-            const url = `https://educamateriais.shop /${abaAtual}`;
+            const url = `https://educamateriais.shop/${abaAtual}`;
 
             try {
                 btn.innerText = 'Processando... 🍎';
