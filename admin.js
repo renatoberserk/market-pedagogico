@@ -5,7 +5,7 @@ let modoEdicaoId = null;
 async function validarAcesso() {
     if (!emailLogado) { window.location.href = 'index.html'; return; }
     try {
-        const resp = await fetch(`http://191.252.214.27:3000/verificar-admin?email=${emailLogado}`);
+        const resp = await fetch(`http://educamateriais.shop :3000/verificar-admin?email=${emailLogado}`);
         const data = await resp.json();
 
         if (data.isAdmin) {
@@ -29,7 +29,7 @@ async function validarAcesso() {
 async function carregarDashboard() {
     try {
         // Esta rota agora traz vendas, receitas e a lista de clientes
-        const response = await fetch('http://191.252.214.27:3000/admin/stats');
+        const response = await fetch('http://educamateriais.shop :3000/admin/stats');
         const dados = await response.json();
 
         console.log("Dados recebidos do servidor:", dados);
@@ -103,7 +103,7 @@ function estilizarComparativo(elemento, variacao) {
 // 5. GESTÃO DE PRODUTOS
 async function carregarProdutosAdmin() {
     try {
-        const resp = await fetch('http://191.252.214.27:3000/produtos');
+        const resp = await fetch('http://educamateriais.shop :3000/produtos');
         const produtos = await resp.json();
         const container = document.getElementById('lista-admin');
 
@@ -129,7 +129,7 @@ async function excluirUsuario(email) {
     if (!confirm(`Tem certeza que deseja excluir o usuário ${email}?`)) return;
 
     try {
-        const response = await fetch(`http://191.252.214.27:3000/admin/usuarios/${email}`, {
+        const response = await fetch(`http://educamateriais.shop :3000/admin/usuarios/${email}`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email_admin: emailLogado }) // emailLogado já existe no topo do seu script

@@ -226,5 +226,5 @@ app.delete('/admin/usuarios/:email', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Servidor ON em http://191.252.214.27:${PORT}`);
+    console.log(`🚀 Servidor ON em http://educamateriais.shop :${PORT}`);
 });

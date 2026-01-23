@@ -25,7 +25,7 @@ async function carregarProdutos() {
     if (!container) return;
 
     try {
-        const response = await fetch('http://191.252.214.27:3000/produtos');
+        const response = await fetch('http://educamateriais.shop :3000/produtos');
         const produtos = await response.json();
 
         if (produtos.length === 0) {
