@@ -44,7 +44,7 @@ function atualizarEstatisticasVisual(dados) {
     document.getElementById('receita-dia').innerText = (dados.hoje || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     document.getElementById('receita-mes').innerText = (dados.mes_atual || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     document.getElementById('total-vendas').innerText = dados.total_vendas || 0;
-    
+
     // Resolve o contador de 0 para 1
     document.getElementById('total-clientes').innerText = dados.total_clientes || 0;
 
@@ -109,33 +109,35 @@ async function carregarProdutosAdmin() {
             </div>
         `).join('') : '<p class="text-gray-400">Nenhum produto cadastrado.</p>';
     } catch (err) { console.error("Erro ao listar produtos:", err); }
+}
 
-    // Chame esta função dentro do seu window.onload ou onde você inicia o painel
-async function carregarClientesRecentes() {
+async function carregarDadosClientes() {
     try {
-        const resposta = await fetch('/admin/clientes-recentes');
-        const clientes = await resposta.json();
-        
-        const tabelaBody = document.getElementById('tabela-clientes-recentes');
-        if (!tabelaBody) return;
+        const response = await fetch('/api/clientes-todos');
+        const clientes = await response.json();
 
-        // Atualiza o contador de clientes com base no tamanho da lista ou faça fetch de count
-        document.getElementById('total-clientes').innerText = clientes.length;
+        // 1. Atualiza o contador de Clientes (Sairá do 0 para 1 ou mais)
+        const contador = document.getElementById('total-clientes');
+        if (contador) contador.innerText = clientes.length;
 
-        tabelaBody.innerHTML = clientes.map(cliente => `
-            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                <td class="py-4 text-sm font-bold text-gray-700">${cliente.nome}</td>
-                <td class="py-4 text-sm text-gray-500">${cliente.email}</td>
-                <td class="py-4 text-xs text-gray-400">
-                    ${new Date(cliente.data_cadastro).toLocaleDateString('pt-BR')}
-                </td>
-            </tr>
-        `).join('');
-    } catch (error) {
-        console.error("Erro ao carregar tabela de clientes:", error);
+        // 2. Preenche a tabela que você criou no HTML
+        const tabela = document.getElementById('tabela-clientes-recentes');
+        if (tabela) {
+            tabela.innerHTML = clientes.map(c => `
+                <tr class="border-b border-gray-50">
+                    <td class="py-4 text-sm font-bold text-gray-700">${c.nome}</td>
+                    <td class="py-4 text-sm text-gray-500">${c.email}</td>
+                    <td class="py-4 text-xs text-gray-400">${new Date(c.data_cadastro).toLocaleDateString('pt-BR')}</td>
+                </tr>
+            `).join('');
+        }
+    } catch (err) {
+        console.error("Erro ao carregar clientes:", err);
     }
 }
-}
+
+// Chame esta função assim que a página carregar
+window.addEventListener('DOMContentLoaded', carregarDadosClientes);
 
 // Mantenha suas funções prepararEdicao, limparFormulario, excluirProduto e o onsubmit aqui...
 

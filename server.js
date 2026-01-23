@@ -239,16 +239,15 @@ app.get('/admin/stats', async (req, res) => {
 });
 
 // Rota exclusiva para listar clientes recentes
-app.get('/admin/clientes-recentes', async (req, res) => {
+app.get('/api/clientes-todos', async (req, res) => {
     try {
-        // Usando as colunas exatas que vimos no seu DESCRIBE
-        const [clientes] = await dbPromise.query(
-            "SELECT nome, email, data_cadastro FROM usuarios ORDER BY data_cadastro DESC LIMIT 5"
+        const [rows] = await dbPromise.query(
+            "SELECT nome, email, data_cadastro FROM usuarios ORDER BY data_cadastro DESC"
         );
-        res.json(clientes);
+        res.json(rows);
     } catch (error) {
-        console.error("Erro ao buscar clientes:", error);
-        res.status(500).json({ error: "Erro ao buscar clientes" });
+        console.error(error);
+        res.status(500).json({ error: "Erro no banco" });
     }
 });
 
