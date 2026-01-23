@@ -203,6 +203,25 @@ app.get('/admin/stats', async (req, res) => {
     }
 });
 
+// Rota para deletar usuário (Coloque antes do app.listen)
+app.delete('/admin/usuarios/:email', async (req, res) => {
+    const { email } = req.params;
+    const { email_admin } = req.body;
+
+    // Verificação de segurança básica
+    if (email_admin !== process.env.ADMIN_EMAIL) {
+        return res.status(403).json({ erro: "Não autorizado" });
+    }
+
+    try {
+        await dbPromise.query("DELETE FROM usuarios WHERE email = ?", [email]);
+        res.json({ sucesso: true, mensagem: "Usuário removido com sucesso" });
+    } catch (error) {
+        console.error("Erro ao deletar usuário:", error);
+        res.status(500).json({ sucesso: false, erro: "Erro ao deletar do banco" });
+    }
+});
+
 // --- INICIALIZAÇÃO ---
 
 const PORT = process.env.PORT || 3000;

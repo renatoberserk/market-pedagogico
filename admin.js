@@ -14,7 +14,7 @@ async function validarAcesso() {
 
             // Inicia o carregamento unificado dos dados
             carregarProdutosAdmin();
-            carregarDashboard(); 
+            carregarDashboard();
         } else {
             alert("Acesso Negado!");
             window.location.href = 'index.html';
@@ -31,7 +31,7 @@ async function carregarDashboard() {
         // Esta rota agora traz vendas, receitas e a lista de clientes
         const response = await fetch('http://191.252.214.27:3000/admin/stats');
         const dados = await response.json();
-        
+
         console.log("Dados recebidos do servidor:", dados);
         atualizarEstatisticasVisual(dados);
     } catch (error) {
@@ -59,14 +59,20 @@ function atualizarEstatisticasVisual(dados) {
     const tabelaBody = document.getElementById('tabela-clientes-recentes');
     if (tabelaBody && dados.lista_clientes) {
         tabelaBody.innerHTML = dados.lista_clientes.map(cliente => `
-            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                <td class="py-4 text-sm font-bold text-gray-700">${cliente.nome}</td>
-                <td class="py-4 text-sm text-gray-500">${cliente.email}</td>
-                <td class="py-4 text-xs text-gray-400">
-                    ${new Date(cliente.data_cadastro).toLocaleDateString('pt-BR')}
-                </td>
-            </tr>
-        `).join('');
+    <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+        <td class="py-4 text-sm font-bold text-gray-700">${cliente.nome}</td>
+        <td class="py-4 text-sm text-gray-500">${cliente.email}</td>
+        <td class="py-4 text-xs text-gray-400">
+            ${new Date(cliente.data_cadastro).toLocaleDateString('pt-BR')}
+        </td>
+        <td class="py-4 text-right">
+            <button onclick="excluirUsuario('${cliente.email}')" 
+                    class="bg-red-50 text-red-500 p-2 rounded-xl hover:bg-red-500 hover:text-white transition-all">
+                🗑️
+            </button>
+        </td>
+    </tr>
+`).join('');
     }
 
     // Comparações de rendimento (Ontem vs Hoje)
@@ -117,6 +123,28 @@ async function carregarProdutosAdmin() {
             </div>
         `).join('') : '<p class="text-gray-400">Nenhum produto cadastrado.</p>';
     } catch (err) { console.error("Erro ao listar produtos:", err); }
+}
+
+async function excluirUsuario(email) {
+    if (!confirm(`Tem certeza que deseja excluir o usuário ${email}?`)) return;
+
+    try {
+        const response = await fetch(`http://191.252.214.27:3000/admin/usuarios/${email}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email_admin: emailLogado }) // emailLogado já existe no topo do seu script
+        });
+
+        const resultado = await response.json();
+        if (resultado.sucesso) {
+            alert("Usuário excluído!");
+            carregarDashboard(); // Recarrega a tabela e o contador automaticamente
+        } else {
+            alert("Erro ao excluir: " + resultado.erro);
+        }
+    } catch (error) {
+        console.error("Erro na requisição:", error);
+    }
 }
 
 // Inicialização única
