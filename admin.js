@@ -38,26 +38,32 @@ async function carregarDashboard() {
 
 // 3. ATUALIZAR INTERFACE VISUAL
 function atualizarEstatisticasVisual(dados) {
-    // Log para você ver no console (F12) se o servidor está enviando o número correto
-    console.log("Dados recebidos do servidor:", dados);
+    console.log("Dados recebidos:", dados);
 
-    // Conversão segura para números
-    const hoje = parseFloat(dados.hoje) || 0;
-    const mesAtual = parseFloat(dados.mes_atual) || 0;
-    const ontem = parseFloat(dados.ontem) || 0;
-    const mesAnterior = parseFloat(dados.mes_anterior) || 0;
-
-    // Atualiza os Cards Principais
-    document.getElementById('receita-dia').innerText = hoje.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    document.getElementById('receita-mes').innerText = mesAtual.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    // Atualiza os Cards (Moeda e Contadores)
+    document.getElementById('receita-dia').innerText = (dados.hoje || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    document.getElementById('receita-mes').innerText = (dados.mes_atual || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     document.getElementById('total-vendas').innerText = dados.total_vendas || 0;
     
-    // Se aqui continuar aparecendo 0, verifique o passo 2 abaixo
+    // Resolve o contador de 0 para 1
     document.getElementById('total-clientes').innerText = dados.total_clientes || 0;
 
-    // Renderiza as variações (Rendimento/Queda)
-    estilizarComparativo(document.getElementById('comparativo-dia'), calcularVariacao(hoje, ontem));
-    estilizarComparativo(document.getElementById('comparativo-mes'), calcularVariacao(mesAtual, mesAnterior));
+    // Preenche a tabela de Clientes
+    const tabelaBody = document.getElementById('tabela-clientes-recentes');
+    if (tabelaBody && dados.lista_clientes) {
+        tabelaBody.innerHTML = dados.lista_clientes.map(cliente => `
+            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                <td class="py-4 text-sm font-bold text-gray-700">${cliente.nome}</td>
+                <td class="py-4 text-sm text-gray-500">${cliente.email}</td>
+                <td class="py-4 text-xs text-gray-400">
+                    ${new Date(cliente.data_cadastro).toLocaleDateString('pt-BR')}
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Comparações de rendimento
+    estilizarComparativo(document.getElementById('comparativo-dia'), calcularVariacao(dados.hoje, dados.ontem));
 }
 
 // 4. FUNÇÕES DE CÁLCULO E ESTILO
