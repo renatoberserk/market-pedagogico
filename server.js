@@ -208,6 +208,31 @@ app.post('/cadastro', (req, res) => {
     });
 });
 
+app.get('/admin/stats', async (req, res) => {
+    try {
+        const [hoje] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE DATE(data_venda) = CURDATE()");
+        const [ontem] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE DATE(data_venda) = SUBDATE(CURDATE(), 1)");
+        const [mesAtual] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE MONTH(data_venda) = MONTH(CURDATE()) AND YEAR(data_venda) = YEAR(CURDATE())");
+        const [mesAnterior] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE MONTH(data_venda) = MONTH(SUBDATE(CURDATE(), INTERVAL 1 MONTH)) AND YEAR(data_venda) = YEAR(SUBDATE(CURDATE(), INTERVAL 1 MONTH))");
+        const [totalVendas] = await dbPromise.query("SELECT COUNT(*) as qtd FROM vendas");
+
+        // --- ADICIONADO: Contagem de Clientes ---
+        const [totalClientes] = await dbPromise.query("SELECT COUNT(*) as qtd FROM usuarios");
+
+        res.json({
+            hoje: parseFloat(hoje[0].total) || 0,
+            ontem: parseFloat(ontem[0].total) || 0,
+            mes_atual: parseFloat(mesAtual[0].total) || 0,
+            mes_anterior: parseFloat(mesAnterior[0].total) || 0,
+            total_vendas: totalVendas[0].qtd || 0,
+            total_clientes: totalClientes[0].qtd || 0 // Enviando para o front
+        });
+    } catch (error) {
+        console.error("Erro SQL Stats:", error);
+        res.status(500).json({ error: "Erro ao buscar dados" });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Servidor ON em http://0.0.0.0:${PORT}`);

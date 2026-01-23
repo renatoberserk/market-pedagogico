@@ -9,7 +9,6 @@
     <style>
         body { font-family: 'Quicksand', sans-serif; }
         #painel-admin { display: none; } 
-        /* Animação para os números */
         .count-up { animation: countUp 1s ease-out; }
         @keyframes countUp {
             from { opacity: 0; transform: translateY(10px); }
@@ -30,7 +29,7 @@
             </button>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Receita Hoje</p>
                 <h2 id="receita-dia" class="text-3xl font-black text-gray-800 mb-2">R$ 0,00</h2>
@@ -46,7 +45,13 @@
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Vendas Totais</p>
                 <h2 id="total-vendas" class="text-3xl font-black text-gray-800 mb-2">0</h2>
-                <p class="text-[10px] text-blue-500 font-bold uppercase">Meta Anual: Em dia</p>
+                <p class="text-[10px] text-blue-500 font-bold uppercase tracking-tighter">Pedidos registrados</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total de Clientes</p>
+                <h2 id="total-clientes" class="text-3xl font-black text-gray-800 mb-2">0</h2>
+                <p class="text-[10px] text-purple-500 font-bold uppercase tracking-tighter">Usuários cadastrados</p>
             </div>
         </div>
 

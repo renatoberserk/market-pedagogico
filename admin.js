@@ -48,6 +48,7 @@ function atualizarEstatisticasVisual(dados) {
     document.getElementById('receita-dia').innerText = hoje.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     document.getElementById('receita-mes').innerText = mesAtual.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     document.getElementById('total-vendas').innerText = dados.total_vendas || 0;
+    document.getElementById('total-clientes').innerText = dados.total_clientes || 0;
 
     // Renderiza as variações (Rendimento/Queda)
     estilizarComparativo(document.getElementById('comparativo-dia'), calcularVariacao(hoje, ontem));
