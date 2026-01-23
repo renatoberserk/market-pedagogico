@@ -23,7 +23,7 @@ async function gerarPixReal(total) {
     const statusText = document.getElementById('pix-code');
 
     try {
-        const response = await fetch('http://educamateriais.shop :3000/criar-pagamento-pix', {
+        const response = await fetch('https://educamateriais.shop /criar-pagamento-pix', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, total })
@@ -69,7 +69,7 @@ function iniciarVerificacaoStatus(id) {
 
     checkInterval = setInterval(async () => {
         try {
-            const res = await fetch(`http://educamateriais.shop :3000/verificar-pagamento/${id}`);
+            const res = await fetch(`https://educamateriais.shop /verificar-pagamento/${id}`);
             const data = await res.json();
 
             // Verifica se o status é aprovado
@@ -89,7 +89,7 @@ async function finalizarCompraSucesso() {
 
     try {
         // 1. Avisa o servidor para registrar a venda e liberar os arquivos
-        await fetch('http://educamateriais.shop :3000/registrar-venda', {
+        await fetch('https://educamateriais.shop /registrar-venda', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, produtos: carrinho })

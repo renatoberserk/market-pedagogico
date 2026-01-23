@@ -226,5 +226,7 @@ app.delete('/admin/usuarios/:email', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Servidor ON em http://educamateriais.shop :${PORT}`);
+    // O log agora reflete a URL final que o público acessa
+    console.log(`🚀 Servidor backend rodando internamente na porta ${PORT}`);
+    console.log(`🌍 Acesse publicamente em: https://educamateriais.shop`);
 });
