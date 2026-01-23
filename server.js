@@ -15,7 +15,7 @@ const client = new MercadoPagoConfig({
 });
 const payment = new Payment(client);
 
-// --- CONEXÃO BANCO DE DADOS ---
+// --- CONEXÃO BANCO DE DADOS (USANDO PROMISES PARA AS STATS FUNCIONAREM) ---
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -23,17 +23,21 @@ const db = mysql.createConnection({
     database: process.env.DB_NAME
 });
 
+// Versão com Promise para as estatísticas
+const dbPromise = db.promise();
+
 db.connect((err) => {
     if (err) {
         console.error("Erro ao conectar no MySQL:", err);
     } else {
         console.log("✅ Conectado ao MySQL com sucesso!");
-        // Garante que a tabela de vendas existe
+        // Garante que a tabela de vendas existe com a coluna PRECO
         db.query(`
             CREATE TABLE IF NOT EXISTS vendas (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 usuario_email VARCHAR(255) NOT NULL,
                 produto_id INT NOT NULL,
+                preco DECIMAL(10,2) NOT NULL DEFAULT 0.00,
                 data_venda DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -104,24 +108,16 @@ app.delete('/produtos/:id', (req, res) => {
 app.post('/criar-pagamento-pix', async (req, res) => {
     try {
         const { email, total } = req.body;
-
-        // Verificação de segurança: se o e-mail ou total sumirem, o MP dá erro 400/500
-        if (!email || !total) {
-            return res.status(400).json({ erro: "E-mail ou total não informados" });
-        }
+        if (!email || !total) return res.status(400).json({ erro: "E-mail ou total não informados" });
 
         const body = {
-            transaction_amount: Number(parseFloat(total).toFixed(2)), // Garante número com 2 casas decimais
+            transaction_amount: Number(parseFloat(total).toFixed(2)),
             description: 'Compra Educa Materiais',
             payment_method_id: 'pix',
-            payer: {
-                email: email.trim() // Remove espaços acidentais
-            }
+            payer: { email: email.trim() }
         };
 
         const response = await payment.create({ body });
-        
-        // A resposta do SDK v2 pode vir dentro de 'body' ou direto no objeto
         const data = response.body || response;
 
         res.json({
@@ -129,14 +125,8 @@ app.post('/criar-pagamento-pix', async (req, res) => {
             qr_code: data.point_of_interaction.transaction_data.qr_code,
             qr_code_base64: data.point_of_interaction.transaction_data.qr_code_base64
         });
-
     } catch (error) {
-        console.error("ERRO DETALHADO NO SERVIDOR:", error);
-        // Retorna o erro real para o seu checkout.js conseguir ler no console
-        res.status(500).json({ 
-            erro: 'Erro interno no servidor', 
-            detalhes: error.message 
-        });
+        res.status(500).json({ erro: 'Erro interno no servidor', detalhes: error.message });
     }
 });
 
@@ -149,16 +139,14 @@ app.get('/verificar-pagamento/:id', async (req, res) => {
     }
 });
 
-// --- REGISTRO DE VENDAS E DOWNLOADS ---
+// --- REGISTRO DE VENDAS ---
 
 app.post('/registrar-venda', (req, res) => {
     const { email, produtos } = req.body;
     if (!produtos || produtos.length === 0) return res.status(400).json({ error: "Carrinho vazio" });
 
-    // ADICIONADO: Agora incluímos p.preco no mapeamento dos valores
+    // Prepara os valores incluindo o PREÇO enviado pelo front-end
     const valores = produtos.map(p => [email, p.id, p.preco, new Date()]);
-
-    // ADICIONADO: Incluindo a coluna 'preco' na query SQL
     const sql = "INSERT INTO vendas (usuario_email, produto_id, preco, data_venda) VALUES ?";
     
     db.query(sql, [valores], (err) => {
@@ -168,6 +156,29 @@ app.post('/registrar-venda', (req, res) => {
         }
         res.json({ success: true });
     });
+});
+
+// --- ESTATÍSTICAS DO ADMIN (CORRIGIDA COM PROMISES) ---
+
+app.get('/admin/stats', async (req, res) => {
+    try {
+        const [hoje] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE DATE(data_venda) = CURDATE()");
+        const [ontem] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE DATE(data_venda) = SUBDATE(CURDATE(), 1)");
+        const [mesAtual] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE MONTH(data_venda) = MONTH(CURDATE()) AND YEAR(data_venda) = YEAR(CURDATE())");
+        const [mesAnterior] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE MONTH(data_venda) = MONTH(SUBDATE(CURDATE(), INTERVAL 1 MONTH)) AND YEAR(data_venda) = YEAR(SUBDATE(CURDATE(), INTERVAL 1 MONTH))");
+        const [totalVendas] = await dbPromise.query("SELECT COUNT(*) as qtd FROM vendas");
+
+        res.json({
+            hoje: parseFloat(hoje[0].total) || 0,
+            ontem: parseFloat(ontem[0].total) || 0,
+            mes_atual: parseFloat(mesAtual[0].total) || 0,
+            mes_anterior: parseFloat(mesAnterior[0].total) || 0,
+            total_vendas: totalVendas[0].qtd || 0
+        });
+    } catch (error) {
+        console.error("Erro SQL Stats:", error);
+        res.status(500).json({ error: "Erro ao buscar dados" });
+    }
 });
 
 app.get('/meus-produtos/:email', (req, res) => {
@@ -183,67 +194,18 @@ app.get('/meus-produtos/:email', (req, res) => {
     });
 });
 
-// Rota para Cadastrar Novo Usuário
 app.post('/cadastro', (req, res) => {
     const { nome, email, senha } = req.body;
-
-    // 1. Verifica se o usuário já existe
     db.query("SELECT email FROM usuarios WHERE email = ?", [email], (err, results) => {
         if (err) return res.status(500).json({ sucesso: false, erro: "Erro no banco" });
-        
-        if (results.length > 0) {
-            return res.status(400).json({ sucesso: false, erro: "Este e-mail já está cadastrado!" });
-        }
+        if (results.length > 0) return res.status(400).json({ sucesso: false, erro: "Este e-mail já está cadastrado!" });
 
-        // 2. Insere o novo usuário
         const sql = "INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)";
-        db.query(sql, [nome, email, senha], (err, result) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ sucesso: false, erro: "Erro ao salvar usuário" });
-            }
-            res.json({ sucesso: true, mensagem: "Cadastro realizado com sucesso!" });
+        db.query(sql, [nome, email, senha], (err) => {
+            if (err) return res.status(500).json({ sucesso: false, erro: "Erro ao salvar" });
+            res.json({ sucesso: true });
         });
     });
-});
-
-// Rota para estatísticas do Admin
-app.get('/admin/stats', async (req, res) => {
-    try {
-        // Receita de Hoje
-        const hoje = await db.query(`
-            SELECT SUM(preco) as total FROM vendas 
-            WHERE DATE(data_venda) = CURDATE()`);
-
-        // Receita de Ontem
-        const ontem = await db.query(`
-            SELECT SUM(preco) as total FROM vendas 
-            WHERE DATE(data_venda) = SUBDATE(CURDATE(), 1)`);
-
-        // Receita do Mês Atual
-        const mesAtual = await db.query(`
-            SELECT SUM(preco) as total FROM vendas 
-            WHERE MONTH(data_venda) = MONTH(CURDATE()) AND YEAR(data_venda) = YEAR(CURDATE())`);
-
-        // Receita do Mês Anterior
-        const mesAnterior = await db.query(`
-            SELECT SUM(preco) as total FROM vendas 
-            WHERE MONTH(data_venda) = MONTH(SUBDATE(CURDATE(), INTERVAL 1 MONTH))`);
-
-        // Total de Vendas (Quantidade total de linhas na tabela)
-        const totalVendas = await db.query(`SELECT COUNT(*) as qtd FROM vendas`);
-
-        res.json({
-            hoje: hoje[0].total || 0,
-            ontem: ontem[0].total || 0,
-            mes_atual: mesAtual[0].total || 0,
-            mes_anterior: mesAnterior[0].total || 0,
-            total_vendas: totalVendas[0].qtd || 0
-        });
-    } catch (error) {
-        console.error("Erro SQL:", error);
-        res.status(500).json({ error: "Erro ao buscar dados no banco" });
-    }
 });
 
 const PORT = process.env.PORT || 3000;
