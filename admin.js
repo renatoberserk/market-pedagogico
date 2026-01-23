@@ -7,11 +7,11 @@ async function validarAcesso() {
     try {
         const resp = await fetch(`http://191.252.214.27:3000/verificar-admin?email=${emailLogado}`);
         const data = await resp.json();
-        
+
         if (data.isAdmin) {
             document.getElementById('painel-admin').style.display = 'block';
             document.getElementById('admin-welcome').innerText = "Modo Administrador Ativo";
-            
+
             // Inicia o carregamento dos dados
             carregarProdutosAdmin();
             carregarDashboard(); // <--- NOVO: Carrega as estatísticas financeiras
@@ -19,9 +19,9 @@ async function validarAcesso() {
             alert("Acesso Negado!");
             window.location.href = 'index.html';
         }
-    } catch (err) { 
+    } catch (err) {
         console.error("Erro no acesso:", err);
-        window.location.href = 'index.html'; 
+        window.location.href = 'index.html';
     }
 }
 
@@ -38,6 +38,9 @@ async function carregarDashboard() {
 
 // 3. ATUALIZAR INTERFACE VISUAL
 function atualizarEstatisticasVisual(dados) {
+    // Log para você ver no console (F12) se o servidor está enviando o número correto
+    console.log("Dados recebidos do servidor:", dados);
+
     // Conversão segura para números
     const hoje = parseFloat(dados.hoje) || 0;
     const mesAtual = parseFloat(dados.mes_atual) || 0;
@@ -48,6 +51,8 @@ function atualizarEstatisticasVisual(dados) {
     document.getElementById('receita-dia').innerText = hoje.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     document.getElementById('receita-mes').innerText = mesAtual.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     document.getElementById('total-vendas').innerText = dados.total_vendas || 0;
+    
+    // Se aqui continuar aparecendo 0, verifique o passo 2 abaixo
     document.getElementById('total-clientes').innerText = dados.total_clientes || 0;
 
     // Renderiza as variações (Rendimento/Queda)
