@@ -210,25 +210,31 @@ app.post('/cadastro', (req, res) => {
 
 app.get('/admin/stats', async (req, res) => {
     try {
-        // Consultas de Vendas
+        // Consultas de Vendas (Já funcionam)
         const [hoje] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE DATE(data_venda) = CURDATE()");
         const [ontem] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE DATE(data_venda) = SUBDATE(CURDATE(), 1)");
         const [mesAtual] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE MONTH(data_venda) = MONTH(CURDATE()) AND YEAR(data_venda) = YEAR(CURDATE())");
         const [mesAnterior] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE MONTH(data_venda) = MONTH(SUBDATE(CURDATE(), INTERVAL 1 MONTH)) AND YEAR(data_venda) = YEAR(SUBDATE(CURDATE(), INTERVAL 1 MONTH))");
         const [totalVendas] = await dbPromise.query("SELECT COUNT(*) as qtd FROM vendas");
+
+        // --- A LINHA QUE ESTÁ FALTANDO ---
         const [totalClientes] = await dbPromise.query("SELECT COUNT(*) as qtd FROM usuarios");
 
+        // BUSCA A LISTA PARA A TABELA (Últimos 5)
+        const [listaUltimos] = await dbPromise.query("SELECT nome, email, data_cadastro FROM usuarios ORDER BY data_cadastro DESC LIMIT 5");
+
         res.json({
-            hoje: hoje[0].total || 0,
-            mes_atual: mesAtual[0].total || 0,
+            hoje: parseFloat(hoje[0].total) || 0,
+            ontem: parseFloat(ontem[0].total) || 0,
+            mes_atual: parseFloat(mesAtual[0].total) || 0,
+            mes_anterior: parseFloat(mesAnterior[0].total) || 0,
             total_vendas: totalVendas[0].qtd || 0,
-            // 2. Garanta que este campo está sendo enviado no JSON
-            total_clientes: totalClientes[0].qtd || 0, 
-            lista_clientes: [] // (veremos a lista no próximo passo)
+            total_clientes: totalClientes[0].qtd || 0, // Agora o 'Didi' será contado
+            lista_clientes: listaUltimos // Envia os dados para a tabela
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).send("Erro ao carregar estatísticas");
+        console.error("Erro SQL:", error);
+        res.status(500).json({ error: "Erro interno" });
     }
 });
 
