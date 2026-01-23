@@ -12,9 +12,9 @@ async function validarAcesso() {
             document.getElementById('painel-admin').style.display = 'block';
             document.getElementById('admin-welcome').innerText = "Modo Administrador Ativo";
 
-            // Inicia o carregamento dos dados
+            // Inicia o carregamento unificado dos dados
             carregarProdutosAdmin();
-            carregarDashboard(); // <--- NOVO: Carrega as estatísticas financeiras
+            carregarDashboard(); 
         } else {
             alert("Acesso Negado!");
             window.location.href = 'index.html';
@@ -25,30 +25,37 @@ async function validarAcesso() {
     }
 }
 
-// 2. BUSCAR DADOS DO SERVIDOR (DASHBOARD)
+// 2. BUSCAR DADOS DO SERVIDOR (DASHBOARD + CLIENTES)
 async function carregarDashboard() {
     try {
+        // Esta rota agora traz vendas, receitas e a lista de clientes
         const response = await fetch('http://191.252.214.27:3000/admin/stats');
         const dados = await response.json();
+        
+        console.log("Dados recebidos do servidor:", dados);
         atualizarEstatisticasVisual(dados);
     } catch (error) {
         console.error("Erro ao carregar estatísticas:", error);
     }
 }
 
-// 3. ATUALIZAR INTERFACE VISUAL
+// 3. ATUALIZAR INTERFACE VISUAL (CARDS E TABELA)
 function atualizarEstatisticasVisual(dados) {
-    console.log("Dados recebidos:", dados);
-
-    // Atualiza os Cards (Moeda e Contadores)
+    // Atualiza os Cards Principais
     document.getElementById('receita-dia').innerText = (dados.hoje || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     document.getElementById('receita-mes').innerText = (dados.mes_atual || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     document.getElementById('total-vendas').innerText = dados.total_vendas || 0;
 
-    // Resolve o contador de 0 para 1
-    document.getElementById('total-clientes').innerText = dados.total_clientes || 0;
+    // --- CORREÇÃO DO CONTADOR DE CLIENTES ---
+    // Se a lista de clientes vier preenchida, usamos o tamanho dela para o contador
+    const totalClientesElement = document.getElementById('total-clientes');
+    if (dados.lista_clientes && totalClientesElement) {
+        totalClientesElement.innerText = dados.lista_clientes.length;
+    } else if (totalClientesElement) {
+        totalClientesElement.innerText = dados.total_clientes || 0;
+    }
 
-    // Preenche a tabela de Clientes
+    // Preenche a tabela de Clientes (Jade, Vanessa, Didi)
     const tabelaBody = document.getElementById('tabela-clientes-recentes');
     if (tabelaBody && dados.lista_clientes) {
         tabelaBody.innerHTML = dados.lista_clientes.map(cliente => `
@@ -62,8 +69,9 @@ function atualizarEstatisticasVisual(dados) {
         `).join('');
     }
 
-    // Comparações de rendimento
+    // Comparações de rendimento (Ontem vs Hoje)
     estilizarComparativo(document.getElementById('comparativo-dia'), calcularVariacao(dados.hoje, dados.ontem));
+    estilizarComparativo(document.getElementById('comparativo-mes'), calcularVariacao(dados.mes_atual, dados.mes_anterior));
 }
 
 // 4. FUNÇÕES DE CÁLCULO E ESTILO
@@ -86,7 +94,7 @@ function estilizarComparativo(elemento, variacao) {
     }
 }
 
-// 5. GESTÃO DE PRODUTOS (RESTANTE DO SEU CÓDIGO...)
+// 5. GESTÃO DE PRODUTOS
 async function carregarProdutosAdmin() {
     try {
         const resp = await fetch('http://191.252.214.27:3000/produtos');
@@ -111,34 +119,5 @@ async function carregarProdutosAdmin() {
     } catch (err) { console.error("Erro ao listar produtos:", err); }
 }
 
-async function carregarDadosClientes() {
-    try {
-        const response = await fetch('/api/clientes-todos');
-        const clientes = await response.json();
-
-        // 1. Atualiza o contador de Clientes (Sairá do 0 para 1 ou mais)
-        const contador = document.getElementById('total-clientes');
-        if (contador) contador.innerText = clientes.length;
-
-        // 2. Preenche a tabela que você criou no HTML
-        const tabela = document.getElementById('tabela-clientes-recentes');
-        if (tabela) {
-            tabela.innerHTML = clientes.map(c => `
-                <tr class="border-b border-gray-50">
-                    <td class="py-4 text-sm font-bold text-gray-700">${c.nome}</td>
-                    <td class="py-4 text-sm text-gray-500">${c.email}</td>
-                    <td class="py-4 text-xs text-gray-400">${new Date(c.data_cadastro).toLocaleDateString('pt-BR')}</td>
-                </tr>
-            `).join('');
-        }
-    } catch (err) {
-        console.error("Erro ao carregar clientes:", err);
-    }
-}
-
-// Chame esta função assim que a página carregar
-window.addEventListener('DOMContentLoaded', carregarDadosClientes);
-
-// Mantenha suas funções prepararEdicao, limparFormulario, excluirProduto e o onsubmit aqui...
-
+// Inicialização única
 window.onload = validarAcesso;
