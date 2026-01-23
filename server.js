@@ -210,18 +210,18 @@ app.post('/cadastro', (req, res) => {
 
 app.get('/admin/stats', async (req, res) => {
     try {
-        // Estatísticas de Vendas (Já funcionando)
+        // Consultas de Vendas (Já funcionam)
         const [hoje] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE DATE(data_venda) = CURDATE()");
         const [ontem] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE DATE(data_venda) = SUBDATE(CURDATE(), 1)");
         const [mesAtual] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE MONTH(data_venda) = MONTH(CURDATE()) AND YEAR(data_venda) = YEAR(CURDATE())");
         const [mesAnterior] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE MONTH(data_venda) = MONTH(SUBDATE(CURDATE(), INTERVAL 1 MONTH)) AND YEAR(data_venda) = YEAR(SUBDATE(CURDATE(), INTERVAL 1 MONTH))");
         const [totalVendas] = await dbPromise.query("SELECT COUNT(*) as qtd FROM vendas");
 
-        // --- RESOLVENDO O CONTADOR DE CLIENTES ---
-        const [totalClientesResult] = await dbPromise.query("SELECT COUNT(*) as qtd FROM usuarios");
+        // --- A LINHA QUE ESTÁ FALTANDO ---
+        const [totalClientes] = await dbPromise.query("SELECT COUNT(*) as qtd FROM usuarios");
 
-        // --- BUSCANDO DADOS PARA A NOVA TABELA ---
-        const [listaRecentes] = await dbPromise.query("SELECT nome, email, data_cadastro FROM usuarios ORDER BY data_cadastro DESC LIMIT 5");
+        // BUSCA A LISTA PARA A TABELA (Últimos 5)
+        const [listaUltimos] = await dbPromise.query("SELECT nome, email, data_cadastro FROM usuarios ORDER BY data_cadastro DESC LIMIT 5");
 
         res.json({
             hoje: parseFloat(hoje[0].total) || 0,
@@ -229,12 +229,12 @@ app.get('/admin/stats', async (req, res) => {
             mes_atual: parseFloat(mesAtual[0].total) || 0,
             mes_anterior: parseFloat(mesAnterior[0].total) || 0,
             total_vendas: totalVendas[0].qtd || 0,
-            total_clientes: totalClientesResult[0].qtd || 0, // Agora enviará '1' (Didi)
-            lista_clientes: listaRecentes // Dados para a tabela
+            total_clientes: totalClientes[0].qtd || 0, // Agora o 'Didi' será contado
+            lista_clientes: listaUltimos // Envia os dados para a tabela
         });
     } catch (error) {
         console.error("Erro SQL:", error);
-        res.status(500).json({ error: "Erro interno no servidor" });
+        res.status(500).json({ error: "Erro interno" });
     }
 });
 
