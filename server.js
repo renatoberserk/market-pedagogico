@@ -15,7 +15,7 @@ const client = new MercadoPagoConfig({
 });
 const payment = new Payment(client);
 
-// --- CONEXÃO BANCO DE DADOS (USANDO PROMISES PARA AS STATS FUNCIONAREM) ---
+// --- CONEXÃO BANCO DE DADOS ---
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -23,7 +23,7 @@ const db = mysql.createConnection({
     database: process.env.DB_NAME
 });
 
-// Versão com Promise para as estatísticas
+// Versão com Promise para as estatísticas e rotas async
 const dbPromise = db.promise();
 
 db.connect((err) => {
@@ -31,7 +31,7 @@ db.connect((err) => {
         console.error("Erro ao conectar no MySQL:", err);
     } else {
         console.log("✅ Conectado ao MySQL com sucesso!");
-        // Garante que a tabela de vendas existe com a coluna PRECO
+        // Garante que a tabela de vendas existe com a estrutura correta
         db.query(`
             CREATE TABLE IF NOT EXISTS vendas (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -44,7 +44,7 @@ db.connect((err) => {
     }
 });
 
-// --- ROTAS DE USUÁRIO E ADMIN ---
+// --- ROTAS DE AUTENTICAÇÃO ---
 
 app.post('/login', (req, res) => {
     const { email, senha } = req.body;
@@ -54,6 +54,20 @@ app.post('/login', (req, res) => {
         } else {
             res.status(401).json({ sucesso: false, erro: "Credenciais inválidas" });
         }
+    });
+});
+
+app.post('/cadastro', (req, res) => {
+    const { nome, email, senha } = req.body;
+    db.query("SELECT email FROM usuarios WHERE email = ?", [email], (err, results) => {
+        if (err) return res.status(500).json({ sucesso: false, erro: "Erro no banco" });
+        if (results.length > 0) return res.status(400).json({ sucesso: false, erro: "Este e-mail já está cadastrado!" });
+
+        const sql = "INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)";
+        db.query(sql, [nome, email, senha], (err) => {
+            if (err) return res.status(500).json({ sucesso: false, erro: "Erro ao salvar" });
+            res.json({ sucesso: true });
+        });
     });
 });
 
@@ -104,7 +118,8 @@ app.delete('/produtos/:id', (req, res) => {
     });
 });
 
-// --- PAGAMENTO MERCADO PAGO ---
+// --- PAGAMENTO E COMPRAS ---
+
 app.post('/criar-pagamento-pix', async (req, res) => {
     try {
         const { email, total } = req.body;
@@ -130,55 +145,17 @@ app.post('/criar-pagamento-pix', async (req, res) => {
     }
 });
 
-app.get('/verificar-pagamento/:id', async (req, res) => {
-    try {
-        const response = await payment.get({ id: req.params.id });
-        res.json({ status: response.status });
-    } catch (error) {
-        res.status(500).json({ erro: 'Erro ao consultar status' });
-    }
-});
-
-// --- REGISTRO DE VENDAS ---
-
 app.post('/registrar-venda', (req, res) => {
     const { email, produtos } = req.body;
     if (!produtos || produtos.length === 0) return res.status(400).json({ error: "Carrinho vazio" });
 
-    // Prepara os valores incluindo o PREÇO enviado pelo front-end
     const valores = produtos.map(p => [email, p.id, p.preco, new Date()]);
     const sql = "INSERT INTO vendas (usuario_email, produto_id, preco, data_venda) VALUES ?";
     
     db.query(sql, [valores], (err) => {
-        if (err) {
-            console.error("Erro ao registrar venda:", err);
-            return res.status(500).json({ error: "Erro ao salvar" });
-        }
+        if (err) return res.status(500).json({ error: "Erro ao salvar" });
         res.json({ success: true });
     });
-});
-
-// --- ESTATÍSTICAS DO ADMIN (CORRIGIDA COM PROMISES) ---
-
-app.get('/admin/stats', async (req, res) => {
-    try {
-        const [hoje] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE DATE(data_venda) = CURDATE()");
-        const [ontem] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE DATE(data_venda) = SUBDATE(CURDATE(), 1)");
-        const [mesAtual] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE MONTH(data_venda) = MONTH(CURDATE()) AND YEAR(data_venda) = YEAR(CURDATE())");
-        const [mesAnterior] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE MONTH(data_venda) = MONTH(SUBDATE(CURDATE(), INTERVAL 1 MONTH)) AND YEAR(data_venda) = YEAR(SUBDATE(CURDATE(), INTERVAL 1 MONTH))");
-        const [totalVendas] = await dbPromise.query("SELECT COUNT(*) as qtd FROM vendas");
-
-        res.json({
-            hoje: parseFloat(hoje[0].total) || 0,
-            ontem: parseFloat(ontem[0].total) || 0,
-            mes_atual: parseFloat(mesAtual[0].total) || 0,
-            mes_anterior: parseFloat(mesAnterior[0].total) || 0,
-            total_vendas: totalVendas[0].qtd || 0
-        });
-    } catch (error) {
-        console.error("Erro SQL Stats:", error);
-        res.status(500).json({ error: "Erro ao buscar dados" });
-    }
 });
 
 app.get('/meus-produtos/:email', (req, res) => {
@@ -194,33 +171,21 @@ app.get('/meus-produtos/:email', (req, res) => {
     });
 });
 
-app.post('/cadastro', (req, res) => {
-    const { nome, email, senha } = req.body;
-    db.query("SELECT email FROM usuarios WHERE email = ?", [email], (err, results) => {
-        if (err) return res.status(500).json({ sucesso: false, erro: "Erro no banco" });
-        if (results.length > 0) return res.status(400).json({ sucesso: false, erro: "Este e-mail já está cadastrado!" });
-
-        const sql = "INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)";
-        db.query(sql, [nome, email, senha], (err) => {
-            if (err) return res.status(500).json({ sucesso: false, erro: "Erro ao salvar" });
-            res.json({ sucesso: true });
-        });
-    });
-});
+// --- ESTATÍSTICAS DO ADMIN (CONSOLIDADO) ---
 
 app.get('/admin/stats', async (req, res) => {
     try {
-        // Consultas de Vendas (Já funcionam)
+        // Consultas de Receita
         const [hoje] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE DATE(data_venda) = CURDATE()");
         const [ontem] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE DATE(data_venda) = SUBDATE(CURDATE(), 1)");
         const [mesAtual] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE MONTH(data_venda) = MONTH(CURDATE()) AND YEAR(data_venda) = YEAR(CURDATE())");
         const [mesAnterior] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE MONTH(data_venda) = MONTH(SUBDATE(CURDATE(), INTERVAL 1 MONTH)) AND YEAR(data_venda) = YEAR(SUBDATE(CURDATE(), INTERVAL 1 MONTH))");
+        
+        // Consultas de Contagem
         const [totalVendas] = await dbPromise.query("SELECT COUNT(*) as qtd FROM vendas");
-
-        // --- A LINHA QUE ESTÁ FALTANDO ---
         const [totalClientes] = await dbPromise.query("SELECT COUNT(*) as qtd FROM usuarios");
 
-        // BUSCA A LISTA PARA A TABELA (Últimos 5)
+        // Busca a lista para a tabela (Usando data_cadastro)
         const [listaUltimos] = await dbPromise.query("SELECT nome, email, data_cadastro FROM usuarios ORDER BY data_cadastro DESC LIMIT 5");
 
         res.json({
@@ -229,29 +194,18 @@ app.get('/admin/stats', async (req, res) => {
             mes_atual: parseFloat(mesAtual[0].total) || 0,
             mes_anterior: parseFloat(mesAnterior[0].total) || 0,
             total_vendas: totalVendas[0].qtd || 0,
-            total_clientes: totalClientes[0].qtd || 0, // Agora o 'Didi' será contado
-            lista_clientes: listaUltimos // Envia os dados para a tabela
+            total_clientes: totalClientes[0].qtd || 0, 
+            lista_clientes: listaUltimos 
         });
     } catch (error) {
-        console.error("Erro SQL:", error);
+        console.error("Erro SQL Stats:", error);
         res.status(500).json({ error: "Erro interno" });
     }
 });
 
-// Rota exclusiva para listar clientes recentes
-app.get('/api/clientes-todos', async (req, res) => {
-    try {
-        const [rows] = await dbPromise.query(
-            "SELECT nome, email, data_cadastro FROM usuarios ORDER BY data_cadastro DESC"
-        );
-        res.json(rows);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Erro no banco" });
-    }
-});
+// --- INICIALIZAÇÃO ---
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Servidor ON em http://0.0.0.0:${PORT}`);
+    console.log(`🚀 Servidor ON em http://191.252.214.27:${PORT}`);
 });
