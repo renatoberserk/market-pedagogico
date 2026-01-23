@@ -204,6 +204,46 @@ app.post('/cadastro', (req, res) => {
     });
 });
 
+// Rota para estatísticas do Admin
+app.get('/admin/stats', async (req, res) => {
+    try {
+        // 1. Receita de Hoje
+        const hoje = await db.query(`
+            SELECT SUM(preco) as total FROM vendas 
+            WHERE status = 'approved' AND DATE(data_venda) = CURDATE()`);
+
+        // 2. Receita de Ontem (Para comparar)
+        const ontem = await db.query(`
+            SELECT SUM(preco) as total FROM vendas 
+            WHERE status = 'approved' AND DATE(data_venda) = SUBDATE(CURDATE(), 1)`);
+
+        // 3. Receita do Mês Atual
+        const mesAtual = await db.query(`
+            SELECT SUM(preco) as total FROM vendas 
+            WHERE status = 'approved' AND MONTH(data_venda) = MONTH(CURDATE()) AND YEAR(data_venda) = YEAR(CURDATE())`);
+
+        // 4. Receita do Mês Anterior (Para comparar rendimento)
+        const mesAnterior = await db.query(`
+            SELECT SUM(preco) as total FROM vendas 
+            WHERE status = 'approved' AND MONTH(data_venda) = MONTH(SUBDATE(CURDATE(), INTERVAL 1 MONTH))`);
+
+        // 5. Total de Vendas (Quantidade de PDFs vendidos no ano)
+        const totalVendas = await db.query(`
+            SELECT COUNT(*) as qtd FROM vendas 
+            WHERE status = 'approved' AND YEAR(data_venda) = YEAR(CURDATE())`);
+
+        res.json({
+            hoje: hoje[0].total || 0,
+            ontem: ontem[0].total || 0,
+            mes_atual: mesAtual[0].total || 0,
+            mes_anterior: mesAnterior[0].total || 0,
+            total_vendas: totalVendas[0].qtd || 0
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao calcular estatísticas" });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Servidor ON em http://0.0.0.0:${PORT}`);

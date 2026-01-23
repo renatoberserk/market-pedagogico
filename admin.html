@@ -9,29 +9,55 @@
     <style>
         body { font-family: 'Quicksand', sans-serif; }
         #painel-admin { display: none; } 
+        /* Animação para os números */
+        .count-up { animation: countUp 1s ease-out; }
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="bg-gray-50 p-4 md:p-10">
 
-    <div id="painel-admin" class="max-w-5xl mx-auto">
-        <header class="flex justify-between items-center mb-10 bg-white p-6 rounded-3xl shadow-sm">
+    <div id="painel-admin" class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-8 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Painel de Controle ⚙️</h1>
-                <p class="text-sm text-gray-500" id="admin-welcome">Verificando...</p>
+                <p class="text-sm text-gray-500" id="admin-welcome">Verificando permissões...</p>
             </div>
-            <button onclick="window.location.href='index.html'" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-2 rounded-2xl font-bold transition-all">
+            <button onclick="window.location.href='index.html'" class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-2 rounded-2xl font-bold transition-all text-sm">
                 Sair do Painel
             </button>
         </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Receita Hoje</p>
+                <h2 id="receita-dia" class="text-3xl font-black text-gray-800 mb-2">R$ 0,00</h2>
+                <div id="comparativo-dia" class="text-xs font-bold p-1 rounded-lg inline-block">--</div>
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Receita Mensal</p>
+                <h2 id="receita-mes" class="text-3xl font-black text-gray-800 mb-2">R$ 0,00</h2>
+                <div id="comparativo-mes" class="text-xs font-bold p-1 rounded-lg inline-block">--</div>
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Vendas Totais</p>
+                <h2 id="total-vendas" class="text-3xl font-black text-gray-800 mb-2">0</h2>
+                <p class="text-[10px] text-blue-500 font-bold uppercase">Meta Anual: Em dia</p>
+            </div>
+        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-1 bg-white p-8 rounded-3xl shadow-sm border border-gray-100 h-fit sticky top-10">
                 <h2 id="form-title" class="text-lg font-bold text-gray-700 mb-6">Cadastrar Novo PDF</h2>
                 <form id="form-produto" class="space-y-4">
-                    <input type="text" id="img-prod" placeholder="Link da Imagem (Capa)" class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                    <input type="text" id="img-prod" placeholder="Link da Imagem" class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
                     <input type="text" id="nome-prod" required placeholder="Título do Material" class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
                     <input type="number" step="0.01" id="preco-prod" required placeholder="Preço (Ex: 29.90)" class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
-                    <input type="text" id="link-prod" required placeholder="Link do PDF (Google Drive/Dropbox)" class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                    <input type="text" id="link-prod" required placeholder="Link do PDF" class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
                     
                     <button type="submit" id="btn-submit" class="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-orange-600 transition-all">
                         Publicar Material
@@ -52,6 +78,6 @@
         </div>
     </div>
 
- <script src="admin.js"></script>
+    <script src="admin.js"></script>
 </body>
 </html>
