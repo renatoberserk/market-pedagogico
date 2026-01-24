@@ -5,7 +5,12 @@ const { MercadoPagoConfig, Payment } = require('mercadopago');
 const cors = require('cors');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['https://educamateriais.shop', 'http://educamateriais.shop'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.static(__dirname));
 
