@@ -107,6 +107,7 @@
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -133,7 +134,7 @@
                 🛒 <span class="hidden md:inline">Carrinho</span>
                 <span id="cart-count" class="cart-badge">0</span>
             </button>
-            
+
             <div id="header-auth">
                 <button onclick="location.href='login.html'" class="btn-login">
                     Entrar
@@ -152,6 +153,31 @@
     <main class="main-content">
         <h3 class="section-title">Novidades para sua aula</h3>
 
+        <div class="mb-8 overflow-hidden">
+            <div class="flex overflow-x-auto pb-4 gap-3 no-scrollbar scroll-smooth px-2 lg:justify-center">
+                <button onclick="filtrarProdutos('todos', this)"
+                    class="filter-btn active-filter whitespace-nowrap px-6 py-2 rounded-full font-bold shadow-sm transition-all text-sm">
+                    Todos
+                </button>
+                <button onclick="filtrarProdutos('atividades', this)"
+                    class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
+                    Atividades
+                </button>
+                <button onclick="filtrarProdutos('eva', this)"
+                    class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
+                    Modelos em EVA
+                </button>
+                <button onclick="filtrarProdutos('planejamentos', this)"
+                    class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
+                    Planejamentos
+                </button>
+                <button onclick="filtrarProdutos('jogos', this)"
+                    class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
+                    Jogos Pedagógicos
+                </button>
+            </div>
+        </div>
+
         <div id="vitrine-produtos" class="products-grid">
             <!-- Os produtos serão inseridos aqui pelo JavaScript -->
             <div class="loading-state">
@@ -168,14 +194,14 @@
                 <h2 class="modal-title">Meu Carrinho 🛒</h2>
                 <button onclick="toggleCarrinho()" class="close-modal">&times;</button>
             </div>
-            
+
             <div id="itens-carrinho" class="cart-items">
                 <div class="empty-cart">
                     <div class="empty-cart-icon">🛒</div>
                     <p class="empty-cart-text">Seu carrinho está vazio</p>
                 </div>
             </div>
-            
+
             <div class="modal-footer">
                 <div class="cart-total">
                     <span>Total:</span>
@@ -191,4 +217,5 @@
     <!-- JavaScript -->
     <script src="index.js"></script>
 </body>
+
 </html>
