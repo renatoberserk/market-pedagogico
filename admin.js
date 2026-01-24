@@ -138,8 +138,8 @@ async function salvarProduto() {
     };
 
     const url = modoEdicaoId 
-        ? `https://educamarket.shop/produtos/${modoEdicaoId}` 
-        : 'https://educamarket.shop/produtos';
+        ? `https://educamateriais.shop/produtos/${modoEdicaoId}` 
+        : 'https://educamateriais.shop/produtos';
 
     try {
         const response = await fetch(url, {
