@@ -126,31 +126,33 @@ async function salvarProduto() {
     const imagem_url = document.getElementById('prod-img').value;
     const link_download = document.getElementById('prod-link').value;
 
-    if (!nome || !preco || !link_download) {
-        alert("Por favor, preencha os campos obrigatórios!");
-        return;
-    }
-
     const dados = { nome, preco, categoria, imagem_url, link_download };
-    const url = modoEdicaoId ? `https://educamateriais.shop/produtos/${modoEdicaoId}` : 'https://educamateriais.shop/produtos';
+
+    // Define se vai para a rota de criação ou edição
+    const url = modoEdicaoId 
+        ? `https://educamateriais.shop/produtos/${modoEdicaoId}` 
+        : 'https://educamateriais.shop/produtos';
+
     const metodo = modoEdicaoId ? 'PUT' : 'POST';
 
     try {
         const response = await fetch(url, {
-            method: metodo,
+            method: metodo, // Aqui deve ser PUT ou POST, nunca GET
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dados)
         });
 
         if (response.ok) {
-            alert(modoEdicaoId ? "Produto atualizado!" : "Produto criado com sucesso!");
+            alert(modoEdicaoId ? "Atualizado com sucesso!" : "Criado com sucesso!");
             limparFormulario();
             carregarProdutosAdmin();
         } else {
-            alert("Erro ao salvar produto.");
+            const erroTxt = await response.text();
+            alert("Erro no servidor: " + erroTxt);
         }
     } catch (error) {
         console.error("Erro na requisição:", error);
+        alert("Erro ao conectar com o servidor.");
     }
 }
 
@@ -204,4 +206,14 @@ async function excluirUsuario(email) {
     } catch (error) { console.error(error); }
 }
 
+// Adicione isso para garantir que o formulário NÃO use o método padrão (GET)
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('form-produto');
+    if (form) {
+        form.onsubmit = async (e) => {
+            e.preventDefault(); // ISSO impede o erro "Cannot GET"
+            await salvarProduto();
+        };
+    }
+});
 window.onload = validarAcesso;
