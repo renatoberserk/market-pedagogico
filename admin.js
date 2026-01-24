@@ -209,3 +209,4 @@ function prepararEdicao(produto) {
 
 // Inicialização única
 window.onload = validarAcesso;
+//teste
