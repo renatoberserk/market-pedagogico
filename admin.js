@@ -193,11 +193,32 @@ function limparFormulario() {
 }
 
 async function excluirProduto(id) {
-    if(!confirm("Excluir este material permanentemente?")) return;
+    if (!confirm("Tem certeza que deseja excluir este material permanentemente?")) return;
+
     try {
-        const resp = await fetch(`https://educamateriais.shop/produtos/${id}`, { method: 'DELETE' });
-        if(resp.ok) carregarProdutosAdmin();
-    } catch (err) { console.error(err); }
+        // Buscamos o email do admin que está logado no navegador
+        const emailLogado = localStorage.getItem('prof_email');
+
+        const resp = await fetch(`https://educamateriais.shop/produtos/${id}`, {
+            method: 'DELETE',
+            headers: { 
+                'Content-Type': 'application/json' 
+            },
+            // O seu backend exige o email_admin para validar o process.env.ADMIN_EMAIL
+            body: JSON.stringify({ email_admin: emailLogado })
+        });
+
+        if (resp.ok) {
+            alert("Material removido com sucesso!");
+            carregarProdutosAdmin(); // Atualiza a lista na tela
+        } else {
+            const erro = await resp.json();
+            alert("Erro ao excluir: " + (erro.erro || "Não autorizado"));
+        }
+    } catch (err) {
+        console.error("Erro na conexão ao tentar excluir:", err);
+        alert("Erro de conexão. Verifique se o SSL do domínio está ativo.");
+    }
 }
 
 async function excluirUsuario(email) {

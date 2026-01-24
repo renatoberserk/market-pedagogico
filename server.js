@@ -138,10 +138,27 @@ app.put('/produtos/:id', (req, res) => {
 app.delete('/produtos/:id', (req, res) => {
     const { id } = req.params;
     const { email_admin } = req.body;
-    if (email_admin !== process.env.ADMIN_EMAIL) return res.status(403).json({ erro: "Não autorizado" });
 
-    db.query("DELETE FROM produtos WHERE id = ?", [id], (err) => {
-        if (err) return res.status(500).json({ sucesso: false });
+    // 1. Verificação rigorosa do Admin (vinda do seu .env)
+    if (!email_admin || email_admin !== process.env.ADMIN_EMAIL) {
+        console.warn(`[Segurança] Tentativa de delete negada para: ${email_admin}`);
+        return res.status(403).json({ erro: "Não autorizado", sucesso: false });
+    }
+
+    // 2. Execução da exclusão
+    const sql = "DELETE FROM produtos WHERE id = ?";
+    db.query(sql, [id], (err, result) => {
+        if (err) {
+            console.error("Erro ao deletar produto:", err);
+            return res.status(500).json({ sucesso: false, erro: "Erro no banco de dados" });
+        }
+
+        // 3. Verifica se o ID existia (evita falso positivo)
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ sucesso: false, erro: "Produto não encontrado" });
+        }
+
+        console.log(`[Admin] Produto ${id} removido por ${email_admin}`);
         res.json({ sucesso: true });
     });
 });
