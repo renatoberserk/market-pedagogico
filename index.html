@@ -150,42 +150,41 @@
     </div>
 
     <!-- Main Content -->
-    <main class="main-content">
-        <h3 class="section-title">Novidades para sua aula</h3>
+   <main class="main-content">
+    <h3 class="section-title">Novidades para sua aula</h3>
 
-        <div class="mb-8 overflow-hidden">
-            <div class="flex overflow-x-auto pb-4 gap-3 no-scrollbar scroll-smooth px-2 lg:justify-center">
-                <button onclick="filtrarProdutos('todos', this)"
-                    class="filter-btn active-filter whitespace-nowrap px-6 py-2 rounded-full font-bold shadow-sm transition-all text-sm">
-                    Todos
-                </button>
-                <button onclick="filtrarProdutos('atividades', this)"
-                    class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
-                    Atividades
-                </button>
-                <button onclick="filtrarProdutos('eva', this)"
-                    class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
-                    Modelos em EVA
-                </button>
-                <button onclick="filtrarProdutos('planejamentos', this)"
-                    class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
-                    Planejamentos
-                </button>
-                <button onclick="filtrarProdutos('jogos', this)"
-                    class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
-                    Jogos Pedagógicos
-                </button>
-            </div>
+    <div class="mb-8 overflow-hidden">
+        <div class="flex overflow-x-auto pb-4 gap-3 no-scrollbar scroll-smooth px-2 lg:justify-center">
+            <button onclick="filtrarProdutos('todos', this)"
+                class="filter-btn active-filter whitespace-nowrap px-6 py-2 rounded-full font-bold shadow-sm transition-all text-sm">
+                Todos
+            </button>
+            <button onclick="filtrarProdutos('atividades', this)"
+                class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
+                Atividades
+            </button>
+            <button onclick="filtrarProdutos('eva', this)"
+                class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
+                Modelos em EVA
+            </button>
+            <button onclick="filtrarProdutos('planejamentos', this)"
+                class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
+                Planejamentos
+            </button>
+            <button onclick="filtrarProdutos('jogos', this)"
+                class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
+                Jogos Pedagógicos
+            </button>
         </div>
+    </div>
 
-        <div id="lista-produtos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
-            <!-- Os produtos serão inseridos aqui pelo JavaScript -->
-            <div class="loading-state">
-                <div class="loading-spinner"></div>
-                <p>Carregando materiais didáticos...</p>
-            </div>
+    <div id="lista-produtos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="col-span-full text-center py-10" id="loading-message">
+            <div class="loading-spinner mx-auto"></div>
+            <p class="text-gray-500 mt-2">Carregando materiais didáticos...</p>
         </div>
-    </main>
+    </div>
+</main>
 
     <!-- Cart Modal -->
     <div id="modal-carrinho" onclick="if(event.target == this) toggleCarrinho()">
