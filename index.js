@@ -205,36 +205,38 @@ function renderizarProdutos(lista) {
 }
 
 // Função para filtrar os produtos por categoria
-function filtrarProdutos(categoria, elemento) {
-    // 1. Lógica Visual: Troca as classes dos botões
+function filtrarProdutos(categoriaAlvo, elemento) {
+    // 1. Verificação de segurança
+    if (!produtosOriginais || produtosOriginais.length === 0) {
+        console.warn("Aguardando carregamento dos produtos...");
+        return;
+    }
+
+    // 2. Lógica Visual: Troca as classes dos botões
     const botoes = document.querySelectorAll('.filter-btn');
     botoes.forEach(btn => {
-        btn.classList.remove('active-filter', 'bg-orange-500', 'text-white');
+        btn.classList.remove('bg-orange-500', 'text-white');
         btn.classList.add('bg-white', 'text-gray-600');
     });
+    if (elemento) {
+        elemento.classList.add('bg-orange-500', 'text-white');
+        elemento.classList.remove('bg-white', 'text-gray-600');
+    }
 
-    // Ativa o botão clicado
-    elemento.classList.add('active-filter', 'bg-orange-500', 'text-white');
-    elemento.classList.remove('bg-white', 'text-gray-600');
-
-    // 2. Lógica de Filtragem dos Cards
-    const container = document.getElementById('vitrine-produtos');
-    const cards = container.querySelectorAll('.group'); // Pega todos os cards de produtos
-
-    cards.forEach(card => {
-        // Pega o texto da categoria dentro da etiqueta (badge) do card
-        const categoriaCard = card.querySelector('span').innerText.trim().toLowerCase();
-        const categoriaAlvo = categoria.toLowerCase();
-
-        if (categoria === 'todos' || categoriaCard === categoriaAlvo) {
-            card.style.display = 'flex';
-            // Adiciona uma animação suave ao aparecer
-            card.style.opacity = '0';
-            setTimeout(() => { card.style.opacity = '1'; }, 10);
-        } else {
-            card.style.display = 'none';
-        }
-    });
+    // 3. Lógica de Filtragem
+    if (categoriaAlvo === 'todos') {
+        renderizarProdutos(produtosOriginais);
+    } else {
+        const filtrados = produtosOriginais.filter(p => {
+            // Comparamos o que vem do banco com o que foi clicado
+            // .trim() remove espaços invisíveis que podem vir do banco
+            const catBanco = (p.categoria || "").toLowerCase().trim();
+            const catBotao = categoriaAlvo.toLowerCase().trim();
+            return catBanco === catBotao;
+        });
+        
+        renderizarProdutos(filtrados);
+    }
 }
 
 let produtosOriginais = []; // Tem que estar fora da função!
