@@ -125,6 +125,47 @@ async function carregarProdutosAdmin() {
     } catch (err) { console.error("Erro ao listar produtos:", err); }
 }
 
+// 6. SALVAR OU EDITAR PRODUTO
+async function salvarProduto() {
+    const nome = document.getElementById('prod-nome').value;
+    const preco = document.getElementById('prod-preco').value;
+    const categoria = document.getElementById('prod-categoria').value; // A nova categoria aqui!
+    const imagem_url = document.getElementById('prod-img').value;
+    const link_download = document.getElementById('prod-link').value;
+
+    if (!nome || !preco || !link_download) {
+        alert("Por favor, preencha os campos obrigatórios!");
+        return;
+    }
+
+    const dados = { nome, preco, categoria, imagem_url, link_download };
+
+    // Se modoEdicaoId tiver um ID, ele edita (PUT), se não, cria novo (POST)
+    const url = modoEdicaoId
+        ? `https://educamateriais.shop/produtos/${modoEdicaoId}`
+        : 'https://educamateriais.shop/produtos';
+
+    const metodo = modoEdicaoId ? 'PUT' : 'POST';
+
+    try {
+        const response = await fetch(url, {
+            method: metodo,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+
+        if (response.ok) {
+            alert(modoEdicaoId ? "Produto atualizado!" : "Produto criado com sucesso!");
+            fecharModal(); // Certifique-se de ter uma função para fechar o modal
+            carregarProdutosAdmin(); // Recarrega a lista para mostrar o novo produto
+        } else {
+            alert("Erro ao salvar produto no servidor.");
+        }
+    } catch (error) {
+        console.error("Erro na requisição:", error);
+    }
+}
+
 async function excluirUsuario(email) {
     if (!confirm(`Tem certeza que deseja excluir o usuário ${email}?`)) return;
 
