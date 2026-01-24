@@ -122,37 +122,43 @@ document.getElementById('form-produto')?.addEventListener('submit', function(e) 
 async function salvarProduto() {
     const nome = document.getElementById('prod-nome').value;
     const preco = document.getElementById('prod-preco').value;
-    const categoria = document.getElementById('prod-categoria').value;
+    const categoria = document.getElementById('prod-categoria').value; // Pegando a categoria
     const imagem_url = document.getElementById('prod-img').value;
     const link_download = document.getElementById('prod-link').value;
+    const email_admin = localStorage.getItem('prof_email'); // Pegando o e-mail logado
 
-    const dados = { nome, preco, categoria, imagem_url, link_download };
+    // O corpo da requisição agora tem TUDO o que o servidor pede
+    const dados = { 
+        email_admin, 
+        nome, 
+        preco, 
+        categoria, 
+        imagem_url, 
+        link_download 
+    };
 
-    // Define se vai para a rota de criação ou edição
     const url = modoEdicaoId 
-        ? `https://educamateriais.shop/produtos/${modoEdicaoId}` 
-        : 'https://educamateriais.shop/produtos';
-
-    const metodo = modoEdicaoId ? 'PUT' : 'POST';
+        ? `https://educamarket.shop/produtos/${modoEdicaoId}` 
+        : 'https://educamarket.shop/produtos';
 
     try {
         const response = await fetch(url, {
-            method: metodo, // Aqui deve ser PUT ou POST, nunca GET
+            method: modoEdicaoId ? 'PUT' : 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dados)
         });
 
-        if (response.ok) {
-            alert(modoEdicaoId ? "Atualizado com sucesso!" : "Criado com sucesso!");
+        const resultado = await response.json();
+
+        if (response.ok && resultado.sucesso) {
+            alert("Sucesso!");
             limparFormulario();
             carregarProdutosAdmin();
         } else {
-            const erroTxt = await response.text();
-            alert("Erro no servidor: " + erroTxt);
+            alert("Erro: " + (resultado.erro || "Falha ao salvar"));
         }
     } catch (error) {
         console.error("Erro na requisição:", error);
-        alert("Erro ao conectar com o servidor.");
     }
 }
 

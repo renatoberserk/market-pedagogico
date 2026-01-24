@@ -92,24 +92,45 @@ app.get('/produtos', (req, res) => {
 });
 
 app.post('/produtos', (req, res) => {
-    const { email_admin, nome, preco, link_download, imagem_url } = req.body;
-    if (email_admin !== process.env.ADMIN_EMAIL) return res.status(403).json({ erro: "Acesso negado" });
+    // 1. Adicionamos a 'categoria' na desestruturação do corpo da requisição
+    const { email_admin, nome, preco, link_download, imagem_url, categoria } = req.body;
 
-    const sql = "INSERT INTO produtos (nome, preco, link_download, imagem_url) VALUES (?, ?, ?, ?)";
-    db.query(sql, [nome, preco, link_download, imagem_url], (err) => {
-        if (err) return res.status(500).json({ sucesso: false });
+    // 2. Verificação de segurança (mantida)
+    if (email_admin !== process.env.ADMIN_EMAIL) {
+        return res.status(403).json({ erro: "Acesso negado" });
+    }
+
+    // 3. SQL atualizado para incluir a coluna 'categoria' e o 5º ponto de interrogação
+    const sql = "INSERT INTO produtos (nome, preco, link_download, imagem_url, categoria) VALUES (?, ?, ?, ?, ?)";
+    
+    // 4. Passamos os 5 valores na ordem correta
+    db.query(sql, [nome, preco, link_download, imagem_url, categoria], (err) => {
+        if (err) {
+            console.error("Erro ao inserir produto:", err);
+            return res.status(500).json({ sucesso: false, erro: "Erro no banco de dados" });
+        }
         res.json({ sucesso: true });
     });
 });
 
 app.put('/produtos/:id', (req, res) => {
     const { id } = req.params;
-    const { email_admin, nome, preco, link_download, imagem_url } = req.body;
-    if (email_admin !== process.env.ADMIN_EMAIL) return res.status(403).json({ erro: "Não autorizado" });
+    // Adicionado categoria aqui embaixo:
+    const { email_admin, nome, preco, link_download, imagem_url, categoria } = req.body;
 
-    const sql = "UPDATE produtos SET nome=?, preco=?, link_download=?, imagem_url=? WHERE id=?";
-    db.query(sql, [nome, preco, link_download, imagem_url, id], (err) => {
-        if (err) return res.status(500).json({ sucesso: false });
+    // Verificação de segurança
+    if (email_admin !== process.env.ADMIN_EMAIL) {
+        return res.status(403).json({ erro: "Não autorizado" });
+    }
+
+    // SQL atualizado para incluir a categoria
+    const sql = "UPDATE produtos SET nome=?, preco=?, link_download=?, imagem_url=?, categoria=? WHERE id=?";
+    
+    db.query(sql, [nome, preco, link_download, imagem_url, categoria, id], (err) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ sucesso: false });
+        }
         res.json({ sucesso: true });
     });
 });
