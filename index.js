@@ -156,6 +156,48 @@ function renderizarProdutos(lista) {
     `).join('');
 }
 
+// Função para filtrar os produtos por categoria
+function filtrarProdutos(categoria, elemento) {
+    console.log("Filtrando por:", categoria); // Para vermos no console se funcionou
+
+    // 1. Lógica de Filtragem
+    // 'produtosOriginais' deve ser a lista que você carrega do servidor
+    if (typeof produtosOriginais !== 'undefined') {
+        if (categoria === 'todos') {
+            renderizarProdutos(produtosOriginais);
+        } else {
+            const filtrados = produtosOriginais.filter(p => p.categoria === categoria);
+            renderizarProdutos(filtrados);
+        }
+    }
+
+    // 2. Lógica Visual (Mudar a cor do botão ativo)
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active-filter', 'bg-orange-500', 'text-white');
+        btn.classList.add('bg-white', 'text-gray-600');
+    });
+
+    // Se o elemento foi passado, aplica o estilo de "ativo" nele
+    if (elemento) {
+        elemento.classList.add('active-filter', 'bg-orange-500', 'text-white');
+        elemento.classList.remove('bg-white', 'text-gray-600');
+    }
+}
+
+let produtosOriginais = []; // Tem que estar fora da função!
+
+async function carregarProdutosLoja() {
+    try {
+        const resp = await fetch('https://educamateriais.shop/produtos');
+        const dados = await resp.json();
+        
+        produtosOriginais = dados; // Salva aqui para o filtro usar depois
+        renderizarProdutos(produtosOriginais);
+    } catch (err) {
+        console.error("Erro ao carregar:", err);
+    }
+}
+
 // INICIALIZAÇÃO ÚNICA
 window.onload = () => {
     verificarSessao();
