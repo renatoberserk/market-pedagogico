@@ -5,12 +5,14 @@ const { MercadoPagoConfig, Payment } = require('mercadopago');
 const cors = require('cors');
 
 const app = express();
-app.use(cors({
-  origin: ['https://educamateriais.shop', 'http://educamateriais.shop'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+const corsOptions = {
+    origin: ['https://educamateriais.shop', 'http://educamateriais.shop'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true, // Importante para o login do professor
+    optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(__dirname));
 
@@ -147,6 +149,31 @@ app.post('/criar-pagamento-pix', async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ erro: 'Erro interno no servidor', detalhes: error.message });
+    }
+});
+
+// Rota que estava faltando para o checkout funcionar
+app.get('/verificar-pagamento/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // 1. Consulta o Mercado Pago para saber se foi pago mesmo
+        const response = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
+            headers: { 'Authorization': `Bearer ${process.env.MP_ACCESS_TOKEN}` }
+        });
+        const data = await response.json();
+
+        // 2. Se o status for aprovado, devolvemos para o site
+        if (data.status === 'approved') {
+            // Aqui você também pode chamar a sua função de registrar-venda automaticamente
+            return res.json({ status: 'approved' });
+        } 
+
+        res.json({ status: data.status || 'pending' });
+
+    } catch (error) {
+        console.error("Erro ao verificar no MP:", error);
+        res.status(500).json({ erro: "Erro interno no servidor" });
     }
 });
 
