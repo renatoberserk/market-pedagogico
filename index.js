@@ -33,40 +33,45 @@ async function carregarProdutos() {
             return;
         }
 
-     container.innerHTML = produtos.map(p => {
-    const imgFinal = p.imagem_url && p.imagem_url.includes('http')
-        ? p.imagem_url
-        : `https://placehold.co/400x300/f3f4f6/6366f1?text=Material+Didatico`;
+        container.innerHTML = produtos.map(p => {
+            const imgFinal = p.imagem_url && p.imagem_url.includes('http')
+                ? p.imagem_url
+                : `https://placehold.co/400x300/f3f4f6/6366f1?text=Material+Didatico`;
 
-    return `
-        <div class="bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col h-full">
-            <div class="bg-gray-50 rounded-xl h-32 md:h-40 mb-3 overflow-hidden flex items-center justify-center">
-                <img src="${imgFinal}" 
-                     alt="${p.nome}" 
-                     class="w-full h-full object-cover" 
-                     onerror="this.src='https://placehold.co/400x300/f3f4f6/a855f7?text=Erro'">
-            </div>
-            
-            <div class="flex flex-col flex-grow">
-                <h3 class="font-bold text-gray-800 text-xs md:text-sm mb-1 leading-tight h-8 overflow-hidden line-clamp-2">
-                    ${p.nome}
-                </h3>
-                <p class="text-[8px] md:text-[10px] text-gray-400 mb-3 uppercase font-bold">PDF Digital</p>
-                
-                <div class="mt-auto flex flex-col gap-2">
-                    <span class="text-green-600 font-bold text-sm md:text-base">
-                        R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}
-                    </span>
-                    <button onclick="adicionarAoCarrinho(${p.id}, '${p.nome.replace(/'/g, "\\'")}', ${p.preco})" 
-                            class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-lg font-bold text-[10px] md:text-xs transition-all active:scale-95">
-                        + Adicionar
-                    </button>
-                </div>
-            </div>
-        </div>`;
-}).join('');
+            return `
+                <div class="bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col h-full group">
+                    <div class="relative bg-gray-50 rounded-xl h-32 md:h-40 mb-3 overflow-hidden flex items-center justify-center">
+                        <span class="absolute top-2 left-2 bg-white/80 backdrop-blur-sm text-[8px] md:text-[10px] px-2 py-0.5 rounded-full font-bold text-orange-600 shadow-sm z-10 uppercase">
+                            ${p.categoria || 'Geral'}
+                        </span>
+                        
+                        <img src="${imgFinal}" 
+                             alt="${p.nome}" 
+                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                             onerror="this.src='https://placehold.co/400x300/f3f4f6/a855f7?text=Erro'">
+                    </div>
+                    
+                    <div class="flex flex-col flex-grow">
+                        <h3 class="font-bold text-gray-800 text-xs md:text-sm mb-1 leading-tight h-8 overflow-hidden line-clamp-2">
+                            ${p.nome}
+                        </h3>
+                        <p class="text-[8px] md:text-[10px] text-gray-400 mb-3 uppercase font-bold">PDF Digital</p>
+                        
+                        <div class="mt-auto flex flex-col gap-2">
+                            <span class="text-green-600 font-bold text-sm md:text-base">
+                                R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}
+                            </span>
+                            <button onclick="adicionarAoCarrinho(${p.id}, '${p.nome.replace(/'/g, "\\'")}', ${p.preco})" 
+                                    class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-lg font-bold text-[10px] md:text-xs transition-all active:scale-95 shadow-md shadow-orange-100">
+                                + Adicionar
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
     } catch (error) {
-        container.innerHTML = "<p class='col-span-full text-center text-red-400 font-bold'>Erro ao conectar com o servidor.</p>";
+        console.error("Erro na vitrine:", error);
+        container.innerHTML = "<p class='col-span-full text-center text-red-400 font-bold'>Erro ao conectar com o servidor. Verifique o SSL.</p>";
     }
 }
 
@@ -81,7 +86,7 @@ function toggleCarrinho() {
 function adicionarAoCarrinho(id, nome, preco) {
     carrinho.push({ id, nome, preco, uid: Date.now() });
     localStorage.setItem('edu_cart', JSON.stringify(carrinho));
-    
+
     atualizarContadorCarrinho(); // Atualiza o numerozinho
     toggleCarrinho(); // Abre o carrinho para mostrar que adicionou
 }
@@ -131,89 +136,137 @@ function renderCarrinho() {
                     <button onclick="remover(${i.uid})" class="bg-none border-none text-red-500 cursor-pointer p-1">🗑️</button>
                 </div>`;
     }).join('');
-    
+
     if (totalElement) totalElement.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
-function renderizarProdutos(lista) {
-    const container = document.getElementById('lista-produtos');
+async function carregarProdutosLoja() {
+    const container = document.getElementById('vitrine-produtos');
     
-    // Se o container não for encontrado, o código para aqui e não dá erro
-    if (!container) {
-        console.error("ERRO: O elemento 'lista-produtos' não existe no HTML.");
-        return;
+    try {
+        const resp = await fetch('https://educamateriais.shop/produtos');
+        
+        if (!resp.ok) throw new Error('Erro na rede');
+        
+        const dados = await resp.json();
+        
+        // Salva a lista completa para o filtro usar sem precisar de novo fetch
+        produtosOriginais = dados; 
+        
+        // Renderiza todos por padrão
+        renderizarProdutos(produtosOriginais);
+        
+    } catch (err) {
+        console.error("Erro ao carregar:", err);
+        if (container) {
+            container.innerHTML = `
+                <div class="col-span-full text-center py-10">
+                    <p class="text-red-500 font-bold">Não foi possível carregar os materiais.</p>
+                    <p class="text-gray-500 text-sm">Verifique sua conexão ou o certificado SSL do site.</p>
+                </div>`;
+        }
     }
+}
+
+function renderizarProdutos(lista) {
+    const container = document.getElementById('vitrine-produtos');
+    if (!container) return;
 
     if (lista.length === 0) {
-        container.innerHTML = '<p class="col-span-full text-center text-gray-400 py-10">Nenhum material nesta categoria.</p>';
+        container.innerHTML = "<p class='col-span-full text-center text-gray-400 py-10'>Nenhum material encontrado nesta categoria.</p>";
         return;
     }
 
-container.innerHTML = lista.map(p => `
-    <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-all relative flex flex-col h-full">
-        <span class="absolute top-6 left-6 bg-orange-500 text-white text-[10px] px-2 py-1 rounded-lg font-bold uppercase shadow-sm z-10">
-            ${p.categoria === 'eva' ? 'Modelos em EVA' : (p.categoria || 'Geral')}
-        </span>
-        
-        <div class="w-full h-48 overflow-hidden rounded-2xl mb-4 bg-gray-50">
-            <img src="${p.imagem_url || 'https://via.placeholder.com/300x200?text=Sem+Imagem'}" 
-                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
-        </div>
-        
-        <h3 class="font-bold text-gray-800 leading-tight mb-auto line-clamp-2">
-            ${p.nome}
-        </h3>
-        
-        <div class="flex justify-between items-center mt-4">
-            <div>
-                <p class="text-[10px] text-gray-400 uppercase font-bold">Investimento</p>
-                <p class="text-green-600 font-black text-xl">
-                    R$ ${parseFloat(p.preco || 0).toFixed(2)}
-                </p>
-            </div>
-            <button onclick="adicionarAoCarrinho(${p.id})" 
-                class="bg-orange-100 text-orange-600 p-3 rounded-2xl hover:bg-orange-500 hover:text-white transition-all shadow-sm">
-                <span class="text-lg">🛒</span>
-            </button>
-        </div>
-    </div>
-`).join('');
+    container.innerHTML = lista.map(p => {
+        const imgFinal = p.imagem_url?.includes('http') 
+            ? p.imagem_url 
+            : 'https://placehold.co/400x300/f3f4f6/6366f1?text=Material';
+
+        return `
+            <div class="bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col h-full group">
+                <div class="relative bg-gray-50 rounded-xl h-32 md:h-40 mb-3 overflow-hidden flex items-center justify-center">
+                    <span class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-[8px] md:text-[10px] px-2 py-0.5 rounded-lg font-bold text-orange-600 shadow-sm z-10 uppercase">
+                        ${p.categoria || 'Geral'}
+                    </span>
+                    <img src="${imgFinal}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://placehold.co/400x300/f3f4f6/a855f7?text=Erro'">
+                </div>
+                <div class="flex flex-col flex-grow">
+                    <h3 class="font-bold text-gray-800 text-xs md:text-sm mb-1 line-clamp-2 h-8">${p.nome}</h3>
+                    <div class="mt-auto pt-2">
+                        <span class="text-green-600 font-black text-sm md:text-base">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
+                        <button onclick="adicionarAoCarrinho(${p.id}, '${p.nome.replace(/'/g, "\\'")}', ${p.preco})" 
+                                class="w-full mt-2 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-bold text-[10px] md:text-xs transition-all active:scale-95">
+                            + Adicionar
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+    }).join('');
 }
 
 // Função para filtrar os produtos por categoria
 function filtrarProdutos(categoria, elemento) {
-    console.log("Filtrando por:", categoria);
-
-    if (categoria === 'todos') {
-        renderizarProdutos(produtosOriginais);
-    } else {
-        // O .toLowerCase() garante que 'EVA' ou 'eva' sejam lidos da mesma forma
-        const filtrados = produtosOriginais.filter(p => 
-            p.categoria && p.categoria.toLowerCase() === categoria.toLowerCase()
-        );
-        renderizarProdutos(filtrados);
-    }
-
-    // Estilo visual dos botões (Mantém o clique ativo)
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('bg-orange-500', 'text-white', 'active-filter');
+    // 1. Lógica Visual: Troca as classes dos botões
+    const botoes = document.querySelectorAll('.filter-btn');
+    botoes.forEach(btn => {
+        btn.classList.remove('active-filter', 'bg-orange-500', 'text-white');
         btn.classList.add('bg-white', 'text-gray-600');
     });
-    elemento.classList.add('bg-orange-500', 'text-white', 'active-filter');
+
+    // Ativa o botão clicado
+    elemento.classList.add('active-filter', 'bg-orange-500', 'text-white');
+    elemento.classList.remove('bg-white', 'text-gray-600');
+
+    // 2. Lógica de Filtragem dos Cards
+    const container = document.getElementById('vitrine-produtos');
+    const cards = container.querySelectorAll('.group'); // Pega todos os cards de produtos
+
+    cards.forEach(card => {
+        // Pega o texto da categoria dentro da etiqueta (badge) do card
+        const categoriaCard = card.querySelector('span').innerText.trim().toLowerCase();
+        const categoriaAlvo = categoria.toLowerCase();
+
+        if (categoria === 'todos' || categoriaCard === categoriaAlvo) {
+            card.style.display = 'flex';
+            // Adiciona uma animação suave ao aparecer
+            card.style.opacity = '0';
+            setTimeout(() => { card.style.opacity = '1'; }, 10);
+        } else {
+            card.style.display = 'none';
+        }
+    });
 }
 
 let produtosOriginais = []; // Tem que estar fora da função!
 
-async function carregarProdutosLoja() {
-    try {
-        const resp = await fetch('https://educamateriais.shop/produtos');
-        const dados = await resp.json();
-        
-        produtosOriginais = dados; // Salva aqui para o filtro usar depois
-        renderizarProdutos(produtosOriginais);
-    } catch (err) {
-        console.error("Erro ao carregar:", err);
-    }
+function filtrarCategoria(categoriaSelecionada) {
+    const container = document.getElementById('vitrine-produtos');
+    const produtosCards = container.querySelectorAll('.group'); // Seleciona os cards
+    const botoes = document.querySelectorAll('.filter-btn'); // Seleciona seus botões de filtro
+
+    // 1. Atualiza o estilo visual dos botões
+    botoes.forEach(btn => {
+        if (btn.innerText.toLowerCase() === categoriaSelecionada.toLowerCase()) {
+            btn.classList.add('bg-orange-500', 'text-white');
+            btn.classList.remove('bg-white', 'text-gray-600');
+        } else {
+            btn.classList.remove('bg-orange-500', 'text-white');
+            btn.classList.add('bg-white', 'text-gray-600');
+        }
+    });
+
+    // 2. Filtra os cards na tela
+    produtosCards.forEach(card => {
+        const categoriaCard = card.querySelector('span').innerText.toLowerCase();
+
+        if (categoriaSelecionada === 'todos' || categoriaCard === categoriaSelecionada.toLowerCase()) {
+            card.style.display = 'flex'; // Mostra o card
+            card.style.opacity = '0';
+            setTimeout(() => { card.style.opacity = '1'; }, 50); // Efeito suave de fade
+        } else {
+            card.style.display = 'none'; // Esconde o card
+        }
+    });
 }
 
 // INICIALIZAÇÃO ÚNICA
