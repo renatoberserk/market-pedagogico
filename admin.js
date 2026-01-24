@@ -188,5 +188,24 @@ async function excluirUsuario(email) {
     }
 }
 
+function prepararEdicao(produto) {
+    modoEdicaoId = produto.id; // Armazena o ID para sabermos que é uma edição
+    
+    // Preenche os campos do modal com os dados atuais do produto
+    document.getElementById('prod-nome').value = produto.nome;
+    document.getElementById('prod-preco').value = produto.preco;
+    document.getElementById('prod-img').value = produto.imagem_url;
+    document.getElementById('prod-link').value = produto.link_download;
+    
+    // ABAIXO: A linha mágica que seleciona a categoria correta no <select>
+    if (produto.categoria) {
+        document.getElementById('prod-categoria').value = produto.categoria;
+    }
+
+    // Altera o título do modal e abre ele
+    document.getElementById('modal-titulo').innerText = "Editar Material";
+    document.getElementById('modal-produto').style.display = 'flex'; 
+}
+
 // Inicialização única
 window.onload = validarAcesso;
