@@ -149,24 +149,35 @@ function renderizarProdutos(lista) {
         return;
     }
 
-    container.innerHTML = lista.map(p => `
-        <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-all relative">
-            <span class="absolute top-6 left-6 bg-orange-500 text-white text-[10px] px-2 py-1 rounded-lg font-bold uppercase shadow-sm z-10">
-                ${p.categoria || 'Geral'}
-            </span>
-            
-            <img src="${p.imagem_url}" class="w-full h-48 object-cover rounded-2xl mb-4">
-            
-            <h3 class="font-bold text-gray-800 leading-tight h-10 overflow-hidden">${p.nome}</h3>
-            
-            <div class="flex justify-between items-center mt-4">
-                <p class="text-green-600 font-black text-lg">R$ ${parseFloat(p.preco).toFixed(2)}</p>
-                <button onclick="adicionarAoCarrinho(${p.id})" class="bg-orange-100 text-orange-600 p-2 rounded-xl hover:bg-orange-500 hover:text-white transition-all">
-                    🛒
-                </button>
-            </div>
+container.innerHTML = lista.map(p => `
+    <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-all relative flex flex-col h-full">
+        <span class="absolute top-6 left-6 bg-orange-500 text-white text-[10px] px-2 py-1 rounded-lg font-bold uppercase shadow-sm z-10">
+            ${p.categoria === 'eva' ? 'Modelos em EVA' : (p.categoria || 'Geral')}
+        </span>
+        
+        <div class="w-full h-48 overflow-hidden rounded-2xl mb-4 bg-gray-50">
+            <img src="${p.imagem_url || 'https://via.placeholder.com/300x200?text=Sem+Imagem'}" 
+                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
         </div>
-    `).join('');
+        
+        <h3 class="font-bold text-gray-800 leading-tight mb-auto line-clamp-2">
+            ${p.nome}
+        </h3>
+        
+        <div class="flex justify-between items-center mt-4">
+            <div>
+                <p class="text-[10px] text-gray-400 uppercase font-bold">Investimento</p>
+                <p class="text-green-600 font-black text-xl">
+                    R$ ${parseFloat(p.preco || 0).toFixed(2)}
+                </p>
+            </div>
+            <button onclick="adicionarAoCarrinho(${p.id})" 
+                class="bg-orange-100 text-orange-600 p-3 rounded-2xl hover:bg-orange-500 hover:text-white transition-all shadow-sm">
+                <span class="text-lg">🛒</span>
+            </button>
+        </div>
+    </div>
+`).join('');
 }
 
 // Função para filtrar os produtos por categoria

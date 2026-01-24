@@ -108,20 +108,27 @@ async function carregarProdutosAdmin() {
         const container = document.getElementById('lista-admin');
 
         container.innerHTML = produtos.length ? produtos.map(p => `
-            <div class="flex justify-between items-center p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-orange-200 transition-all">
-                <div class="flex items-center gap-4">
-                    <img src="${p.imagem_url || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-lg object-cover shadow-sm">
-                    <div class="max-w-[150px] md:max-w-xs text-left">
-                        <h4 class="font-bold text-gray-800 truncate">${p.nome}</h4>
-                        <p class="text-xs text-green-600 font-bold">R$ ${parseFloat(p.preco).toFixed(2)}</p>
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick='prepararEdicao(${JSON.stringify(p)})' class="bg-blue-500 text-white p-2 rounded-xl hover:bg-blue-600 transition">✏️</button>
-                    <button onclick="excluirProduto(${p.id})" class="bg-red-500 text-white p-2 rounded-xl hover:bg-red-600 transition">🗑️</button>
+    <div class="flex justify-between items-center p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-orange-200 transition-all">
+        <div class="flex items-center gap-4">
+            <img src="${p.imagem_url || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-lg object-cover shadow-sm">
+            <div class="max-w-[150px] md:max-w-xs text-left">
+                <h4 class="font-bold text-gray-800 truncate">${p.nome}</h4>
+                
+                <div class="flex items-center gap-2 mt-1">
+                    <p class="text-xs text-green-600 font-bold">R$ ${parseFloat(p.preco).toFixed(2)}</p>
+                    
+                    <span class="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
+                        ${p.categoria || 'Geral'}
+                    </span>
                 </div>
             </div>
-        `).join('') : '<p class="text-gray-400">Nenhum produto cadastrado.</p>';
+        </div>
+        <div class="flex gap-2">
+            <button onclick='prepararEdicao(${JSON.stringify(p)})' class="bg-blue-500 text-white p-2 rounded-xl hover:bg-blue-600 transition shadow-sm">✏️</button>
+            <button onclick="excluirProduto(${p.id})" class="bg-red-500 text-white p-2 rounded-xl hover:bg-red-600 transition shadow-sm">🗑️</button>
+        </div>
+    </div>
+`).join('') : '<p class="text-gray-400 text-center py-10 italic">Nenhum produto cadastrado.</p>';
     } catch (err) { console.error("Erro ao listar produtos:", err); }
 }
 
@@ -191,20 +198,25 @@ async function excluirUsuario(email) {
 function prepararEdicao(produto) {
     modoEdicaoId = produto.id;
     
-    // Preenchimento com proteção contra campos nulos
-    document.getElementById('prod-nome').value = produto.nome || "";
-    document.getElementById('prod-preco').value = produto.preco || 0;
-    document.getElementById('prod-img').value = produto.imagem_url || "";
-    document.getElementById('prod-link').value = produto.link_download || "";
-    
-    // Verifica se o elemento existe antes de tentar atribuir valor
-    const campoCategoria = document.getElementById('prod-categoria');
-    if (campoCategoria) {
-        campoCategoria.value = produto.categoria || "atividades";
+    // Use o operador ?. ou verifique o elemento para evitar o erro da imagem 4263fd
+    const campos = {
+        'prod-nome': produto.nome,
+        'prod-preco': produto.preco,
+        'prod-img': produto.imagem_url,
+        'prod-link': produto.link_download,
+        'prod-categoria': produto.categoria
+    };
+
+    for (const [id, valor] of Object.entries(campos)) {
+        const el = document.getElementById(id);
+        if (el) el.value = valor || (id === 'prod-preco' ? 0 : "");
     }
 
-    document.getElementById('modal-titulo').innerText = "Editar Material";
-    document.getElementById('modal-produto').style.display = 'flex'; 
+    // Se tiver um modal, mude o título e exiba
+    const titulo = document.getElementById('form-title');
+    if (titulo) titulo.innerText = "Editando: " + produto.nome;
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Sobe a página para o formulário
 }
 
 // Inicialização única
