@@ -196,29 +196,40 @@ async function excluirUsuario(email) {
 }
 
 function prepararEdicao(produto) {
+    console.log("Iniciando edição do produto:", produto);
     modoEdicaoId = produto.id;
-    
-    // Use o operador ?. ou verifique o elemento para evitar o erro da imagem 4263fd
-    const campos = {
-        'prod-nome': produto.nome,
-        'prod-preco': produto.preco,
-        'prod-img': produto.imagem_url,
-        'prod-link': produto.link_download,
-        'prod-categoria': produto.categoria
+
+    // Função auxiliar para preencher campos com segurança
+    const setCampo = (id, valor) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.value = valor || "";
+        } else {
+            console.warn(`Atenção: O campo com ID '${id}' não foi encontrado no HTML.`);
+        }
     };
 
-    for (const [id, valor] of Object.entries(campos)) {
-        const el = document.getElementById(id);
-        if (el) el.value = valor || (id === 'prod-preco' ? 0 : "");
-    }
+    // Preenchendo os campos um por um
+    setCampo('prod-nome', produto.nome);
+    setCampo('prod-preco', produto.preco);
+    setCampo('prod-img', produto.imagem_url);
+    setCampo('prod-link', produto.link_download);
+    setCampo('prod-categoria', produto.categoria);
 
-    // Se tiver um modal, mude o título e exiba
-    const titulo = document.getElementById('form-title');
-    if (titulo) titulo.innerText = "Editando: " + produto.nome;
+    // Muda o texto do botão e do título para indicar edição
+    const btnSubmit = document.getElementById('btn-submit');
+    if (btnSubmit) btnSubmit.innerText = "Atualizar Material";
     
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // Sobe a página para o formulário
-}
+    const formTitle = document.getElementById('form-title');
+    if (formTitle) formTitle.innerText = "Editando Material";
 
+    // Mostra o botão de cancelar (se existir)
+    const btnCancelar = document.getElementById('btn-cancelar');
+    if (btnCancelar) btnCancelar.classList.remove('hidden');
+
+    // Sobe a página suavemente até o formulário
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 // Inicialização única
 window.onload = validarAcesso;
 //teste

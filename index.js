@@ -182,30 +182,24 @@ container.innerHTML = lista.map(p => `
 
 // Função para filtrar os produtos por categoria
 function filtrarProdutos(categoria, elemento) {
-    console.log("Filtrando por:", categoria); // Para vermos no console se funcionou
+    console.log("Filtrando por:", categoria);
 
-    // 1. Lógica de Filtragem
-    // 'produtosOriginais' deve ser a lista que você carrega do servidor
-    if (typeof produtosOriginais !== 'undefined') {
-        if (categoria === 'todos') {
-            renderizarProdutos(produtosOriginais);
-        } else {
-            const filtrados = produtosOriginais.filter(p => p.categoria === categoria);
-            renderizarProdutos(filtrados);
-        }
+    if (categoria === 'todos') {
+        renderizarProdutos(produtosOriginais);
+    } else {
+        // O .toLowerCase() garante que 'EVA' ou 'eva' sejam lidos da mesma forma
+        const filtrados = produtosOriginais.filter(p => 
+            p.categoria && p.categoria.toLowerCase() === categoria.toLowerCase()
+        );
+        renderizarProdutos(filtrados);
     }
 
-    // 2. Lógica Visual (Mudar a cor do botão ativo)
+    // Estilo visual dos botões (Mantém o clique ativo)
     document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active-filter', 'bg-orange-500', 'text-white');
+        btn.classList.remove('bg-orange-500', 'text-white', 'active-filter');
         btn.classList.add('bg-white', 'text-gray-600');
     });
-
-    // Se o elemento foi passado, aplica o estilo de "ativo" nele
-    if (elemento) {
-        elemento.classList.add('active-filter', 'bg-orange-500', 'text-white');
-        elemento.classList.remove('bg-white', 'text-gray-600');
-    }
+    elemento.classList.add('bg-orange-500', 'text-white', 'active-filter');
 }
 
 let produtosOriginais = []; // Tem que estar fora da função!
