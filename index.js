@@ -136,22 +136,26 @@ function renderCarrinho() {
 }
 
 function renderizarProdutos(lista) {
-    const container = document.getElementById('lista-produtos');
+    const container = document.getElementById('lista-produtos'); // <--- O ERRO ESTÁ AQUI
+    
+    if (!container) {
+        console.error("ERRO: Não encontrei o elemento 'lista-produtos' no HTML!");
+        return;
+    }
+
+    if (lista.length === 0) {
+        container.innerHTML = '<p class="col-span-full text-center text-gray-400 py-10">Nenhum material encontrado nesta categoria.</p>';
+        return;
+    }
+
     container.innerHTML = lista.map(p => `
-        <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
-            <div class="relative">
-                <img src="${p.imagem_url}" class="w-full h-48 object-cover rounded-2xl mb-4">
-                <span class="absolute top-2 left-2 bg-orange-500 text-white text-[10px] px-2 py-1 rounded-lg font-bold uppercase shadow-sm">
-                    ${p.categoria || 'Geral'}
-                </span>
-            </div>
-            <h3 class="font-bold text-gray-800 leading-tight h-10 overflow-hidden">${p.nome}</h3>
-            <div class="flex justify-between items-center mt-4">
-                <p class="text-green-600 font-black text-lg">R$ ${parseFloat(p.preco).toFixed(2)}</p>
-                <button onclick="adicionarAoCarrinho(${p.id})" class="bg-orange-100 text-orange-600 p-2 rounded-xl hover:bg-orange-500 hover:text-white transition-all">
-                    🛒
-                </button>
-            </div>
+        <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
+            <img src="${p.imagem_url}" class="w-full h-48 object-cover rounded-2xl mb-4">
+            <h3 class="font-bold text-gray-800">${p.nome}</h3>
+            <p class="text-green-600 font-bold">R$ ${parseFloat(p.preco).toFixed(2)}</p>
+            <button onclick="adicionarAoCarrinho(${p.id})" class="w-full mt-3 bg-orange-500 text-white py-2 rounded-xl font-bold">
+                Comprar
+            </button>
         </div>
     `).join('');
 }
