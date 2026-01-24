@@ -1,4 +1,5 @@
 let carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
+let produtosOriginais = []; // Tem que estar fora da função!
 
 function verificarSessao() {
     const nome = localStorage.getItem('prof_nome');
@@ -141,30 +142,17 @@ function renderCarrinho() {
 }
 
 async function carregarProdutosLoja() {
-    const container = document.getElementById('vitrine-produtos');
-    
     try {
         const resp = await fetch('https://educamateriais.shop/produtos');
-        
-        if (!resp.ok) throw new Error('Erro na rede');
-        
         const dados = await resp.json();
         
-        // Salva a lista completa para o filtro usar sem precisar de novo fetch
+        // ESSENCIAL: Salva na variável global
         produtosOriginais = dados; 
         
-        // Renderiza todos por padrão
         renderizarProdutos(produtosOriginais);
-        
+        console.log("Produtos carregados e salvos na memória:", produtosOriginais.length);
     } catch (err) {
         console.error("Erro ao carregar:", err);
-        if (container) {
-            container.innerHTML = `
-                <div class="col-span-full text-center py-10">
-                    <p class="text-red-500 font-bold">Não foi possível carregar os materiais.</p>
-                    <p class="text-gray-500 text-sm">Verifique sua conexão ou o certificado SSL do site.</p>
-                </div>`;
-        }
     }
 }
 
@@ -238,8 +226,6 @@ function filtrarProdutos(categoriaAlvo, elemento) {
         renderizarProdutos(filtrados);
     }
 }
-
-let produtosOriginais = []; // Tem que estar fora da função!
 
 function filtrarCategoria(categoriaSelecionada) {
     const container = document.getElementById('vitrine-produtos');
