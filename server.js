@@ -209,21 +209,34 @@ app.get('/verificar-pagamento/:id', async (req, res) => {
         const data = await response.json();
 
         if (data.status === 'approved') {
-            // Tenta pegar o e-mail de diferentes lugares (segurança extra)
-            const emailCliente = data.payer?.email || data.external_reference;
+            // Tenta pegar o e-mail de 3 lugares diferentes
+            let emailCliente = null;
 
-            // REGRA DE OURO: Só chama o Resend se o e-mail parecer um e-mail
+            if (data.payer && data.payer.email) {
+                emailCliente = data.payer.email;
+            } else if (data.additional_info && data.additional_info.payer && data.additional_info.payer.email) {
+                emailCliente = data.additional_info.payer.email;
+            } else if (data.external_reference && data.external_reference.includes('@')) {
+                emailCliente = data.external_reference;
+            }
+
+            // LOG DE AJUDA: Vamos ver o que o MP enviou de verdade
+            console.log("Dados do Payer recebidos:", JSON.stringify(data.payer));
+
             if (emailCliente && emailCliente.includes('@')) {
-                
-                if (fs.existsSync(CONFIG_PATH)) {
-                    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+                const configPath = path.join(__dirname, 'config-oferta.json');
+                if (fs.existsSync(configPath)) {
+                    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
                     
-                    if (config.link) {
+                    // TRAVA DE SEGURANÇA: Se já enviamos para esse ID, não envia de novo
+                    if (!pagamentosEntregues.has(id)) {
                         await enviarEmailEntrega(emailCliente.trim(), config.link);
+                        pagamentosEntregues.add(id);
                     }
                 }
             } else {
-                console.error("❌ Abortando: E-mail inválido recebido do MP:", emailCliente);
+                console.error("❌ O Mercado Pago não enviou um e-mail válido para este pagamento:", id);
+                // Opcional: Enviar para um e-mail seu de backup para você entregar manualmente
             }
 
             return res.json({ status: 'approved' });
@@ -231,7 +244,7 @@ app.get('/verificar-pagamento/:id', async (req, res) => {
         res.json({ status: data.status || 'pending' });
 
     } catch (error) {
-        console.error("❌ Erro:", error);
+        console.error("❌ Erro na verificação:", error);
         res.status(500).json({ erro: "Erro interno" });
     }
 });
