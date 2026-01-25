@@ -103,7 +103,7 @@
                 const response = await fetch('https://educamateriais.shop/criar-pagamento-pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, total: 19.90, itens: "Combo Alfabetização" })
+                    body: JSON.stringify({ email: email, total: 0.03, itens: "Combo Alfabetização" })
                 });
 
                 const dados = await response.json();
