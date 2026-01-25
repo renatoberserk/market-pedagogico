@@ -286,12 +286,38 @@ async function salvarOfertaUnica() {
     }
 }
 
-// 3. Gatilho para carregar os dados quando a página abrir
-// Se você já tiver um window.onload ou DOMContentLoaded, adicione a chamada lá dentro.
-document.addEventListener('DOMContentLoaded', () => {
-    carregarConfigOferta(); 
-    // ... suas outras funções existentes (listarClientes, carregarMetricas, etc)
-});
+function gerarLinkVenda() {
+            const preco = document.getElementById('oferta-preco').value;
+            const driveLink = document.getElementById('oferta-link').value;
+
+            if (!preco || !driveLink) {
+                alert("⚠️ Por favor, preencha o preço e o link do Google Drive.");
+                return;
+            }
+
+            try {
+                // btoa converte o link para Base64 (deixa a URL mais limpa)
+                const driveEncoded = btoa(driveLink);
+                // Monta o link final que você vai usar
+                const linkFinal = `https://educamateriais.shop/oferta.html?p=${preco}&d=${driveEncoded}`;
+
+                // Mostra o campo com o link
+                const container = document.getElementById('container-link-final');
+                const inputFinal = document.getElementById('link-final-input');
+                
+                container.classList.remove('hidden');
+                inputFinal.value = linkFinal;
+
+                // Copia para a área de transferência
+                navigator.clipboard.writeText(linkFinal).then(() => {
+                    alert("✅ Link gerado e copiado com sucesso!");
+                });
+            } catch (e) {
+                console.error("Erro ao gerar link:", e);
+                alert("Erro ao processar o link. Verifique se o link do Drive está correto.");
+            }
+        }
+
 
 // Adicione isso para garantir que o formulário NÃO use o método padrão (GET)
 document.addEventListener('DOMContentLoaded', () => {
@@ -299,8 +325,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (form) {
         form.onsubmit = async (e) => {
             e.preventDefault(); // ISSO impede o erro "Cannot GET"
-            await salvarProduto();
+            
         };
     }
 });
 window.onload = validarAcesso;
+
+// await salvarProduto();
+//             await carregarConfigOferta(); 
