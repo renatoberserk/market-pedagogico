@@ -178,25 +178,46 @@ app.delete('/produtos/:id', (req, res) => {
 app.post('/criar-pagamento-pix', async (req, res) => {
     try {
         const { email, total } = req.body;
-        if (!email || !total) return res.status(400).json({ erro: "E-mail ou total não informados" });
+        
+        if (!email || !total) {
+            return res.status(400).json({ erro: "E-mail ou total não informados" });
+        }
+
+        const emailLimpo = email.trim();
 
         const body = {
             transaction_amount: Number(parseFloat(total).toFixed(2)),
             description: 'Compra Educa Materiais',
             payment_method_id: 'pix',
-            payer: { email: email.trim() }
+            // O segredo está aqui: Guardamos o e-mail em 3 lugares para não haver erro
+            payer: { 
+                email: emailLimpo 
+            },
+            external_reference: emailLimpo, // Fica visível na busca simples
+            metadata: {
+                email_cliente: emailLimpo // Fica gravado no histórico da transação
+            }
         };
 
         const response = await payment.create({ body });
+        
+        // Algumas versões do SDK usam 'body', outras retornam o objeto direto
         const data = response.body || response;
+
+        console.log(`✅ Pix gerado para: ${emailLimpo} | ID: ${data.id}`);
 
         res.json({
             id: data.id,
             qr_code: data.point_of_interaction.transaction_data.qr_code,
             qr_code_base64: data.point_of_interaction.transaction_data.qr_code_base64
         });
+
     } catch (error) {
-        res.status(500).json({ erro: 'Erro interno no servidor', detalhes: error.message });
+        console.error("❌ Erro ao criar PIX:", error.message);
+        res.status(500).json({ 
+            erro: 'Erro interno no servidor', 
+            detalhes: error.message 
+        });
     }
 });
 
