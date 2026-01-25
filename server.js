@@ -3,6 +3,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const path = require('path');
 const fs = require('fs');
+const { Resend } = require('resend');
 const { MercadoPagoConfig, Payment } = require('mercadopago');
 const cors = require('cors');
 const CONFIG_PATH = path.join(__dirname, 'config-oferta.json');
@@ -24,6 +25,9 @@ app.use(express.static(__dirname));
 const client = new MercadoPagoConfig({ 
     accessToken: process.env.MP_ACCESS_TOKEN 
 });
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 const payment = new Payment(client);
 
 // --- CONEXÃO BANCO DE DADOS ---
@@ -194,20 +198,38 @@ app.post('/criar-pagamento-pix', async (req, res) => {
     }
 });
 
-// Rota que estava faltando para o checkout funcionar
+/////////////////////////////////////////////////////////
 app.get('/verificar-pagamento/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-        // 1. Consulta o Mercado Pago para saber se foi pago mesmo
+        // 1. Consulta o Mercado Pago
         const response = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
             headers: { 'Authorization': `Bearer ${process.env.MP_ACCESS_TOKEN}` }
         });
         const data = await response.json();
 
-        // 2. Se o status for aprovado, devolvemos para o site
+        // 2. Se o status for aprovado, inicia o processo de entrega
         if (data.status === 'approved') {
-            // Aqui você também pode chamar a sua função de registrar-venda automaticamente
+            
+            // --- INÍCIO DA MUDANÇA (ENTREGA AUTOMÁTICA) ---
+            
+            // Buscamos o link do material que você configurou no Painel ADM
+            const configPath = path.join(__dirname, 'config-oferta.json');
+            
+            if (fs.existsSync(configPath)) {
+                const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+                const emailCliente = data.payer.email; // E-mail capturado pelo MP
+
+                // Dispara o e-mail via Resend (a função que criamos antes)
+                if (emailCliente && config.link) {
+                    await enviarEmailEntrega(emailCliente, config.link);
+                    console.log(`Entrega realizada para: ${emailCliente}`);
+                }
+            }
+            
+            // --- FIM DA MUDANÇA ---
+
             return res.json({ status: 'approved' });
         } 
 
@@ -218,6 +240,7 @@ app.get('/verificar-pagamento/:id', async (req, res) => {
         res.status(500).json({ erro: "Erro interno no servidor" });
     }
 });
+/////////////////////////////////////////////////////////
 
 app.post('/registrar-venda', (req, res) => {
     const { email, produtos } = req.body;
@@ -318,6 +341,55 @@ app.get('/api/config-oferta', (req, res) => {
     }
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+async function enviarEmailEntrega(emailCliente, linkDrive) {
+    if (!linkDrive) {
+        console.error("❌ Erro: Link do Drive não encontrado no config-oferta.json");
+        return;
+    }
+
+    try {
+        await resend.emails.send({
+            from: 'Educa Materiais <entrega@educamateriais.shop>',
+            to: emailCliente,
+            subject: '🚀 Seu Material Chegou! (Acesso Google Drive)',
+            html: `
+                <div style="font-family: sans-serif; padding: 30px; border: 1px solid #eee; border-radius: 20px; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #1e293b;">Olá! Seu material está pronto.</h2>
+                    <p style="color: #64748b; line-height: 1.6;">Obrigado por confiar na <strong>Educa Materiais</strong>. O seu pagamento foi confirmado e o acesso à sua pasta no Google Drive já está liberado:</p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${linkDrive}" style="display: inline-block; background: #16a34a; color: white; padding: 18px 30px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                            🚀 ACESSAR GOOGLE DRIVE
+                        </a>
+                    </div>
+                    
+                    <p style="color: #94a3b8; font-size: 12px; border-top: 1px solid #f1f5f9; pt: 20px; margin-top: 30px;">
+                        <strong>Dica:</strong> Salve este e-mail nos seus favoritos para acessar o conteúdo sempre que precisar. Se tiver dúvidas, basta responder a este e-mail.
+                    </p>
+                </div>
+            `
+        });
+        console.log(`✅ E-mail de entrega enviado para: ${emailCliente}`);
+    } catch (error) {
+        console.error("❌ Erro ao enviar e-mail via Resend:", error);
+    }
+}
 
 // --- INICIALIZAÇÃO ---
 
