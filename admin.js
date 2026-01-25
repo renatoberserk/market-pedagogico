@@ -233,6 +233,66 @@ async function excluirUsuario(email) {
     } catch (error) { console.error(error); }
 }
 
+// --- LÓGICA PARA A OFERTA ESPECIAL (PÁGINA DE 19,90) ---
+
+// 1. Função para carregar os dados da oferta assim que abrir o painel
+async function carregarConfigOferta() {
+    try {
+        const res = await fetch('/api/config-oferta');
+        if (res.ok) {
+            const data = await res.json();
+            // Preenche os campos do banner laranja
+            if (document.getElementById('oferta-preco')) {
+                document.getElementById('oferta-preco').value = data.preco || "";
+            }
+            if (document.getElementById('oferta-link')) {
+                document.getElementById('oferta-link').value = data.link || "";
+            }
+        }
+    } catch (error) {
+        console.error("Erro ao carregar configuração da oferta:", error);
+    }
+}
+
+// 2. Função para salvar (disparada pelo botão 'Atualizar Oferta')
+async function salvarOfertaUnica() {
+    const preco = document.getElementById('oferta-preco').value;
+    const link = document.getElementById('oferta-link').value;
+
+    if (!preco || !link) {
+        alert("⚠️ Por favor, preencha o preço e o link do PDF.");
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/salvar-oferta', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                preco: preco, 
+                link: link, 
+                nome: "Combo Alfabetização Criativa" // Nome fixo da oferta
+            })
+        });
+
+        if (res.ok) {
+            alert("🚀 Sucesso! A oferta de R$ 19,90 foi atualizada.");
+        } else {
+            alert("❌ Erro ao salvar no servidor.");
+        }
+    } catch (error) {
+        console.error("Erro ao salvar oferta:", error);
+        alert("Erro de conexão.");
+    }
+}
+
+// 3. Gatilho para carregar os dados quando a página abrir
+// Se você já tiver um window.onload ou DOMContentLoaded, adicione a chamada lá dentro.
+document.addEventListener('DOMContentLoaded', () => {
+    carregarConfigOferta(); 
+    // ... suas outras funções existentes (listarClientes, carregarMetricas, etc)
+});
+
 // Adicione isso para garantir que o formulário NÃO use o método padrão (GET)
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('form-produto');
