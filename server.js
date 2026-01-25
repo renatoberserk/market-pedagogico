@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
+const path = require('path');
 const { MercadoPagoConfig, Payment } = require('mercadopago');
 const cors = require('cors');
 const CONFIG_PATH = path.join(__dirname, 'config-oferta.json');
