@@ -203,41 +203,36 @@ app.get('/verificar-pagamento/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-        // 1. Consulta o Mercado Pago
         const response = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
             headers: { 'Authorization': `Bearer ${process.env.MP_ACCESS_TOKEN}` }
         });
         const data = await response.json();
 
-        // 2. Se o status for aprovado, inicia o processo de entrega
         if (data.status === 'approved') {
-            
-            // --- INÍCIO DA MUDANÇA (ENTREGA AUTOMÁTICA) ---
-            
-            // Buscamos o link do material que você configurou no Painel ADM
-            const configPath = path.join(__dirname, 'config-oferta.json');
-            
-            if (fs.existsSync(configPath)) {
-                const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-                const emailCliente = data.payer.email; // E-mail capturado pelo MP
+            // Tenta pegar o e-mail de diferentes lugares (segurança extra)
+            const emailCliente = data.payer?.email || data.external_reference;
 
-                // Dispara o e-mail via Resend (a função que criamos antes)
-                if (emailCliente && config.link) {
-                    await enviarEmailEntrega(emailCliente, config.link);
-                    console.log(`Entrega realizada para: ${emailCliente}`);
+            // REGRA DE OURO: Só chama o Resend se o e-mail parecer um e-mail
+            if (emailCliente && emailCliente.includes('@')) {
+                
+                if (fs.existsSync(CONFIG_PATH)) {
+                    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+                    
+                    if (config.link) {
+                        await enviarEmailEntrega(emailCliente.trim(), config.link);
+                    }
                 }
+            } else {
+                console.error("❌ Abortando: E-mail inválido recebido do MP:", emailCliente);
             }
-            
-            // --- FIM DA MUDANÇA ---
 
             return res.json({ status: 'approved' });
         } 
-
         res.json({ status: data.status || 'pending' });
 
     } catch (error) {
-        console.error("Erro ao verificar no MP:", error);
-        res.status(500).json({ erro: "Erro interno no servidor" });
+        console.error("❌ Erro:", error);
+        res.status(500).json({ erro: "Erro interno" });
     }
 });
 /////////////////////////////////////////////////////////
