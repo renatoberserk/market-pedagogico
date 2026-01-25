@@ -8,6 +8,8 @@ const { MercadoPagoConfig, Payment } = require('mercadopago');
 const cors = require('cors');
 const CONFIG_PATH = path.join(__dirname, 'config-oferta.json');
 
+const enviosRealizados = new Set();
+
 const app = express();
 const corsOptions = {
     origin: ['https://educamateriais.shop', 'http://educamateriais.shop'],
@@ -209,42 +211,43 @@ app.get('/verificar-pagamento/:id', async (req, res) => {
         const data = await response.json();
 
         if (data.status === 'approved') {
-            // Tenta pegar o e-mail de 3 lugares diferentes
-            let emailCliente = null;
-
-            if (data.payer && data.payer.email) {
-                emailCliente = data.payer.email;
-            } else if (data.additional_info && data.additional_info.payer && data.additional_info.payer.email) {
-                emailCliente = data.additional_info.payer.email;
-            } else if (data.external_reference && data.external_reference.includes('@')) {
-                emailCliente = data.external_reference;
+            // 1. TRAVA DE LOOP: Se já enviamos para este ID, apenas responda 'approved' e pare aqui.
+            if (enviosRealizados.has(id)) {
+                return res.json({ status: 'approved' });
             }
 
-            // LOG DE AJUDA: Vamos ver o que o MP enviou de verdade
-            console.log("Dados do Payer recebidos:", JSON.stringify(data.payer));
+            // 2. CAPTURA DO E-MAIL (Tenta o payer ou o external_reference se o payer falhar)
+            let emailCliente = data.payer?.email;
+            
+            // Se o e-mail vier mascarado (XXXX) ou vazio, tentamos o external_reference
+            if (!emailCliente || !emailCliente.includes('@')) {
+                emailCliente = data.external_reference; 
+            }
+
+            console.log(`Tentando entregar para: ${emailCliente}`);
 
             if (emailCliente && emailCliente.includes('@')) {
                 const configPath = path.join(__dirname, 'config-oferta.json');
                 if (fs.existsSync(configPath)) {
                     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
                     
-                    // TRAVA DE SEGURANÇA: Se já enviamos para esse ID, não envia de novo
-                    if (!pagamentosEntregues.has(id)) {
+                    if (config.link) {
                         await enviarEmailEntrega(emailCliente.trim(), config.link);
-                        pagamentosEntregues.add(id);
+                        enviosRealizados.add(id); // Marca como enviado para este ID
+                        console.log(`✅ Sucesso: E-mail enviado para ${emailCliente}`);
                     }
                 }
             } else {
-                console.error("❌ O Mercado Pago não enviou um e-mail válido para este pagamento:", id);
-                // Opcional: Enviar para um e-mail seu de backup para você entregar manualmente
+                console.error("❌ Erro: O MP não forneceu um e-mail válido. Recebido:", emailCliente);
             }
 
             return res.json({ status: 'approved' });
         } 
+
         res.json({ status: data.status || 'pending' });
 
     } catch (error) {
-        console.error("❌ Erro na verificação:", error);
+        console.error("Erro na verificação:", error);
         res.status(500).json({ erro: "Erro interno" });
     }
 });
