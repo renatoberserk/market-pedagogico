@@ -3,6 +3,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const { MercadoPagoConfig, Payment } = require('mercadopago');
 const cors = require('cors');
+const CONFIG_PATH = path.join(__dirname, 'config-oferta.json');
 
 const app = express();
 const corsOptions = {
@@ -293,27 +294,28 @@ app.delete('/admin/usuarios/:email', async (req, res) => {
     }
 });
 
-// ROTA PARA BUSCAR OS DADOS (GET)
-app.get('/api/config-oferta', (req, res) => {
-    if (!fs.existsSync(CONFIG_FILE)) {
-        // Se o arquivo não existir, envia um padrão
-        return res.json({ preco: "19.90", link: "https://educamateriais.shop/seu-pdf-padrao.pdf", nome: "Combo Alfabetização Criativa" });
-    }
-    const data = fs.readFileSync(CONFIG_FILE, 'utf8');
-    res.json(JSON.parse(data));
-});
-
-// ROTA PARA SALVAR OS DADOS (POST)
+// Rota para o Admin Salvar
 app.post('/api/salvar-oferta', (req, res) => {
     try {
-        const novaConfig = req.body;
-        // Salva os dados no arquivo JSON
-        fs.writeFileSync(CONFIG_FILE, JSON.stringify(novaConfig, null, 2));
-        res.json({ mensagem: "Configuração salva com sucesso!" });
-    } catch (error) {
-        res.status(500).json({ erro: "Erro ao salvar configuração" });
+        const dados = req.body; // { preco: "19.90", link: "..." }
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify(dados, null, 2));
+        res.json({ sucesso: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ erro: "Erro ao salvar arquivo" });
     }
 });
+
+// Rota para a Página de Oferta ler os dados
+app.get('/api/config-oferta', (req, res) => {
+    if (fs.existsSync(CONFIG_PATH)) {
+        const dados = fs.readFileSync(CONFIG_PATH, 'utf8');
+        res.json(JSON.parse(dados));
+    } else {
+        res.json({ preco: "19.90", link: "" }); // Padrão caso não exista
+    }
+});
+
 
 // --- INICIALIZAÇÃO ---
 

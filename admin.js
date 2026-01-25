@@ -114,7 +114,7 @@ async function carregarProdutosAdmin() {
 
 // 5. SALVAR OU EDITAR (AÇÃO DO FORMULÁRIO)
 // Adicione este Listener para o formulário funcionar ao clicar no botão submit
-document.getElementById('form-produto')?.addEventListener('submit', function(e) {
+document.getElementById('form-produto')?.addEventListener('submit', function (e) {
     e.preventDefault();
     salvarProduto();
 });
@@ -128,17 +128,17 @@ async function salvarProduto() {
     const email_admin = localStorage.getItem('prof_email'); // Pegando o e-mail logado
 
     // O corpo da requisição agora tem TUDO o que o servidor pede
-    const dados = { 
-        email_admin, 
-        nome, 
-        preco, 
-        categoria, 
-        imagem_url, 
-        link_download 
+    const dados = {
+        email_admin,
+        nome,
+        preco,
+        categoria,
+        imagem_url,
+        link_download
     };
 
-    const url = modoEdicaoId 
-        ? `https://educamateriais.shop/produtos/${modoEdicaoId}` 
+    const url = modoEdicaoId
+        ? `https://educamateriais.shop/produtos/${modoEdicaoId}`
         : 'https://educamateriais.shop/produtos';
 
     try {
@@ -201,8 +201,8 @@ async function excluirProduto(id) {
 
         const resp = await fetch(`https://educamateriais.shop/produtos/${id}`, {
             method: 'DELETE',
-            headers: { 
-                'Content-Type': 'application/json' 
+            headers: {
+                'Content-Type': 'application/json'
             },
             // O seu backend exige o email_admin para validar o process.env.ADMIN_EMAIL
             body: JSON.stringify({ email_admin: emailLogado })
@@ -233,90 +233,32 @@ async function excluirUsuario(email) {
     } catch (error) { console.error(error); }
 }
 
-// --- LÓGICA PARA A OFERTA ESPECIAL (PÁGINA DE 19,90) ---
-
-// 1. Função para carregar os dados da oferta assim que abrir o painel
-async function carregarConfigOferta() {
-    try {
-        const res = await fetch('/api/config-oferta');
-        if (res.ok) {
-            const data = await res.json();
-            // Preenche os campos do banner laranja
-            if (document.getElementById('oferta-preco')) {
-                document.getElementById('oferta-preco').value = data.preco || "";
-            }
-            if (document.getElementById('oferta-link')) {
-                document.getElementById('oferta-link').value = data.link || "";
-            }
-        }
-    } catch (error) {
-        console.error("Erro ao carregar configuração da oferta:", error);
-    }
-}
-
-// 2. Função para salvar (disparada pelo botão 'Atualizar Oferta')
 async function salvarOfertaUnica() {
     const preco = document.getElementById('oferta-preco').value;
     const link = document.getElementById('oferta-link').value;
 
     if (!preco || !link) {
-        alert("⚠️ Por favor, preencha o preço e o link do PDF.");
+        alert("⚠️ Preencha o preço e o link do Drive!");
         return;
     }
 
     try {
-        const res = await fetch('/api/salvar-oferta', {
+        const response = await fetch('https://educamateriais.shop/api/salvar-oferta', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                preco: preco, 
-                link: link, 
-                nome: "Combo Alfabetização Criativa" // Nome fixo da oferta
-            })
+            body: JSON.stringify({ preco, link })
         });
 
-        if (res.ok) {
-            alert("🚀 Sucesso! A oferta de R$ 19,90 foi atualizada.");
+        if (response.ok) {
+            alert("✅ Sucesso! O produto ativo foi alterado na página de oferta.");
         } else {
-            alert("❌ Erro ao salvar no servidor.");
+            alert("❌ Erro ao salvar no servidor. Verifique o console.");
         }
-    } catch (error) {
-        console.error("Erro ao salvar oferta:", error);
-        alert("Erro de conexão.");
+    } catch (err) {
+        console.error("Erro:", err);
+        alert("❌ Falha na conexão com o servidor.");
     }
 }
-
-function gerarLinkVenda() {
-            const preco = document.getElementById('oferta-preco').value;
-            const driveLink = document.getElementById('oferta-link').value;
-
-            if (!preco || !driveLink) {
-                alert("⚠️ Por favor, preencha o preço e o link do Google Drive.");
-                return;
-            }
-
-            try {
-                // btoa converte o link para Base64 (deixa a URL mais limpa)
-                const driveEncoded = btoa(driveLink);
-                // Monta o link final que você vai usar
-                const linkFinal = `https://educamateriais.shop/oferta.html?p=${preco}&d=${driveEncoded}`;
-
-                // Mostra o campo com o link
-                const container = document.getElementById('container-link-final');
-                const inputFinal = document.getElementById('link-final-input');
-                
-                container.classList.remove('hidden');
-                inputFinal.value = linkFinal;
-
-                // Copia para a área de transferência
-                navigator.clipboard.writeText(linkFinal).then(() => {
-                    alert("✅ Link gerado e copiado com sucesso!");
-                });
-            } catch (e) {
-                console.error("Erro ao gerar link:", e);
-                alert("Erro ao processar o link. Verifique se o link do Drive está correto.");
-            }
-        }
 
 
 // Adicione isso para garantir que o formulário NÃO use o método padrão (GET)
@@ -325,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (form) {
         form.onsubmit = async (e) => {
             e.preventDefault(); // ISSO impede o erro "Cannot GET"
-            
+
         };
     }
 });
