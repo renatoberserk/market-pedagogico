@@ -201,43 +201,38 @@ app.post('/criar-pagamento-pix', async (req, res) => {
 /////////////////////////////////////////////////////////
 app.get('/verificar-pagamento/:id', async (req, res) => {
     const { id } = req.params;
-
     try {
-        // 1. Consulta o Mercado Pago
         const response = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
             headers: { 'Authorization': `Bearer ${process.env.MP_ACCESS_TOKEN}` }
         });
         const data = await response.json();
 
-        // 2. Se o status for aprovado, inicia o processo de entrega
+        // LOG DE DIAGNÓSTICO: Isso vai mostrar no 'pm2 logs' o que o MP está respondendo
+        console.log("Status do Pagamento:", data.status);
+
         if (data.status === 'approved') {
-            
-            // --- INÍCIO DA MUDANÇA (ENTREGA AUTOMÁTICA) ---
-            
-            // Buscamos o link do material que você configurou no Painel ADM
             const configPath = path.join(__dirname, 'config-oferta.json');
             
             if (fs.existsSync(configPath)) {
                 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-                const emailCliente = data.payer.email; // E-mail capturado pelo MP
+                
+                // IMPORTANTE: Verifique se o e-mail existe na resposta
+                const emailCliente = data.payer ? data.payer.email : null;
 
-                // Dispara o e-mail via Resend (a função que criamos antes)
                 if (emailCliente && config.link) {
+                    console.log(`Iniciando envio de e-mail para: ${emailCliente}`);
                     await enviarEmailEntrega(emailCliente, config.link);
-                    console.log(`Entrega realizada para: ${emailCliente}`);
+                } else {
+                    console.error("❌ E-mail do cliente ou link do Drive não encontrados nos dados.");
                 }
             }
-            
-            // --- FIM DA MUDANÇA ---
-
             return res.json({ status: 'approved' });
         } 
-
         res.json({ status: data.status || 'pending' });
 
     } catch (error) {
-        console.error("Erro ao verificar no MP:", error);
-        res.status(500).json({ erro: "Erro interno no servidor" });
+        console.error("❌ Erro na rota:", error);
+        res.status(500).json({ erro: "Erro interno" });
     }
 });
 /////////////////////////////////////////////////////////
