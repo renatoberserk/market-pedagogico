@@ -54,38 +54,73 @@ function renderizarProdutos(lista) {
     }
 
     container.innerHTML = lista.map(p => {
-        const imgFinal = p.imagem_url?.includes('http') 
-            ? p.imagem_url 
-            : 'https://placehold.co/400x300/f3f4f6/6366f1?text=Material';
-
+        const imgFinal = p.imagem_url?.includes('http') ? p.imagem_url : 'https://placehold.co/400x300?text=Material';
         const nomeLimpo = p.nome.replace(/'/g, "\\'");
-        
-        // CORREÇÃO AQUI: Mudamos de link_drive para link_download
         const linkFinal = p.link_download || ""; 
 
         return `
             <div class="bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col h-full group">
-                <div class="relative bg-gray-50 rounded-xl h-32 md:h-40 mb-3 overflow-hidden flex items-center justify-center">
+                <div class="relative bg-gray-50 rounded-xl h-32 md:h-40 mb-3 overflow-hidden cursor-zoom-in" onclick="abrirZoom('${imgFinal}')">
                     <span class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-[8px] md:text-[10px] px-2 py-0.5 rounded-lg font-bold text-orange-600 shadow-sm z-10 uppercase">
                         ${p.categoria || 'Geral'}
                     </span>
-                    <img src="${imgFinal}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://placehold.co/400x300/f3f4f6/a855f7?text=Erro'">
+                    <img src="${imgFinal}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                 </div>
+
                 <div class="flex flex-col flex-grow text-left">
-                    <h3 class="font-bold text-gray-800 text-xs md:text-sm mb-1 line-clamp-2 h-8">${p.nome}</h3>
-                    <p class="text-[8px] md:text-[10px] text-gray-400 mb-3 uppercase font-bold text-left">PDF Digital</p>
-                    <div class="mt-auto pt-2">
-                        <span class="text-green-600 font-black text-sm md:text-base">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
+                    <h3 class="font-bold text-gray-800 text-xs md:text-sm mb-1 line-clamp-2 h-8 leading-tight">${p.nome}</h3>
+                    
+                    <p class="text-[9px] md:text-[11px] text-gray-500 line-clamp-2 mb-2 min-h-[24px]">
+                        ${p.descricao || 'Material pedagógico completo pronto para aplicar.'}
+                    </p>
+
+                    <div class="flex gap-2 mb-3">
+                        ${p.foto1 ? `<img src="${p.foto1}" onclick="abrirZoom('${p.foto1}')" class="w-8 h-8 rounded border border-gray-200 object-cover cursor-zoom-in hover:border-orange-400 transition-all">` : ''}
+                        ${p.foto2 ? `<img src="${p.foto2}" onclick="abrirZoom('${p.foto2}')" class="w-8 h-8 rounded border border-gray-200 object-cover cursor-zoom-in hover:border-orange-400 transition-all">` : ''}
+                    </div>
+
+                    <p class="text-[8px] md:text-[9px] text-gray-400 mb-2 uppercase font-bold tracking-wider">📄 PDF Digital</p>
+                    
+                    <div class="mt-auto pt-2 border-t border-gray-50">
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-green-600 font-black text-sm md:text-base">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
+                            <span class="text-[8px] text-gray-400 line-through">R$ ${(parseFloat(p.preco) * 1.4).toFixed(2)}</span>
+                        </div>
                         
                         <button onclick="adicionarAoCarrinho(${p.id}, '${nomeLimpo}', ${p.preco}, '${linkFinal}')" 
-                                class="w-full mt-2 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-bold text-[10px] md:text-xs transition-all active:scale-95 shadow-md shadow-orange-100">
-                            + Adicionar
+                                class="w-full mt-2 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-bold text-[10px] md:text-xs transition-all active:scale-95 shadow-md shadow-orange-100 flex items-center justify-center gap-1">
+                            Adicionar ao Carrinho
                         </button>
                     </div>
                 </div>
             </div>`;
     }).join('');
 }
+
+// FUNÇÃO PARA ABRIR O ZOOM
+function abrirZoom(src) {
+    const modal = document.getElementById('modal-zoom');
+    const img = document.getElementById('img-zoom');
+    if (modal && img) {
+        img.src = src;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden'; // Trava o scroll do fundo
+    }
+}
+
+// FUNÇÃO PARA FECHAR O ZOOM
+function fecharZoom() {
+    const modal = document.getElementById('modal-zoom');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = 'auto'; // Libera o scroll
+    }
+}
+
+
+
 
 function filtrarProdutos(categoriaAlvo, elemento) {
     if (!produtosOriginais || produtosOriginais.length === 0) return;
