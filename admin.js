@@ -1,20 +1,25 @@
 let produtosAdmin = [];
 
-document.addEventListener('DOMContentLoaded', carregarProdutosAdmin);
+// Garante que o script rode apenas após o HTML carregar
+document.addEventListener('DOMContentLoaded', () => {
+    carregarProdutosAdmin();
+    configurarFormulario();
+});
 
+// --- CARREGAMENTO E RENDERIZAÇÃO ---
 async function carregarProdutosAdmin() {
     try {
         const res = await fetch(`https://educamateriais.shop/produtos?t=${new Date().getTime()}`);
         produtosAdmin = await res.json();
         renderizarAdmin();
     } catch (err) { 
-        console.error("Erro ao carregar:", err); 
+        console.error("Erro ao carregar produtos:", err); 
     }
 }
 
 function renderizarAdmin() {
     const container = document.getElementById('lista-admin');
-    if (!container) return;
+    if (!container) return; // Segurança contra erro de 'null'
     
     container.innerHTML = produtosAdmin.map(p => `
         <div class="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-100 flex flex-col h-full hover:shadow-md transition-shadow">
@@ -35,128 +40,169 @@ function renderizarAdmin() {
     `).join('');
 }
 
+// --- NAVEGAÇÃO ENTRE ABAS ---
+function mudarAba(idAba, botao) {
+    const secoes = document.querySelectorAll('.aba-conteudo');
+    const botoes = document.querySelectorAll('.menu-btn');
+
+    if (!document.getElementById(idAba)) return;
+
+    // 1. Esconde todas as seções
+    secoes.forEach(aba => aba.classList.add('hidden'));
+
+    // 2. Mostra a aba selecionada
+    document.getElementById(idAba).classList.remove('hidden');
+
+    // 3. Reseta e ativa botões
+    botoes.forEach(btn => {
+        btn.classList.remove('active-tab');
+        btn.classList.add('text-slate-500');
+    });
+
+    if (botao) {
+        botao.classList.add('active-tab');
+        botao.classList.remove('text-slate-500');
+    }
+
+    // 4. Cargas específicas
+    if (idAba === 'aba-usuarios') carregarUsuarios();
+    if (idAba === 'aba-faturamento') carregarRelatorios();
+}
+
+// --- MODAL ---
 function abrirModalCadastro() {
-    document.getElementById('modal-titulo').innerText = "Novo Produto";
-    document.getElementById('form-produto').reset();
-    document.getElementById('edit-id').value = ""; 
-    document.getElementById('modal-produto').classList.add('modal-active');
+    const modal = document.getElementById('modal-produto');
+    const form = document.getElementById('form-produto');
+    const titulo = document.getElementById('modal-titulo');
+
+    if (titulo) titulo.innerText = "Novo Produto";
+    if (form) form.reset();
+    
+    const inputId = document.getElementById('edit-id');
+    if (inputId) inputId.value = ""; 
+
+    if (modal) modal.style.display = 'flex'; // Usando style para garantir visibilidade
 }
 
 function fecharModal() {
-    document.getElementById('modal-produto').classList.remove('modal-active');
+    const modal = document.getElementById('modal-produto');
+    if (modal) modal.style.display = 'none';
 }
 
 function prepararEdicao(id) {
     const p = produtosAdmin.find(item => item.id == id);
     if (!p) return;
 
-    document.getElementById('modal-titulo').innerText = "Editar Material";
-    document.getElementById('edit-id').value = p.id;
-    document.getElementById('edit-nome').value = p.nome || "";
-    document.getElementById('edit-preco').value = p.preco || "";
-    document.getElementById('edit-descricao').value = p.descricao || "";
-    document.getElementById('edit-capa').value = p.imagem_url || "";
-    document.getElementById('edit-foto1').value = p.foto_extra1 || "";
-    document.getElementById('edit-foto2').value = p.foto_extra2 || ""; 
-    document.getElementById('edit-categoria').value = p.categoria || "Atividades";
-    document.getElementById('edit-link').value = p.link_download || "";
-
-    document.getElementById('modal-produto').classList.add('modal-active');
-}
-
-document.getElementById('form-produto').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const id = document.getElementById('edit-id').value;
-    const emailAdmin = localStorage.getItem('prof_email');
-
-    const dados = {
-        email_admin: emailAdmin,
-        nome: document.getElementById('edit-nome').value,
-        preco: document.getElementById('edit-preco').value,
-        descricao: document.getElementById('edit-descricao').value,
-        imagem_url: document.getElementById('edit-capa').value,
-        foto_extra1: document.getElementById('edit-foto1').value,
-        foto_extra2: document.getElementById('edit-foto2').value,
-        link_download: document.getElementById('edit-link').value,
-        categoria: document.getElementById('edit-categoria').value
+    // Preenchimento seguro
+    const campos = {
+        'modal-titulo': 'Editar Material',
+        'edit-id': p.id,
+        'edit-nome': p.nome || "",
+        'edit-preco': p.preco || "",
+        'edit-descricao': p.descricao || "",
+        'edit-capa': p.imagem_url || "",
+        'edit-foto1': p.foto_extra1 || "",
+        'edit-foto2': p.foto_extra2 || "",
+        'edit-categoria': p.categoria || "Atividades",
+        'edit-link': p.link_download || ""
     };
 
-    const url = id ? `https://educamateriais.shop/produtos/${id}` : `https://educamateriais.shop/produtos`;
-    const metodo = id ? 'PUT' : 'POST';
-
-    try {
-        const res = await fetch(url, {
-            method: metodo,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dados)
-        });
-
-        if (res.ok) {
-            alert("✅ Sucesso!");
-            fecharModal();
-            carregarProdutosAdmin();
-        } else {
-            alert("❌ Erro ao salvar.");
+    for (const [idElemento, valor] of Object.entries(campos)) {
+        const el = document.getElementById(idElemento);
+        if (el) {
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
+                el.value = valor;
+            } else {
+                el.innerText = valor;
+            }
         }
-    } catch (err) {
-        alert("💥 Erco na conexão.");
     }
-});
+
+    const modal = document.getElementById('modal-produto');
+    if (modal) modal.style.display = 'flex';
+}
+
+// --- AÇÕES (CRUD) ---
+function configurarFormulario() {
+    const form = document.getElementById('form-produto');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const id = document.getElementById('edit-id').value;
+        const emailAdmin = localStorage.getItem('prof_email');
+
+        const dados = {
+            email_admin: emailAdmin,
+            nome: document.getElementById('edit-nome').value,
+            preco: document.getElementById('edit-preco').value,
+            descricao: document.getElementById('edit-descricao').value,
+            imagem_url: document.getElementById('edit-capa').value,
+            foto_extra1: document.getElementById('edit-foto1').value,
+            foto_extra2: document.getElementById('edit-foto2').value,
+            link_download: document.getElementById('edit-link').value,
+            categoria: document.getElementById('edit-categoria').value
+        };
+
+        const url = id ? `https://educamateriais.shop/produtos/${id}` : `https://educamateriais.shop/produtos`;
+        const metodo = id ? 'PUT' : 'POST';
+
+        try {
+            const res = await fetch(url, {
+                method: metodo,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+
+            if (res.ok) {
+                alert("✅ Sucesso!");
+                fecharModal();
+                carregarProdutosAdmin();
+            } else {
+                alert("❌ Erro ao salvar.");
+            }
+        } catch (err) {
+            alert("💥 Erro na conexão.");
+        }
+    });
+}
 
 async function deletarProduto(id) {
     if (!confirm("Excluir permanentemente?")) return;
     const emailAdmin = localStorage.getItem('prof_email');
 
     try {
-        await fetch(`https://educamateriais.shop/produtos/${id}`, {
+        const res = await fetch(`https://educamateriais.shop/produtos/${id}`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email_admin: emailAdmin })
         });
-        carregarProdutosAdmin();
-    } catch (err) { console.error(err); }
-}
-// Função para trocar de aba
-function mudarAba(idAba, botao) {
-    // 1. Esconde todas as seções
-    document.querySelectorAll('.aba-conteudo').forEach(aba => {
-        aba.classList.add('hidden');
-    });
-
-    // 2. Mostra a aba selecionada
-    document.getElementById(idAba).classList.remove('hidden');
-
-    // 3. Reseta os botões do menu
-    document.querySelectorAll('.menu-btn').forEach(btn => {
-        btn.classList.remove('active-tab');
-        btn.classList.add('text-slate-500');
-    });
-
-    // 4. Ativa o botão atual
-    botao.classList.add('active-tab');
-    botao.classList.remove('text-slate-500');
-
-    // 5. Carrega os dados específicos daquela aba
-    if (idAba === 'aba-usuarios') carregarUsuarios();
-    if (idAba === 'aba-faturamento') carregarRelatorios();
+        if (res.ok) carregarProdutosAdmin();
+    } catch (err) { 
+        console.error("Erro ao deletar:", err); 
+    }
 }
 
-// Exemplo de como listar usuários
-async function carregarUsuarios() {
+// --- FUNÇÕES DE CARGA DE DADOS (STUBS) ---
+function carregarUsuarios() {
     const container = document.getElementById('lista-usuarios');
-    // Aqui você faria um fetch na sua API de usuários
-    container.innerHTML = `
-        <tr>
-            <td class="py-4 font-bold text-slate-700">Professor Exemplo</td>
-            <td class="py-4 text-slate-500">contato@exemplo.com</td>
-            <td class="py-4"><span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-[9px] font-bold">ATIVO</span></td>
-            <td class="py-4"><button class="text-slate-400 hover:text-red-500">Remover</button></td>
-        </tr>
-    `;
+    if (!container) return;
+    container.innerHTML = `<tr><td colspan="4" class="py-10 text-center text-slate-400">Carregando usuários...</td></tr>`;
+    // Simulação de delay para teste visual
+    setTimeout(() => {
+        container.innerHTML = `
+            <tr>
+                <td class="py-4 font-bold text-slate-700">Professor Exemplo</td>
+                <td class="py-4 text-slate-500">contato@exemplo.com</td>
+                <td class="py-4"><span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-[9px] font-bold">ATIVO</span></td>
+                <td class="py-4"><button class="text-slate-400 hover:text-red-500">Remover</button></td>
+            </tr>
+        `;
+    }, 500);
 }
 
-// Inicializar carregando os produtos
-document.addEventListener('DOMContentLoaded', () => {
-    carregarProdutosAdmin(); 
-});
+function carregarRelatorios() {
+    const fat = document.getElementById('faturamento-total');
+    if (fat) fat.innerText = "R$ 1.250,00"; // Exemplo estático
+}
