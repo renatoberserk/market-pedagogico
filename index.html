@@ -14,23 +14,18 @@
 </head>
 
 <body class="bg-gray-50 pb-10">
+ <div class="flex items-center gap-4">
+    <div id="header-auth"></div> 
     
-    <header class="flex items-center justify-between p-4 bg-white shadow-sm sticky top-0 z-50">
-        <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='index.html'">
-            <img src="assets/img/logo.png" class="h-10 w-10">
-            <div>
-                <h1 class="font-bold text-gray-800 text-sm leading-none">Educa Materiais</h1>
-                <span class="text-[10px] text-orange-500 font-bold uppercase tracking-tight">Recursos Premium</span>
-            </div>
-        </div>
+    <div onclick="toggleCarrinho()" class="relative cursor-pointer bg-gray-50 p-2 rounded-xl border border-gray-100">
+        <span class="text-xl">🛒</span>
+        <span id="cart-count" class="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">0</span>
+    </div>
 
-        <div class="flex items-center gap-4">
-            <div id="header-auth"></div> <div onclick="toggleCarrinho()" class="relative cursor-pointer bg-gray-50 p-2 rounded-xl border border-gray-100">
-                <span class="text-xl">🛒</span>
-                <span id="cart-count" class="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">0</span>
-            </div>
-        </div>
-    </header>
+    <button onclick="fazerLogout()" class="bg-red-50 text-red-500 p-2 rounded-xl border border-red-100 text-xs font-bold hover:bg-red-500 hover:text-white transition-all">
+        Sair
+    </button>
+</div>
 
     <main class="max-w-7xl mx-auto p-4">
         <div class="flex overflow-x-auto gap-2 mb-8 no-scrollbar py-2">

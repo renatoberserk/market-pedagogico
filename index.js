@@ -177,6 +177,16 @@ function atualizarContadorCarrinho() {
     if (c) c.innerText = carrinho.length;
 }
 
+function fazerLogout() {
+    // Remove os dados do usuário do navegador
+    localStorage.removeItem('user_email'); // ou 'prof_email' se for o admin
+    localStorage.removeItem('user_nome');
+    
+    // Recarrega a página ou manda para o login
+    alert("Você saiu da conta!");
+    location.reload(); 
+}
+
 // --- AUTH / SESSÃO ---
 function verificarSessao() {
     const nome = localStorage.getItem('prof_nome');
