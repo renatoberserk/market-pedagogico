@@ -1,10 +1,10 @@
 let carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
 let produtosOriginais = []; // Global para o filtro acessar
 
-// 1. INICIALIZAÇÃO (Unificada)
+// 1. INICIALIZAÇÃO
 window.onload = () => {
     verificarSessao();
-    carregarProdutosLoja(); // Usamos esta que alimenta a variável global
+    carregarProdutosLoja();
     atualizarContadorCarrinho();
 };
 
@@ -26,9 +26,12 @@ function verificarSessao() {
     }
 }
 
-function logout() { localStorage.clear(); location.href = 'index.html'; }
+function logout() { 
+    localStorage.clear(); 
+    location.href = 'index.html'; 
+}
 
-// 2. CARREGAMENTO DE DADOS (Unificado)
+// 2. CARREGAMENTO DE DADOS
 async function carregarProdutosLoja() {
     const container = document.getElementById('vitrine-produtos');
     if (!container) return;
@@ -37,7 +40,7 @@ async function carregarProdutosLoja() {
         const resp = await fetch('https://educamateriais.shop/produtos');
         const dados = await resp.json();
         
-        produtosOriginais = dados; // Salva para o filtro
+        produtosOriginais = dados; 
         renderizarProdutos(produtosOriginais);
         console.log("Produtos carregados:", produtosOriginais.length);
     } catch (err) {
@@ -46,7 +49,7 @@ async function carregarProdutosLoja() {
     }
 }
 
-// 3. RENDERIZAÇÃO (Apenas gera o HTML)
+// 3. RENDERIZAÇÃO (Ajustada para passar o LINK)
 function renderizarProdutos(lista) {
     const container = document.getElementById('vitrine-produtos');
     if (!container) return;
@@ -61,6 +64,11 @@ function renderizarProdutos(lista) {
             ? p.imagem_url 
             : 'https://placehold.co/400x300/f3f4f6/6366f1?text=Material';
 
+        // Sanitização simples do nome para não quebrar o onclick
+        const nomeLimpo = p.nome.replace(/'/g, "\\'");
+        // Garantindo que o link exista ou enviando vazio
+        const linkFinal = p.link_drive || "";
+
         return `
             <div class="bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col h-full group">
                 <div class="relative bg-gray-50 rounded-xl h-32 md:h-40 mb-3 overflow-hidden flex items-center justify-center">
@@ -74,7 +82,8 @@ function renderizarProdutos(lista) {
                     <p class="text-[8px] md:text-[10px] text-gray-400 mb-3 uppercase font-bold text-left">PDF Digital</p>
                     <div class="mt-auto pt-2">
                         <span class="text-green-600 font-black text-sm md:text-base">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
-                        <button onclick="adicionarAoCarrinho(${p.id}, '${p.nome.replace(/'/g, "\\'")}', ${p.preco})" 
+                        
+                        <button onclick="adicionarAoCarrinho(${p.id}, '${nomeLimpo}', ${p.preco}, '${linkFinal}')" 
                                 class="w-full mt-2 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-bold text-[10px] md:text-xs transition-all active:scale-95 shadow-md shadow-orange-100">
                             + Adicionar
                         </button>
@@ -84,11 +93,10 @@ function renderizarProdutos(lista) {
     }).join('');
 }
 
-// 4. FILTRAGEM (Unificada e Otimizada)
+// 4. FILTRAGEM
 function filtrarProdutos(categoriaAlvo, elemento) {
     if (!produtosOriginais || produtosOriginais.length === 0) return;
 
-    // Estilo dos botões
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('bg-orange-500', 'text-white');
         btn.classList.add('bg-white', 'text-gray-600');
@@ -98,7 +106,6 @@ function filtrarProdutos(categoriaAlvo, elemento) {
         elemento.classList.remove('bg-white', 'text-gray-600');
     }
 
-    // Filtro lógico
     if (categoriaAlvo === 'todos') {
         renderizarProdutos(produtosOriginais);
     } else {
@@ -109,7 +116,7 @@ function filtrarProdutos(categoriaAlvo, elemento) {
     }
 }
 
-// --- LÓGICA DO CARRINHO (Mantida e Limpa) ---
+// --- LÓGICA DO CARRINHO ---
 
 function toggleCarrinho() {
     const m = document.getElementById('modal-carrinho');
@@ -118,9 +125,18 @@ function toggleCarrinho() {
     if (m.style.display === 'flex') renderCarrinho();
 }
 
-function adicionarAoCarrinho(id, nome, preco) {
-    carrinho.push({ id, nome, preco, uid: Date.now() });
+function adicionarAoCarrinho(id, nome, preco, link) {
+    // SALVA O LINK NO LOCALSTORAGE PARA O CHECKOUT RECUPERAR
+    if (link && link !== "") {
+        localStorage.setItem('link_pendente', link);
+        console.log("🔗 Link capturado:", link);
+    } else {
+        console.warn("⚠️ Produto sem link detectado!");
+    }
+
+    carrinho.push({ id, nome, preco, link, uid: Date.now() });
     localStorage.setItem('edu_cart', JSON.stringify(carrinho));
+    
     atualizarContadorCarrinho();
     toggleCarrinho();
 }

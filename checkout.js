@@ -5,7 +5,7 @@ window.LINK_DRIVE_FINAL = localStorage.getItem('link_pendente');
 console.log("🔗 Link recuperado para o checkout:", window.LINK_DRIVE_FINAL);
 
 let paymentId = null;
-let pixCopiaECola = "";
+let pixCopiaECola = "";adicionarAoCarrinho
 let checkInterval = null;
 
 document.addEventListener('DOMContentLoaded', () => {
