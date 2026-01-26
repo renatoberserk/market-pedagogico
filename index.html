@@ -14,15 +14,17 @@
 </head>
 
 <body class="bg-gray-50 pb-10">
- <div class="flex items-center gap-4">
-    <div id="header-auth"></div> 
+<div class="flex items-center justify-start gap-3 w-full">
     
-    <div onclick="toggleCarrinho()" class="relative cursor-pointer bg-gray-50 p-2 rounded-xl border border-gray-100">
-        <span class="text-xl">🛒</span>
-        <span id="cart-count" class="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">0</span>
+    <div id="header-auth" class="flex items-center"></div>
+
+    <div onclick="toggleCarrinho()" class="relative cursor-pointer bg-gray-50 p-2.5 rounded-2xl border border-gray-100 hover:bg-white transition-all shadow-sm">
+        <span class="text-lg">🛒</span>
+        <span id="cart-count" class="absolute -top-1 -right-1 bg-orange-500 text-white text-[9px] font-black rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">0</span>
     </div>
 
-    <button onclick="fazerLogout()" class="bg-red-50 text-red-500 p-2 rounded-xl border border-red-100 text-xs font-bold hover:bg-red-500 hover:text-white transition-all">
+    <button onclick="fazerLogout()" 
+        class="bg-red-50 text-red-500 px-4 py-2.5 rounded-2xl border border-red-100 text-xs font-bold hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-95">
         Sair
     </button>
 </div>
