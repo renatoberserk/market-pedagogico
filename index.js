@@ -53,263 +53,334 @@ function renderizarProdutos(lista) {
         return;
     }
 
-    // Estilos CSS para o carrossel
-    const carouselStyles = `
-        <style>
-            .carousel-container {
-                position: relative;
-                overflow: hidden;
-            }
-            
-            .carousel-track {
-                display: flex;
-                transition: transform 0.5s ease-in-out;
-                height: 100%;
-            }
-            
-            .carousel-slide {
-                flex: 0 0 100%;
-                height: 100%;
-            }
-            
-            .carousel-nav {
-                position: absolute;
-                top: 50%;
-                transform: translateY(-50%);
-                background: rgba(255, 255, 255, 0.9);
-                border: none;
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-                z-index: 10;
-                opacity: 0;
-                transition: opacity 0.3s;
-            }
-            
-            .carousel-nav:hover {
-                background: white;
-            }
-            
-            .carousel-prev {
-                left: 10px;
-            }
-            
-            .carousel-next {
-                right: 10px;
-            }
-            
-            .carousel-container:hover .carousel-nav {
-                opacity: 1;
-            }
-            
-            .carousel-dots {
-                position: absolute;
-                bottom: 10px;
-                left: 0;
-                right: 0;
-                display: flex;
-                justify-content: center;
-                gap: 6px;
-                z-index: 10;
-            }
-            
-            .carousel-dot {
-                width: 8px;
-                height: 8px;
-                border-radius: 50%;
-                background: rgba(255, 255, 255, 0.5);
-                border: none;
-                padding: 0;
-                cursor: pointer;
-                transition: background 0.3s;
-            }
-            
-            .carousel-dot.active {
-                background: rgba(255, 255, 255, 0.9);
-                transform: scale(1.2);
-            }
-            
-            .carousel-image {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                cursor: pointer;
-                transition: transform 0.3s;
-            }
-            
-            .carousel-image:hover {
-                transform: scale(1.02);
-            }
-        </style>
-    `;
-
-    // Adiciona os estilos apenas uma vez
-    if (!document.getElementById('carousel-styles')) {
-        const styleEl = document.createElement('style');
-        styleEl.id = 'carousel-styles';
-        styleEl.textContent = carouselStyles;
-        document.head.appendChild(styleEl);
-    }
-
     container.innerHTML = lista.map(p => {
         const nomeLimpo = p.nome.replace(/'/g, "\\'");
         const linkFinal = (p.link_download || p.link || "").trim(); 
-        // Coleta todas as imagens disponíveis (máximo 3)
-        const imagens = [
-            p.imagem_url, 
-            p.foto1, 
-            p.foto2
-        ].filter(img => img && img.trim() !== "").slice(0, 3); // Limita a 3 imagens
+        const imagens = [p.imagem_url, p.foto1, p.foto2].filter(img => img && img.trim() !== "");
 
-        const carouselId = `carousel-${p.id}`;
-        const hasMultipleImages = imagens.length > 1;
-
+        // Gera um ID único para o produto
+        const produtoId = `produto-${p.id}`;
+        
         return `
-            <div class="bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col h-full group">
+            <div class="produto-card bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col h-full group cursor-pointer"
+                 onclick="abrirCarrosselProduto('${produtoId}', '${p.nome}', ${JSON.stringify(imagens)}, '${p.descricao || ''}', ${p.preco}, ${p.id})">
                 
-                <!-- Container do Carrossel -->
-                <div class="relative mb-3 overflow-hidden rounded-xl bg-gray-100 h-40 md:h-48 carousel-container" id="${carouselId}-container">
-                    <div class="carousel-track" id="${carouselId}">
-                        ${imagens.map((img, index) => `
-                            <div class="carousel-slide">
-                                <img src="${img}" 
-                                     alt="${p.nome} - Imagem ${index + 1}" 
-                                     class="carousel-image"
-                                     onclick="abrirZoom('${img}')">
-                            </div>
-                        `).join('')}
-                    </div>
+                <!-- Mostra apenas a primeira imagem na grade -->
+                <div class="relative mb-3 overflow-hidden rounded-xl bg-gray-100 h-40 md:h-48">
+                    ${imagens.length > 0 ? `
+                        <img src="${imagens[0]}" 
+                             class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                             alt="${p.nome}">
+                    ` : `
+                        <div class="w-full h-full flex items-center justify-center bg-gray-200">
+                            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                    `}
                     
-                    <!-- Botões de navegação -->
-                    ${hasMultipleImages ? `
-                        <button class="carousel-nav carousel-prev" 
-                                onclick="event.stopPropagation(); moverCarrossel('${carouselId}', -1)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    <!-- Indicador de múltiplas imagens -->
+                    ${imagens.length > 1 ? `
+                        <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
                             </svg>
-                        </button>
-                        <button class="carousel-nav carousel-next" 
-                                onclick="event.stopPropagation(); moverCarrossel('${carouselId}', 1)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </button>
-                        
-                        <!-- Indicadores (dots) -->
-                        <div class="carousel-dots">
-                            ${imagens.map((_, index) => `
-                                <button class="carousel-dot ${index === 0 ? 'active' : ''}" 
-                                        onclick="event.stopPropagation(); irParaSlide('${carouselId}', ${index})"
-                                        data-slide="${index}"></button>
-                            `).join('')}
+                            <span>${imagens.length}</span>
                         </div>
                     ` : ''}
                 </div>
 
-                <!-- Informações do produto -->
                 <div class="flex flex-col flex-grow text-left">
-                    <h3 class="font-bold text-gray-800 text-xs md:text-sm mb-1 line-clamp-2 h-8 leading-tight">
-                        ${p.nome}
-                    </h3>
-                    
+                    <h3 class="font-bold text-gray-800 text-xs md:text-sm mb-1 line-clamp-2 h-8 leading-tight">${p.nome}</h3>
                     <p class="text-[10px] md:text-[11px] text-gray-500 line-clamp-3 mb-3 leading-relaxed flex-grow">
                         ${p.descricao || 'Material pedagógico completo pronto para aplicação.'}
                     </p>
 
-                    <!-- Preço e botão de compra -->
                     <div class="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between gap-2">
                         <div class="flex flex-col">
-                            <span class="text-green-600 font-black text-sm md:text-lg leading-none">
-                                R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}
-                            </span>
+                            <span class="text-green-600 font-black text-sm md:text-lg leading-none">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
                         </div>
                         
-                        <button onclick="adicionarAoCarrinho(${p.id}, '${nomeLimpo}', ${p.preco}, '${linkFinal}')" 
-                                class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl font-bold text-[10px] md:text-xs shadow-md uppercase transition-colors">
+                        <button onclick="event.stopPropagation(); adicionarAoCarrinho(${p.id}, '${nomeLimpo}', ${p.preco}, '${linkFinal}')" 
+                                class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl font-bold text-[10px] md:text-xs shadow-md uppercase">
                             Comprar
                         </button>
                     </div>
                 </div>
             </div>`;
     }).join('');
+}
 
-    // Inicializa os carrosséis após renderizar
-    lista.forEach(p => {
-        if ([p.imagem_url, p.foto1, p.foto2].filter(img => img && img.trim() !== "").length > 1) {
-            inicializarCarrossel(`carousel-${p.id}`);
-        }
+// Modal de carrossel
+let carrosselModal = null;
+
+function criarModalCarrossel() {
+    if (carrosselModal) return carrosselModal;
+    
+    const modalHTML = `
+        <div id="modal-carrossel" class="fixed inset-0 z-50 hidden overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Overlay -->
+                <div class="fixed inset-0 bg-black/75 transition-opacity" onclick="fecharCarrossel()"></div>
+
+                <!-- Modal -->
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                    <!-- Header -->
+                    <div class="bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-gray-900" id="modal-titulo"></h3>
+                        <button onclick="fecharCarrossel()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Corpo do modal -->
+                    <div class="px-6 py-6">
+                        <!-- Carrossel -->
+                        <div class="relative mb-6">
+                            <div class="carrossel-container overflow-hidden rounded-xl bg-gray-100">
+                                <div class="carrossel-track flex transition-transform duration-300" id="carrossel-track"></div>
+                            </div>
+                            
+                            <!-- Botões de navegação -->
+                            <button onclick="moverCarrossel(-1)" 
+                                    class="carrossel-btn carrossel-prev absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 p-3 rounded-full shadow-lg hover:bg-white">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <button onclick="moverCarrossel(1)" 
+                                    class="carrossel-btn carrossel-next absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 p-3 rounded-full shadow-lg hover:bg-white">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                            
+                            <!-- Indicadores -->
+                            <div class="carrossel-dots absolute bottom-4 left-0 right-0 flex justify-center gap-2" id="carrossel-dots"></div>
+                        </div>
+                        
+                        <!-- Descrição -->
+                        <div class="mt-6">
+                            <h4 class="font-bold text-gray-800 mb-2">Descrição:</h4>
+                            <p class="text-gray-600" id="modal-descricao"></p>
+                        </div>
+                        
+                        <!-- Preço e botão -->
+                        <div class="mt-6 pt-6 border-t border-gray-200 flex items-center justify-between">
+                            <div>
+                                <span class="text-green-600 font-black text-2xl" id="modal-preco"></span>
+                            </div>
+                            <button onclick="comprarProdutoAtual()" 
+                                    class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-bold shadow-md uppercase">
+                                Comprar Agora
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Adiciona o modal ao corpo
+    const modalDiv = document.createElement('div');
+    modalDiv.innerHTML = modalHTML;
+    document.body.appendChild(modalDiv);
+    
+    carrosselModal = {
+        modal: document.getElementById('modal-carrossel'),
+        track: document.getElementById('carrossel-track'),
+        dots: document.getElementById('carrossel-dots'),
+        titulo: document.getElementById('modal-titulo'),
+        descricao: document.getElementById('modal-descricao'),
+        preco: document.getElementById('modal-preco')
+    };
+    
+    return carrosselModal;
+}
+
+// Variáveis globais para o carrossel atual
+let carrosselAtual = {
+    imagens: [],
+    slideAtual: 0,
+    produtoId: null,
+    preco: 0,
+    nome: ''
+};
+
+function abrirCarrosselProduto(produtoId, nome, imagens, descricao, preco, idProduto) {
+    const modal = criarModalCarrossel();
+    
+    // Atualiza dados atuais
+    carrosselAtual = {
+        imagens,
+        slideAtual: 0,
+        produtoId,
+        preco,
+        nome,
+        idProduto
+    };
+    
+    // Atualiza conteúdo do modal
+    modal.titulo.textContent = nome;
+    modal.descricao.textContent = descricao || 'Material pedagógico completo pronto para aplicação.';
+    modal.preco.textContent = `R$ ${parseFloat(preco).toFixed(2).replace('.', ',')}`;
+    
+    // Limpa e adiciona as imagens
+    modal.track.innerHTML = '';
+    modal.dots.innerHTML = '';
+    
+    imagens.forEach((img, index) => {
+        // Adiciona slide
+        const slide = document.createElement('div');
+        slide.className = 'carrossel-slide min-w-full';
+        slide.innerHTML = `
+            <img src="${img}" 
+                 alt="${nome} - Imagem ${index + 1}" 
+                 class="w-full h-96 object-cover rounded-xl">
+        `;
+        modal.track.appendChild(slide);
+        
+        // Adiciona dot
+        const dot = document.createElement('button');
+        dot.className = `carrossel-dot w-3 h-3 rounded-full ${index === 0 ? 'bg-orange-500' : 'bg-gray-300'}`;
+        dot.onclick = () => irParaSlide(index);
+        modal.dots.appendChild(dot);
     });
+    
+    // Ajusta largura do track
+    modal.track.style.width = `${imagens.length * 100}%`;
+    
+    // Mostra/oculta botões de navegação
+    const botoes = document.querySelectorAll('.carrossel-btn');
+    botoes.forEach(btn => {
+        btn.style.display = imagens.length > 1 ? 'block' : 'none';
+    });
+    
+    // Mostra modal
+    modal.modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    
+    // Move para o primeiro slide
+    atualizarCarrossel();
 }
 
-// Funções auxiliares para o carrossel
-function inicializarCarrossel(carouselId) {
-    const container = document.getElementById(`${carouselId}-container`);
-    if (!container) return;
-
-    const track = document.getElementById(carouselId);
-    const slides = track.querySelectorAll('.carousel-slide');
-    const dots = container.querySelectorAll('.carousel-dot');
+function moverCarrossel(direcao) {
+    if (carrosselAtual.imagens.length <= 1) return;
     
-    // Configura largura do track
-    track.style.width = `${slides.length * 100}%`;
+    let novoSlide = carrosselAtual.slideAtual + direcao;
     
-    // Armazena estado atual no elemento
-    container.currentSlide = 0;
+    // Loop circular
+    if (novoSlide < 0) novoSlide = carrosselAtual.imagens.length - 1;
+    if (novoSlide >= carrosselAtual.imagens.length) novoSlide = 0;
+    
+    carrosselAtual.slideAtual = novoSlide;
+    atualizarCarrossel();
 }
 
-function moverCarrossel(carouselId, direction) {
-    const container = document.getElementById(`${carouselId}-container`);
-    const track = document.getElementById(carouselId);
-    const slides = track.querySelectorAll('.carousel-slide');
-    const dots = container.querySelectorAll('.carousel-dot');
-    
-    if (!container || !track) return;
-    
-    // Atualiza slide atual
-    let newSlide = container.currentSlide + direction;
-    
-    // Verifica limites
-    if (newSlide < 0) newSlide = slides.length - 1;
-    if (newSlide >= slides.length) newSlide = 0;
+function irParaSlide(index) {
+    carrosselAtual.slideAtual = index;
+    atualizarCarrossel();
+}
+
+function atualizarCarrossel() {
+    const modal = criarModalCarrossel();
+    if (!modal || !modal.track) return;
     
     // Move o track
-    track.style.transform = `translateX(-${newSlide * 100}%)`;
-    container.currentSlide = newSlide;
+    const offset = -carrosselAtual.slideAtual * 100;
+    modal.track.style.transform = `translateX(${offset}%)`;
     
     // Atualiza dots
+    const dots = modal.dots.querySelectorAll('.carrossel-dot');
     dots.forEach((dot, index) => {
-        dot.classList.toggle('active', index === newSlide);
+        dot.className = `carrossel-dot w-3 h-3 rounded-full ${index === carrosselAtual.slideAtual ? 'bg-orange-500' : 'bg-gray-300'}`;
     });
 }
 
-function irParaSlide(carouselId, slideIndex) {
-    const container = document.getElementById(`${carouselId}-container`);
-    const track = document.getElementById(carouselId);
-    const dots = container.querySelectorAll('.carousel-dot');
-    
-    if (!container || !track) return;
-    
-    // Move para o slide específico
-    track.style.transform = `translateX(-${slideIndex * 100}%)`;
-    container.currentSlide = slideIndex;
-    
-    // Atualiza dots
-    dots.forEach((dot, index) => {
-        dot.classList.toggle('active', index === slideIndex);
-    });
+function comprarProdutoAtual() {
+    if (carrosselAtual.idProduto) {
+        // Fecha o modal primeiro
+        fecharCarrossel();
+        
+        // Espera um pouco para a animação do modal fechar
+        setTimeout(() => {
+            // Chama a função de adicionar ao carrinho
+            const linkFinal = ''; // Você precisa obter isso do seu objeto original
+            adicionarAoCarrinho(
+                carrosselAtual.idProduto,
+                carrosselAtual.nome,
+                carrosselAtual.preco,
+                linkFinal
+            );
+        }, 300);
+    }
 }
 
-// Opcional: Adicionar navegação automática (descomente se quiser)
-// function iniciarCarrosselAutomatico(carouselId, intervalo = 5000) {
-//     setInterval(() => {
-//         moverCarrossel(carouselId, 1);
-//     }, intervalo);
-// }
+function fecharCarrossel() {
+    const modal = criarModalCarrossel();
+    if (modal) {
+        modal.modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+}
+
+// Estilos CSS para o carrossel
+const carrosselCSS = `
+    <style>
+        #modal-carrossel {
+            z-index: 9999;
+        }
+        
+        .carrossel-container {
+            position: relative;
+            height: 24rem;
+        }
+        
+        .carrossel-track {
+            height: 100%;
+        }
+        
+        .carrossel-slide {
+            height: 100%;
+            padding: 0 4px;
+            box-sizing: border-box;
+        }
+        
+        .carrossel-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .carrossel-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .carrossel-dot {
+            transition: background 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .carrossel-dot:hover {
+            background: #f97316 !important;
+        }
+    </style>
+`;
+
+// Adiciona estilos ao cabeçalho
+if (!document.getElementById('carrossel-styles')) {
+    const styleEl = document.createElement('style');
+    styleEl.id = 'carrossel-styles';
+    styleEl.textContent = carrosselCSS;
+    document.head.appendChild(styleEl);
+}
+
+// Fecha modal com ESC
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        fecharCarrossel();
+    }
+});
 
 function adicionarAoCarrinho(id, nome, preco, link) {
     console.log("🛒 Tentando comprar:", { id, nome, preco, link });
