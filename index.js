@@ -53,57 +53,263 @@ function renderizarProdutos(lista) {
         return;
     }
 
+    // Estilos CSS para o carrossel
+    const carouselStyles = `
+        <style>
+            .carousel-container {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .carousel-track {
+                display: flex;
+                transition: transform 0.5s ease-in-out;
+                height: 100%;
+            }
+            
+            .carousel-slide {
+                flex: 0 0 100%;
+                height: 100%;
+            }
+            
+            .carousel-nav {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                background: rgba(255, 255, 255, 0.9);
+                border: none;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                z-index: 10;
+                opacity: 0;
+                transition: opacity 0.3s;
+            }
+            
+            .carousel-nav:hover {
+                background: white;
+            }
+            
+            .carousel-prev {
+                left: 10px;
+            }
+            
+            .carousel-next {
+                right: 10px;
+            }
+            
+            .carousel-container:hover .carousel-nav {
+                opacity: 1;
+            }
+            
+            .carousel-dots {
+                position: absolute;
+                bottom: 10px;
+                left: 0;
+                right: 0;
+                display: flex;
+                justify-content: center;
+                gap: 6px;
+                z-index: 10;
+            }
+            
+            .carousel-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.5);
+                border: none;
+                padding: 0;
+                cursor: pointer;
+                transition: background 0.3s;
+            }
+            
+            .carousel-dot.active {
+                background: rgba(255, 255, 255, 0.9);
+                transform: scale(1.2);
+            }
+            
+            .carousel-image {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                cursor: pointer;
+                transition: transform 0.3s;
+            }
+            
+            .carousel-image:hover {
+                transform: scale(1.02);
+            }
+        </style>
+    `;
+
+    // Adiciona os estilos apenas uma vez
+    if (!document.getElementById('carousel-styles')) {
+        const styleEl = document.createElement('style');
+        styleEl.id = 'carousel-styles';
+        styleEl.textContent = carouselStyles;
+        document.head.appendChild(styleEl);
+    }
+
     container.innerHTML = lista.map(p => {
         const nomeLimpo = p.nome.replace(/'/g, "\\'");
-        // GARANTIA: Se o link vier nulo do banco, ele não quebra o clique
         const linkFinal = (p.link_download || p.link || "").trim(); 
-        const imagens = [p.imagem_url, p.foto1, p.foto2].filter(img => img && img.trim() !== "");
+        // Coleta todas as imagens disponíveis (máximo 3)
+        const imagens = [
+            p.imagem_url, 
+            p.foto1, 
+            p.foto2
+        ].filter(img => img && img.trim() !== "").slice(0, 3); // Limita a 3 imagens
+
+        const carouselId = `carousel-${p.id}`;
+        const hasMultipleImages = imagens.length > 1;
 
         return `
             <div class="bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col h-full group">
                 
-                <div class="relative mb-3 group/btn overflow-hidden rounded-xl bg-gray-50 h-40 md:h-48">
-                    <div id="carousel-${p.id}" class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth h-full no-scrollbar">
-                        ${imagens.map(img => `
-                            <div class="min-w-full h-full snap-center flex-shrink-0 cursor-pointer" onclick="abrirZoom('${img}')">
-                                <img src="${img}" class="w-full h-full object-cover">
+                <!-- Container do Carrossel -->
+                <div class="relative mb-3 overflow-hidden rounded-xl bg-gray-100 h-40 md:h-48 carousel-container" id="${carouselId}-container">
+                    <div class="carousel-track" id="${carouselId}">
+                        ${imagens.map((img, index) => `
+                            <div class="carousel-slide">
+                                <img src="${img}" 
+                                     alt="${p.nome} - Imagem ${index + 1}" 
+                                     class="carousel-image"
+                                     onclick="abrirZoom('${img}')">
                             </div>
                         `).join('')}
                     </div>
                     
-                    ${imagens.length > 1 ? `
-                        <button onclick="event.stopPropagation(); document.getElementById('carousel-${p.id}').scrollBy({left: -200, behavior: 'smooth'})" 
-                            class="absolute left-1 top-1/2 -translate-y-1/2 bg-white/90 p-1.5 rounded-full shadow-lg hidden group-hover/btn:flex z-20">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
+                    <!-- Botões de navegação -->
+                    ${hasMultipleImages ? `
+                        <button class="carousel-nav carousel-prev" 
+                                onclick="event.stopPropagation(); moverCarrossel('${carouselId}', -1)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
                         </button>
-                        <button onclick="event.stopPropagation(); document.getElementById('carousel-${p.id}').scrollBy({left: 200, behavior: 'smooth'})" 
-                            class="absolute right-1 top-1/2 -translate-y-1/2 bg-white/90 p-1.5 rounded-full shadow-lg hidden group-hover/btn:flex z-20">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M9 5l7 7-7 7"/></svg>
+                        <button class="carousel-nav carousel-next" 
+                                onclick="event.stopPropagation(); moverCarrossel('${carouselId}', 1)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
                         </button>
+                        
+                        <!-- Indicadores (dots) -->
+                        <div class="carousel-dots">
+                            ${imagens.map((_, index) => `
+                                <button class="carousel-dot ${index === 0 ? 'active' : ''}" 
+                                        onclick="event.stopPropagation(); irParaSlide('${carouselId}', ${index})"
+                                        data-slide="${index}"></button>
+                            `).join('')}
+                        </div>
                     ` : ''}
                 </div>
 
+                <!-- Informações do produto -->
                 <div class="flex flex-col flex-grow text-left">
-                    <h3 class="font-bold text-gray-800 text-xs md:text-sm mb-1 line-clamp-2 h-8 leading-tight">${p.nome}</h3>
+                    <h3 class="font-bold text-gray-800 text-xs md:text-sm mb-1 line-clamp-2 h-8 leading-tight">
+                        ${p.nome}
+                    </h3>
+                    
                     <p class="text-[10px] md:text-[11px] text-gray-500 line-clamp-3 mb-3 leading-relaxed flex-grow">
                         ${p.descricao || 'Material pedagógico completo pronto para aplicação.'}
                     </p>
 
+                    <!-- Preço e botão de compra -->
                     <div class="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between gap-2">
                         <div class="flex flex-col">
-                            <span class="text-green-600 font-black text-sm md:text-lg leading-none">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
+                            <span class="text-green-600 font-black text-sm md:text-lg leading-none">
+                                R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}
+                            </span>
                         </div>
                         
                         <button onclick="adicionarAoCarrinho(${p.id}, '${nomeLimpo}', ${p.preco}, '${linkFinal}')" 
-                                class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl font-bold text-[10px] md:text-xs shadow-md uppercase">
+                                class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl font-bold text-[10px] md:text-xs shadow-md uppercase transition-colors">
                             Comprar
                         </button>
                     </div>
                 </div>
             </div>`;
     }).join('');
+
+    // Inicializa os carrosséis após renderizar
+    lista.forEach(p => {
+        if ([p.imagem_url, p.foto1, p.foto2].filter(img => img && img.trim() !== "").length > 1) {
+            inicializarCarrossel(`carousel-${p.id}`);
+        }
+    });
 }
 
+// Funções auxiliares para o carrossel
+function inicializarCarrossel(carouselId) {
+    const container = document.getElementById(`${carouselId}-container`);
+    if (!container) return;
+
+    const track = document.getElementById(carouselId);
+    const slides = track.querySelectorAll('.carousel-slide');
+    const dots = container.querySelectorAll('.carousel-dot');
+    
+    // Configura largura do track
+    track.style.width = `${slides.length * 100}%`;
+    
+    // Armazena estado atual no elemento
+    container.currentSlide = 0;
+}
+
+function moverCarrossel(carouselId, direction) {
+    const container = document.getElementById(`${carouselId}-container`);
+    const track = document.getElementById(carouselId);
+    const slides = track.querySelectorAll('.carousel-slide');
+    const dots = container.querySelectorAll('.carousel-dot');
+    
+    if (!container || !track) return;
+    
+    // Atualiza slide atual
+    let newSlide = container.currentSlide + direction;
+    
+    // Verifica limites
+    if (newSlide < 0) newSlide = slides.length - 1;
+    if (newSlide >= slides.length) newSlide = 0;
+    
+    // Move o track
+    track.style.transform = `translateX(-${newSlide * 100}%)`;
+    container.currentSlide = newSlide;
+    
+    // Atualiza dots
+    dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === newSlide);
+    });
+}
+
+function irParaSlide(carouselId, slideIndex) {
+    const container = document.getElementById(`${carouselId}-container`);
+    const track = document.getElementById(carouselId);
+    const dots = container.querySelectorAll('.carousel-dot');
+    
+    if (!container || !track) return;
+    
+    // Move para o slide específico
+    track.style.transform = `translateX(-${slideIndex * 100}%)`;
+    container.currentSlide = slideIndex;
+    
+    // Atualiza dots
+    dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === slideIndex);
+    });
+}
+
+// Opcional: Adicionar navegação automática (descomente se quiser)
+// function iniciarCarrosselAutomatico(carouselId, intervalo = 5000) {
+//     setInterval(() => {
+//         moverCarrossel(carouselId, 1);
+//     }, intervalo);
+// }
 
 function adicionarAoCarrinho(id, nome, preco, link) {
     console.log("🛒 Tentando comprar:", { id, nome, preco, link });
