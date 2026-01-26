@@ -221,7 +221,7 @@ app.get('/verificar-pagamento/:id', async (req, res) => {
                 enviarEmailEntrega(emailCliente, linkMaterial);
             }
             return res.json({ status: 'approved' });
-        } 
+        }
         res.json({ status: data.status });
     } catch (error) {
         res.status(500).json({ erro: "Erro ao verificar" });
@@ -348,7 +348,7 @@ async function enviarEmailEntrega(emailDestino, linkMaterial) {
     const transporter = nodemailer.createTransport({
         host: process.env.EMAIL_HOST,
         port: process.env.EMAIL_PORT,
-        secure: true, 
+        secure: true,
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS,
@@ -398,34 +398,29 @@ async function enviarEmailEntrega(emailDestino, linkMaterial) {
 }
 
 async function enviarEmailEntrega(emailDestino, linkMaterial) {
-    const transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
-        secure: true, 
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-        },
-    });
+    console.log(`🔎 Tentando enviar e-mail para: ${emailDestino}`);
+    console.log(`🔗 Link que será enviado: ${linkMaterial}`);
+
+    if (!emailDestino || !linkMaterial) {
+        console.error("❌ Erro: E-mail ou Link ausentes. O envio foi cancelado.");
+        return;
+    }
 
     try {
-        await transporter.sendMail({
-            from: `"Educa Materiais" <${process.env.EMAIL_USER}>`,
-            to: emailDestino,
+        const { data, error } = await resend.emails.send({
+            from: 'Educa Materiais <onboarding@resend.dev>', // Use onboarding@resend.dev para testar
+            to: [emailDestino],
             subject: '✅ Seu material chegou!',
-            html: `
-                <div style="font-family: sans-serif; text-align: center;">
-                    <h2>Obrigado pela sua compra!</h2>
-                    <p>Clique no botão abaixo para acessar seus arquivos:</p>
-                    <a href="${linkMaterial}" style="background: #22c55e; color: white; padding: 15px 25px; text-decoration: none; border-radius: 10px; font-weight: bold; display: inline-block; margin-top: 20px;">
-                        BAIXAR MEU MATERIAL
-                    </a>
-                </div>
-            `
+            html: `<h2>Aqui está seu material:</h2><p><a href="${linkMaterial}">Clique aqui para baixar</a></p>`
         });
-        console.log(`📧 E-mail enviado para ${emailDestino}`);
+
+        if (error) {
+            console.error("❌ Erro retornado pelo Resend:", error);
+        } else {
+            console.log("✅ E-mail enviado com sucesso! ID:", data.id);
+        }
     } catch (err) {
-        console.error("❌ Erro ao enviar e-mail:", err);
+        console.error("💥 Falha catastrófica ao disparar e-mail:", err.message);
     }
 }
 

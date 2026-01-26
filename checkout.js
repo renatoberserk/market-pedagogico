@@ -1,3 +1,9 @@
+// No topo do seu checkout.js
+// Isso busca o link que você salvou lá na página da vitrine
+window.LINK_DRIVE_FINAL = localStorage.getItem('link_pendente');
+
+console.log("🔗 Link recuperado para o checkout:", window.LINK_DRIVE_FINAL);
+
 let paymentId = null;
 let pixCopiaECola = "";
 let checkInterval = null;
@@ -21,12 +27,27 @@ document.addEventListener('DOMContentLoaded', () => {
 async function gerarPixReal(total) {
     const email = localStorage.getItem('prof_email');
     const statusText = document.getElementById('pix-code');
-    
-    // Mostra o loader e esconde o QR antigo (se houver)
     const loader = document.getElementById('qr-loader');
     const img = document.getElementById('qr-code-img');
+    const btnGerar = document.getElementById('btn-gerar-pix');
+
+    // --- TRAVA DE SEGURANÇA ---
+    // Verifica se o link existe, se não é 'undefined' e se não está vazio
+    if (!window.LINK_DRIVE_FINAL || window.LINK_DRIVE_FINAL === 'undefined' || window.LINK_DRIVE_FINAL.trim() === "") {
+        console.error("❌ Abortado: Tentativa de gerar Pix sem link de produto.");
+        alert("Ops! O link do material não foi carregado. Por favor, feche este checkout e clique no produto novamente.");
+        
+        if (btnGerar) {
+            btnGerar.disabled = false;
+            btnGerar.innerHTML = "ERRO: SELECIONE O PRODUTO NOVAMENTE";
+        }
+        return; // Mata a execução aqui
+    }
+
+    // Se passou pela trava, inicia o processo visual
     if (loader) loader.classList.remove('hidden');
     if (img) img.classList.add('hidden');
+    if (btnGerar) btnGerar.disabled = true; // Evita cliques duplos enquanto processa
 
     try {
         const response = await fetch('https://educamateriais.shop/criar-pagamento-pix', {
@@ -35,7 +56,7 @@ async function gerarPixReal(total) {
             body: JSON.stringify({ 
                 email: email, 
                 total: total,
-                link: window.LINK_DRIVE_FINAL
+                link: window.LINK_DRIVE_FINAL // Agora garantimos que este valor existe
             })
         });
 
@@ -50,16 +71,13 @@ async function gerarPixReal(total) {
             paymentId = data.id;
             pixCopiaECola = data.qr_code;
 
-            // 1. Esconde o Loader
             if (loader) loader.classList.add('hidden');
 
-            // 2. Mostra o QR Code
             if (img) {
                 img.src = `data:image/png;base64,${data.qr_code_base64}`;
                 img.classList.remove('hidden');
             }
 
-            // 3. Texto do código para copiar
             if (statusText) {
                 statusText.innerText = pixCopiaECola;
                 statusText.classList.remove('text-gray-400');
@@ -70,13 +88,12 @@ async function gerarPixReal(total) {
             throw new Error("Resposta do Pix incompleta");
         }
     } catch (error) {
-        console.error("Erro:", error);
+        console.error("Erro ao gerar Pix:", error);
         if (statusText) statusText.innerText = "Erro ao gerar código.";
         
-        const btnReGerar = document.getElementById('btn-gerar-pix');
-        if (btnReGerar) {
-            btnReGerar.disabled = false;
-            btnReGerar.innerHTML = "TENTAR NOVAMENTE";
+        if (btnGerar) {
+            btnGerar.disabled = false;
+            btnGerar.innerHTML = "TENTAR NOVAMENTE";
         }
         if (loader) loader.classList.add('hidden');
     }
