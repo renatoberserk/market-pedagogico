@@ -187,6 +187,17 @@ function fazerLogout() {
     location.reload(); 
 }
 
+// No final da função que carrega os dados do usuário ou no DOMContentLoaded
+function verificarLogado() {
+    const botaoSair = document.querySelector('button[onclick="fazerLogout()"]');
+    const estaLogado = localStorage.getItem('prof_email') || localStorage.getItem('user_email');
+    
+    if (!estaLogado && botaoSair) {
+        botaoSair.style.display = 'none'; // Esconde o botão se não houver e-mail salvo
+    }
+}
+verificarLogado();
+
 // --- AUTH / SESSÃO ---
 function verificarSessao() {
     const nome = localStorage.getItem('prof_nome');
