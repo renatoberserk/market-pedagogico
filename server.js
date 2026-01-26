@@ -438,3 +438,6 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Servidor backend rodando internamente na porta ${PORT}`);
     console.log(`🌍 Acesse publicamente em: https://educamateriais.shop`);
 });
+
+
+//funcionando o pagamento e email
