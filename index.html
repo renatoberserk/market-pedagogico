@@ -67,34 +67,25 @@
         <div id="vitrine-produtos" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
     </main>
 
-    <div id="modal-galeria" class="modal-overlay" onclick="fecharGaleria()">
-        <div class="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative animate-pop" onclick="event.stopPropagation()">
-            
-            <div id="galeria-indicadores" class="absolute top-5 left-8 right-8 flex gap-2 z-30"></div>
+<div id="modal-galeria" ...>
+    <div class="bg-white ... flex flex-col md:flex-row">
+        
+        <div class="md:w-1/2"> ... </div>
 
-            <button class="absolute top-8 right-5 z-40 bg-white/80 backdrop-blur-sm text-gray-400 w-8 h-8 rounded-full flex items-center justify-center shadow-sm text-xl" onclick="fecharGaleria()">&times;</button>
-
-            <div class="relative h-64 bg-gray-50 flex items-center justify-center">
-                <button class="absolute left-3 z-30 bg-orange-500 text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-2xl font-bold active:scale-90 transition-transform" onclick="mudarFoto(-1)">‹</button>
+        <div class="md:w-1/2 p-8 flex flex-col justify-between">
+            <div>
+                <h2 id="modal-titulo-detalhe" class="text-xl font-bold text-gray-800 mb-4"></h2>
                 
-                <img src="" id="modal-img" class="max-w-full max-h-full object-contain p-6">
-                
-                <button class="absolute right-3 z-30 bg-orange-500 text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-2xl font-bold active:scale-90 transition-transform" onclick="mudarFoto(1)">›</button>
+                <p id="modal-descricao-detalhe" class="text-gray-500 text-sm leading-relaxed whitespace-pre-line overflow-y-auto max-h-60 no-scrollbar">
+                    </p>
             </div>
 
-            <div class="p-8 flex flex-col items-center min-h-[200px]">
-                <h4 id="modal-titulo-detalhe" class="text-gray-800 font-bold text-base md:text-xl text-center leading-tight mb-2"></h4>
-                <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold">Arquivo Digital PDF</p>
-
-                <div class="mt-auto pt-6 w-full flex justify-center">
-                    <button onclick="adicionarAoCarrinho(produtoSelecionadoNoModal.id, produtoSelecionadoNoModal.nome, produtoSelecionadoNoModal.preco, produtoSelecionadoNoModal.link)" 
-                            class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3.5 rounded-full font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-orange-100 transition-all active:scale-95">
-                        Adicionar ao Carrinho
-                    </button>
-                </div>
-            </div>
+            <button onclick="adicionarAoCarrinhoDoModal()" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold mt-6">
+                COMPRAR AGORA
+            </button>
         </div>
     </div>
+</div>
 
     <div id="modal-carrinho" class="modal-overlay" onclick="toggleCarrinho()">
         <div class="bg-white w-full max-w-xs rounded-[2rem] p-6 shadow-2xl relative animate-pop" onclick="event.stopPropagation()">
