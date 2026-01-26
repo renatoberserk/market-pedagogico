@@ -1,3 +1,6 @@
+// Forçar o login do admin para teste (substitua pelo seu e-mail real do .env)
+localStorage.setItem('prof_email', 'elitonnrenato@gmail.com');
+
 let produtosAdmin = [];
 
 // Inicia o painel
