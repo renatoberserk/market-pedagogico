@@ -398,29 +398,67 @@ async function enviarEmailEntrega(emailDestino, linkMaterial) {
 }
 
 async function enviarEmailEntrega(emailDestino, linkMaterial) {
-    console.log(`🔎 Tentando enviar e-mail para: ${emailDestino}`);
-    console.log(`🔗 Link que será enviado: ${linkMaterial}`);
+    console.log(`🔎 Preparando envio para: ${emailDestino}`);
 
     if (!emailDestino || !linkMaterial) {
-        console.error("❌ Erro: E-mail ou Link ausentes. O envio foi cancelado.");
+        console.error("❌ Erro: E-mail ou Link ausentes. Abortando.");
         return;
     }
 
+    // Criando um template de e-mail mais "bacana" e profissional
+    const htmlContent = `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;">
+            <div style="background-color: #f97316; padding: 30px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">Seu Material Chegou! 🎨</h1>
+            </div>
+            
+            <div style="padding: 30px; background-color: white;">
+                <p style="font-size: 16px; color: #475569;">Olá, tudo bem?</p>
+                <p style="font-size: 16px; color: #475569; line-height: 1.6;">
+                    Ficamos muito felizes com sua confiança na <strong>Educa Materiais</strong>! Preparamos tudo com muito carinho para facilitar o seu dia a dia em sala de aula.
+                </p>
+                
+                <div style="text-align: center; margin: 40px 0;">
+                    <a href="${linkMaterial}" 
+                       style="background-color: #22c55e; color: white; padding: 18px 35px; text-decoration: none; font-weight: bold; border-radius: 12px; font-size: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                        📥 BAIXAR MEU MATERIAL AGORA
+                    </a>
+                </div>
+
+                <p style="font-size: 14px; color: #64748b; font-style: italic; text-align: center;">
+                    Dica: Recomendamos salvar o arquivo em seu computador ou Google Drive para não perder o acesso.
+                </p>
+            </div>
+
+            <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                <p style="font-size: 12px; color: #94a3b8; margin: 0;">
+                    Dúvidas? Responda a este e-mail ou visite nossa loja:<br>
+                    <a href="https://educamateriais.shop" style="color: #f97316; text-decoration: none; font-weight: bold;">educamateriais.shop</a>
+                </p>
+            </div>
+        </div>
+    `;
+
     try {
         const { data, error } = await resend.emails.send({
-            from: 'Educa Materiais <onboarding@resend.dev>', // Use onboarding@resend.dev para testar
+            // Mude para o seu domínio assim que verificar no Resend
+            from: 'Educa Materiais <onboarding@resend.dev>', 
             to: [emailDestino],
-            subject: '✅ Seu material chegou!',
-            html: `<h2>Aqui está seu material:</h2><p><a href="${linkMaterial}">Clique aqui para baixar</a></p>`
+            subject: '✅ Confirmado! Aqui está seu material pedagógico',
+            html: htmlContent
         });
 
         if (error) {
             console.error("❌ Erro retornado pelo Resend:", error);
+            // Verifique se o erro é o 403 de domínio não verificado
+            if (error.statusCode === 403) {
+                console.warn("⚠️ AVISO: Você ainda está no modo sandbox. O Resend só enviará para o seu e-mail de cadastro.");
+            }
         } else {
             console.log("✅ E-mail enviado com sucesso! ID:", data.id);
         }
     } catch (err) {
-        console.error("💥 Falha catastrófica ao disparar e-mail:", err.message);
+        console.error("💥 Falha ao disparar e-mail:", err.message);
     }
 }
 
