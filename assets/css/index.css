@@ -1200,18 +1200,19 @@ header {
     }
 }
 
-
-
-/* Esconde a barra de rolagem, mas permite o scroll */
+/* Esconde a barra de rolagem mas mantém a função de deslizar */
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
 .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none; /* Firefox */
 }
 
-/* Efeito de carregamento suave das imagens */
-.snap-center img {
-    transition: opacity 0.3s;
+/* Garante que o snap funcione (trava a foto no centro ao rolar) */
+.snap-x {
+    scroll-snap-type: x mandatory;
+}
+.snap-center {
+    scroll-snap-align: center;
 }
