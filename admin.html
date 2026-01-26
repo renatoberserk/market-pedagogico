@@ -10,11 +10,6 @@
     <style>
         body { font-family: 'Quicksand', sans-serif; }
         #painel-admin { display: none; } /* O admin.js deve mudar para 'block' após o login */
-        .count-up { animation: countUp 1s ease-out; }
-        @keyframes countUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
     </style>
 </head>
 
@@ -59,7 +54,7 @@
                     
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-gray-400 uppercase ml-1">Imagem de Capa (URL)</label>
-                        <input type="text" id="prod-img" placeholder="URL da imagem principal"
+                        <input type="text" id="prod-img" required placeholder="URL da imagem principal"
                             class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
                     </div>
 
@@ -78,13 +73,13 @@
 
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-gray-400 uppercase ml-1">Título</label>
-                        <input type="text" id="prod-nome" required placeholder="Ex: Caderno de Atividades"
+                        <input type="text" id="prod-nome" required placeholder="Ex: Alfabeto Divertido"
                             class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
                     </div>
 
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-gray-400 uppercase ml-1">Descrição do Produto</label>
-                        <textarea id="prod-descricao" placeholder="Explique o que o cliente está comprando..." rows="3"
+                        <textarea id="prod-descricao" placeholder="O que o cliente recebe neste PDF?" rows="3"
                             class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all resize-none"></textarea>
                     </div>
 
@@ -95,6 +90,14 @@
                                 class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
                         </div>
                         <div class="space-y-1">
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1 text-green-600">Oferta (R$)</label>
+                            <input type="number" step="0.01" id="prod-preco-promo" placeholder="Opcional"
+                                class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-green-400 outline-none transition-all bg-green-50/30">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
                             <label class="text-xs font-bold text-gray-400 uppercase ml-1">Categoria</label>
                             <select id="prod-categoria" required
                                 class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none bg-white transition-all">
@@ -104,12 +107,11 @@
                                 <option value="jogos">Jogos Pedagógicos</option>
                             </select>
                         </div>
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-400 uppercase ml-1">Link para Download</label>
-                        <input type="text" id="prod-link" required placeholder="Link do Drive"
-                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">Download</label>
+                            <input type="text" id="prod-link" required placeholder="Link do Drive"
+                                class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                        </div>
                     </div>
 
                     <button type="submit" id="btn-submit"
@@ -146,6 +148,8 @@
             </div>
         </div>
 
-    </div> <script src="admin.js"></script>
+    </div> 
+    
+    <script src="admin.js"></script>
 </body>
 </html>
