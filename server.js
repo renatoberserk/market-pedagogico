@@ -177,28 +177,40 @@ app.delete('/produtos/:id', (req, res) => {
 
 app.post('/criar-pagamento-pix', async (req, res) => {
     try {
-        // Certifique-se de que 'titulo' e 'link' estão aqui dentro!
-        const { email, total, titulo, link } = req.body;
+        const { email, total, titulo, link, origem } = req.body;
 
         if (!email || !total) {
             return res.status(400).json({ erro: "Dados incompletos" });
         }
 
+        // --- DEFINIÇÃO DO LINK REAL (DIRECIONAMENTO) ---
+        let linkDefinitivo = link;
+
+        // Se a venda vem da oferta, buscamos o link salvo no servidor para evitar erros
+        if (origem === 'oferta_ativa') {
+            const configPath = './config-oferta.json';
+            if (fs.existsSync(configPath)) {
+                const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+                linkDefinitivo = config.link; // Usa o link do seu painel Admin
+            }
+        }
+
         const body = {
             transaction_amount: Number(parseFloat(total).toFixed(2)),
-            // Se o título não vier do site, usamos um padrão para não dar erro
             description: titulo || 'Material Pedagógico Educa', 
             payment_method_id: 'pix',
             payer: { email: email.trim() },
             metadata: {
-                // Aqui também usamos um valor padrão ou o que veio do site
-                link_entrega: link || 'Link não informado',
+                // Aqui o link fica gravado para sempre nesta venda
+                link_entrega: linkDefinitivo, 
                 email_cliente: email.trim()
             }
         };
 
         const response = await payment.create({ body });
         const data = response.body || response;
+
+        console.log(`✅ PIX Gerado | Destino: ${email} | Link: ${linkDefinitivo}`);
 
         res.json({
             id: data.id,
@@ -208,9 +220,10 @@ app.post('/criar-pagamento-pix', async (req, res) => {
 
     } catch (error) {
         console.error("❌ Erro ao criar PIX:", error.message);
-        res.status(500).json({ erro: 'Erro interno', detalhes: error.message });
+        res.status(500).json({ erro: 'Erro interno' });
     }
 });
+
 /////////////////////////////////////////////////////////
 app.get('/verificar-pagamento/:id', async (req, res) => {
     const { id } = req.params;
