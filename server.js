@@ -397,8 +397,6 @@ async function enviarEmailEntrega(emailDestino, linkMaterial) {
     }
 }
 
-const nodemailer = require('nodemailer');
-
 async function enviarEmailEntrega(emailDestino, linkMaterial) {
     const transporter = nodemailer.createTransport({
         host: process.env.EMAIL_HOST,
