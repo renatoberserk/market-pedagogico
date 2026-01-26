@@ -117,3 +117,33 @@ async function deletarProduto(id) {
         carregarProdutosAdmin();
     } catch (err) { console.error(err); }
 }
+
+function mudarAba(abaId) {
+    // 1. Esconde todas as seções
+    document.querySelectorAll('.aba-conteudo').forEach(aba => {
+        aba.classList.add('hidden');
+    });
+
+    // 2. Mostra a aba clicada
+    document.getElementById(abaId).classList.remove('hidden');
+
+    // 3. Estilo visual nos botões do menu
+    document.querySelectorAll('.menu-btn').forEach(btn => {
+        btn.classList.remove('bg-orange-50', 'text-orange-600');
+        btn.classList.add('text-slate-500');
+    });
+
+    // Adiciona o estilo ativo ao botão que foi clicado
+    event.currentTarget.classList.add('bg-orange-50', 'text-orange-600');
+    event.currentTarget.classList.remove('text-slate-500');
+
+    // 4. Se for a aba de faturamento ou usuários, carrega os dados deles
+    if (abaId === 'aba-faturamento') carregarFaturamento();
+    if (abaId === 'aba-usuarios') carregarUsuarios();
+}
+
+// Exemplo de função para carregar faturamento
+async function carregarFaturamento() {
+    // Aqui você faria um fetch para uma rota de vendas no seu backend
+    console.log("Carregando relatório de vendas...");
+}
