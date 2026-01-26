@@ -14,81 +14,18 @@
 </head>
 
 <body class="bg-gray-50 pb-10">
-<body class="bg-gradient-to-br from-blue-50 via-white to-orange-50 min-h-screen flex items-center justify-center p-4">
-
-    <div class="max-w-md w-full bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-white mx-auto relative">
-        
-        <button onclick="fazerLogout()" title="Sair" 
-            class="absolute top-6 right-6 bg-orange-300/30 hover:bg-white/20 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-90 z-50">
-            <span class="text-xl">🚀</span>
-        </button>
-     
-        <div class="bg-orange-400 p-12 text-center text-white flex flex-col items-center justify-center gap-6">
-            <div class="bg-white p-2 rounded-full shadow-lg">
-                <img src="assets/img/logo.png" alt="Logo Educa Materiais" class="w-28 h-28 object-contain">
-            </div>
-
-            <div class="space-y-2">
-                <h1 class="text-5xl font-black text-white italic tracking-tighter leading-none">
-                    Educa Materiais
-                </h1>
-                <p class="text-sm opacity-95 uppercase tracking-[0.3em] font-bold">
-                    Portal do Educador
-                </p>
-            </div>
-        </div>
-
-        <div class="flex border-b border-gray-100">
-            <button onclick="switchTab('login')" id="tab-login"
-                class="flex-1 py-5 font-bold text-gray-400 tab-active transition-all text-lg">
-                Entrar
-            </button>
-            <button onclick="switchTab('cadastro')" id="tab-cadastro"
-                class="flex-1 py-5 font-bold text-gray-400 transition-all text-lg">
-                Cadastrar
-            </button>
-        </div>
-
-        <div class="p-10">
-            <form id="form-auth" class="space-y-5" onsubmit="processarAuth(event)">
-                <div id="wrapper-nome" class="hidden fade-in">
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Nome Completo</label>
-                    <input type="text" id="nome" placeholder="Ex: Prof. Cláudia Silva"
-                        class="w-full px-5 py-4 rounded-2xl border-2 border-gray-100 focus:border-orange-400 outline-none transition-all">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">E-mail</label>
-                    <input type="email" id="email" required placeholder="seu@email.com"
-                        class="w-full px-5 py-4 rounded-2xl border-2 border-gray-100 focus:border-orange-400 outline-none transition-all">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Senha</label>
-                    <input type="password" id="senha" required placeholder="••••••••"
-                        class="w-full px-5 py-4 rounded-2xl border-2 border-gray-100 focus:border-orange-400 outline-none transition-all">
-                </div>
-
-                <div id="wrapper-whats" class="hidden fade-in">
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">WhatsApp</label>
-                    <input type="tel" id="whatsapp" placeholder="(00) 00000-0000"
-                        class="w-full px-5 py-4 rounded-2xl border-2 border-gray-100 focus:border-orange-400 outline-none transition-all">
-                </div>
-
-                <button type="submit" id="btn-submit"
-                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-black py-5 rounded-2xl shadow-xl shadow-blue-200 mt-4 uppercase text-lg transition-all active:scale-95">
-                    Entrar Agora
-                </button>
-            </form>
-
-            <p class="text-center text-gray-400 text-[10px] mt-8 font-medium">
-                Protegido por criptografia Educa Materiais
-            </p>
-        </div>
+ <div class="flex items-center gap-4">
+    <div id="header-auth"></div> 
+    
+    <div onclick="toggleCarrinho()" class="relative cursor-pointer bg-gray-50 p-2 rounded-xl border border-gray-100">
+        <span class="text-xl">🛒</span>
+        <span id="cart-count" class="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">0</span>
     </div>
 
-    <script src="login.js"></script>
-</body>
+    <button onclick="fazerLogout()" class="bg-red-50 text-red-500 p-2 rounded-xl border border-red-100 text-xs font-bold hover:bg-red-500 hover:text-white transition-all">
+        Sair
+    </button>
+</div>
 
     <main class="max-w-7xl mx-auto p-4">
         <div class="flex overflow-x-auto gap-2 mb-8 no-scrollbar py-2">
