@@ -34,7 +34,8 @@ async function gerarPixReal(total) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 email: email, 
-                total: total // O servidor espera apenas email e total
+                total: total,
+                link: window.LINK_DRIVE_FINAL
             })
         });
 

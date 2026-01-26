@@ -3,6 +3,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const path = require('path');
 const fs = require('fs');
+const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 const { MercadoPagoConfig, Payment } = require('mercadopago');
 const cors = require('cors');
@@ -177,14 +178,17 @@ app.delete('/produtos/:id', (req, res) => {
 
 app.post('/criar-pagamento-pix', async (req, res) => {
     try {
-        const { email, total } = req.body;
-        if (!email || !total) return res.status(400).json({ erro: "E-mail ou total não informados" });
+        const { email, total, link } = req.body; // Recebendo o link do checkout
 
         const body = {
             transaction_amount: Number(parseFloat(total).toFixed(2)),
             description: 'Compra Educa Materiais',
             payment_method_id: 'pix',
-            payer: { email: email.trim() }
+            payer: { email: email.trim() },
+            metadata: {
+                link_entrega: link, // Guardamos o link aqui dentro do Mercado Pago
+                email_cliente: email.trim()
+            }
         };
 
         const response = await payment.create({ body });
@@ -196,31 +200,31 @@ app.post('/criar-pagamento-pix', async (req, res) => {
             qr_code_base64: data.point_of_interaction.transaction_data.qr_code_base64
         });
     } catch (error) {
-        res.status(500).json({ erro: 'Erro interno no servidor', detalhes: error.message });
+        res.status(500).json({ erro: 'Erro ao criar PIX', detalhes: error.message });
     }
 });
 /////////////////////////////////////////////////////////
 app.get('/verificar-pagamento/:id', async (req, res) => {
     const { id } = req.params;
-
     try {
-        // 1. Consulta o Mercado Pago para saber se foi pago mesmo
         const response = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
             headers: { 'Authorization': `Bearer ${process.env.MP_ACCESS_TOKEN}` }
         });
         const data = await response.json();
 
-        // 2. Se o status for aprovado, devolvemos para o site
         if (data.status === 'approved') {
-            // Aqui você também pode chamar a sua função de registrar-venda automaticamente
+            const linkMaterial = data.metadata?.link_entrega;
+            const emailCliente = data.metadata?.email_cliente;
+
+            if (linkMaterial && emailCliente) {
+                // Chama a função de e-mail (que definiremos abaixo)
+                enviarEmailEntrega(emailCliente, linkMaterial);
+            }
             return res.json({ status: 'approved' });
         } 
-
-        res.json({ status: data.status || 'pending' });
-
+        res.json({ status: data.status });
     } catch (error) {
-        console.error("Erro ao verificar no MP:", error);
-        res.status(500).json({ erro: "Erro interno no servidor" });
+        res.status(500).json({ erro: "Erro ao verificar" });
     }
 });
 /////////////////////////////////////////////////////////
@@ -390,6 +394,40 @@ async function enviarEmailEntrega(emailDestino, linkMaterial) {
     } catch (error) {
         console.error("❌ Erro ao enviar e-mail:", error);
         throw error; // Repassa o erro para o log do PM2 capturar
+    }
+}
+
+const nodemailer = require('nodemailer');
+
+async function enviarEmailEntrega(emailDestino, linkMaterial) {
+    const transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST,
+        port: process.env.EMAIL_PORT,
+        secure: true, 
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
+
+    try {
+        await transporter.sendMail({
+            from: `"Educa Materiais" <${process.env.EMAIL_USER}>`,
+            to: emailDestino,
+            subject: '✅ Seu material chegou!',
+            html: `
+                <div style="font-family: sans-serif; text-align: center;">
+                    <h2>Obrigado pela sua compra!</h2>
+                    <p>Clique no botão abaixo para acessar seus arquivos:</p>
+                    <a href="${linkMaterial}" style="background: #22c55e; color: white; padding: 15px 25px; text-decoration: none; border-radius: 10px; font-weight: bold; display: inline-block; margin-top: 20px;">
+                        BAIXAR MEU MATERIAL
+                    </a>
+                </div>
+            `
+        });
+        console.log(`📧 E-mail enviado para ${emailDestino}`);
+    } catch (err) {
+        console.error("❌ Erro ao enviar e-mail:", err);
     }
 }
 
