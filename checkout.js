@@ -22,26 +22,25 @@ async function gerarPixReal(total) {
     const email = localStorage.getItem('prof_email');
     const statusText = document.getElementById('pix-code');
     
-    // Captura os dados do produto (se existirem na página) ou define padrões
-    // Isso evita o erro "is not defined" no servidor
-    const tituloMaterial = document.getElementById('titulo-produto')?.innerText || "Materiais Pedagógicos - Educa";
-    const linkMaterial = window.LINK_DRIVE_FINAL || "https://educamateriais.shop"; 
+    // Mostra o loader e esconde o QR antigo (se houver)
+    const loader = document.getElementById('qr-loader');
+    const img = document.getElementById('qr-code-img');
+    if (loader) loader.classList.remove('hidden');
+    if (img) img.classList.add('hidden');
 
     try {
         const response = await fetch('https://educamateriais.shop/criar-pagamento-pix', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                email, 
-                total,
-                titulo: tituloMaterial, // Adicionado para satisfazer o servidor
-                link: linkMaterial      // Adicionado para satisfazer o servidor
+                email: email, 
+                total: total // O servidor espera apenas email e total
             })
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detalhes || "Erro na resposta do servidor");
+            throw new Error(errorData.detalhes || "Erro no servidor");
         }
 
         const data = await response.json();
@@ -50,18 +49,16 @@ async function gerarPixReal(total) {
             paymentId = data.id;
             pixCopiaECola = data.qr_code;
 
-            // 1. Remove o Loader
-            const loader = document.getElementById('qr-loader');
+            // 1. Esconde o Loader
             if (loader) loader.classList.add('hidden');
 
-            // 2. Renderiza a Imagem
-            const img = document.getElementById('qr-code-img');
+            // 2. Mostra o QR Code
             if (img) {
                 img.src = `data:image/png;base64,${data.qr_code_base64}`;
                 img.classList.remove('hidden');
             }
 
-            // 3. Exibe o código de texto
+            // 3. Texto do código para copiar
             if (statusText) {
                 statusText.innerText = pixCopiaECola;
                 statusText.classList.remove('text-gray-400');
@@ -69,37 +66,36 @@ async function gerarPixReal(total) {
 
             iniciarVerificacaoStatus(data.id);
         } else {
-            throw new Error("Dados do Pix incompletos");
+            throw new Error("Resposta do Pix incompleta");
         }
     } catch (error) {
-        console.error("Erro ao gerar Pix:", error);
-        if (statusText) statusText.innerText = "Erro: " + error.message;
+        console.error("Erro:", error);
+        if (statusText) statusText.innerText = "Erro ao gerar código.";
         
-        // CORREÇÃO AQUI: Mudamos de btnRe-gerar para btnReGerar
         const btnReGerar = document.getElementById('btn-gerar-pix');
         if (btnReGerar) {
             btnReGerar.disabled = false;
             btnReGerar.innerHTML = "TENTAR NOVAMENTE";
         }
+        if (loader) loader.classList.add('hidden');
     }
 }
 
 function iniciarVerificacaoStatus(id) {
-    // Limpa intervalos anteriores se existirem
-    if (checkInterval) clearInterval(checkInterval);
+    if (typeof checkInterval !== 'undefined') clearInterval(checkInterval);
 
     checkInterval = setInterval(async () => {
         try {
             const res = await fetch(`https://educamateriais.shop/verificar-pagamento/${id}`);
             const data = await res.json();
 
-            // Verifica se o status é aprovado
-            if (data.status === 'approved' || data.status === 'pago') {
+            // O servidor agora retorna data.status direto da API do Mercado Pago
+            if (data.status === 'approved') {
                 clearInterval(checkInterval);
-                finalizarCompraSucesso();
+                finalizarCompraSucesso(); 
             }
         } catch (e) {
-            console.log("Conexão instável, tentando novamente...");
+            console.log("Aguardando confirmação do pagamento...");
         }
     }, 5000); 
 }

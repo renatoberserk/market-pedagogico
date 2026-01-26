@@ -177,78 +177,50 @@ app.delete('/produtos/:id', (req, res) => {
 
 app.post('/criar-pagamento-pix', async (req, res) => {
     try {
-        const { email, total, titulo, link, origem } = req.body;
-
-        if (!email || !total) {
-            return res.status(400).json({ erro: "Dados incompletos" });
-        }
-
-        // --- DEFINIÇÃO DO LINK REAL (DIRECIONAMENTO) ---
-        let linkDefinitivo = link;
-
-        // Se a venda vem da oferta, buscamos o link salvo no servidor para evitar erros
-        if (origem === 'oferta_ativa') {
-            const configPath = './config-oferta.json';
-            if (fs.existsSync(configPath)) {
-                const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-                linkDefinitivo = config.link; // Usa o link do seu painel Admin
-            }
-        }
+        const { email, total } = req.body;
+        if (!email || !total) return res.status(400).json({ erro: "E-mail ou total não informados" });
 
         const body = {
             transaction_amount: Number(parseFloat(total).toFixed(2)),
-            description: titulo || 'Material Pedagógico Educa', 
+            description: 'Compra Educa Materiais',
             payment_method_id: 'pix',
-            payer: { email: email.trim() },
-            metadata: {
-                // Aqui o link fica gravado para sempre nesta venda
-                link_entrega: linkDefinitivo, 
-                email_cliente: email.trim()
-            }
+            payer: { email: email.trim() }
         };
 
         const response = await payment.create({ body });
         const data = response.body || response;
-
-        console.log(`✅ PIX Gerado | Destino: ${email} | Link: ${linkDefinitivo}`);
 
         res.json({
             id: data.id,
             qr_code: data.point_of_interaction.transaction_data.qr_code,
             qr_code_base64: data.point_of_interaction.transaction_data.qr_code_base64
         });
-
     } catch (error) {
-        console.error("❌ Erro ao criar PIX:", error.message);
-        res.status(500).json({ erro: 'Erro interno' });
+        res.status(500).json({ erro: 'Erro interno no servidor', detalhes: error.message });
     }
 });
-
 /////////////////////////////////////////////////////////
 app.get('/verificar-pagamento/:id', async (req, res) => {
     const { id } = req.params;
+
     try {
+        // 1. Consulta o Mercado Pago para saber se foi pago mesmo
         const response = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
             headers: { 'Authorization': `Bearer ${process.env.MP_ACCESS_TOKEN}` }
         });
         const data = await response.json();
 
+        // 2. Se o status for aprovado, devolvemos para o site
         if (data.status === 'approved') {
-            // BUSCA EXATAMENTE O LINK QUE FOI GRAVADO NO PIX
-            const linkFinal = data.metadata.link_entrega;
-            const emailCliente = data.metadata.email_cliente;
+            // Aqui você também pode chamar a sua função de registrar-venda automaticamente
+            return res.json({ status: 'approved' });
+        } 
 
-            console.log(`🚀 Enviando material agora: ${linkFinal} para ${emailCliente}`);
+        res.json({ status: data.status || 'pending' });
 
-            if (linkFinal && emailCliente) {
-                await enviarEmailEntrega(emailCliente, linkFinal);
-                return res.json({ status: 'approved' });
-            }
-        }
-        res.json({ status: data.status });
     } catch (error) {
-        console.error("❌ Erro ao verificar:", error);
-        res.status(500).json({ erro: "Erro na verificação" });
+        console.error("Erro ao verificar no MP:", error);
+        res.status(500).json({ erro: "Erro interno no servidor" });
     }
 });
 /////////////////////////////////////////////////////////
