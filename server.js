@@ -340,6 +340,40 @@ app.delete('/admin/usuarios/:email', async (req, res) => {
     }
 });
 
+// 1. ROTA PARA LISTAR USUÁRIOS (Faltava essa!)
+app.get('/admin/usuarios', (req, res) => {
+    const { email_admin } = req.query;
+
+    if (email_admin !== process.env.ADMIN_EMAIL) {
+        return res.status(403).json({ erro: "Não autorizado" });
+    }
+
+    const sql = "SELECT id, nome, email, data_cadastro FROM usuarios ORDER BY id DESC";
+    
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Erro ao buscar usuários:", err);
+            return res.status(500).json({ erro: "Erro no banco" });
+        }
+        res.json({ total: results.length, lista: results });
+    });
+});
+
+// 2. ROTA PARA EDITAR NOME DO USUÁRIO (Opcional, mas útil)
+app.put('/admin/usuarios/:email', (req, res) => {
+    const { email } = req.params;
+    const { nome, email_admin } = req.body;
+
+    if (email_admin !== process.env.ADMIN_EMAIL) {
+        return res.status(403).json({ erro: "Não autorizado" });
+    }
+
+    db.query("UPDATE usuarios SET nome = ? WHERE email = ?", [nome, email], (err) => {
+        if (err) return res.status(500).json({ erro: "Erro ao atualizar" });
+        res.json({ sucesso: true });
+    });
+});
+
 // Rota para o Admin Salvar
 app.post('/api/salvar-oferta', (req, res) => {
     const { preco, link, titulo, capa, foto1, foto2 } = req.body;

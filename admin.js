@@ -1,12 +1,12 @@
 let produtosAdmin = [];
 
-// Garante que o script rode apenas após o HTML carregar
+// Inicia o painel
 document.addEventListener('DOMContentLoaded', () => {
     carregarProdutosAdmin();
     configurarFormulario();
 });
 
-// --- CARREGAMENTO E RENDERIZAÇÃO ---
+// --- 1. PRODUTOS (VITRINE ADMIN) ---
 async function carregarProdutosAdmin() {
     try {
         const res = await fetch(`https://educamateriais.shop/produtos?t=${new Date().getTime()}`);
@@ -19,7 +19,7 @@ async function carregarProdutosAdmin() {
 
 function renderizarAdmin() {
     const container = document.getElementById('lista-admin');
-    if (!container) return; // Segurança contra erro de 'null'
+    if (!container) return;
     
     container.innerHTML = produtosAdmin.map(p => `
         <div class="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-100 flex flex-col h-full hover:shadow-md transition-shadow">
@@ -40,20 +40,98 @@ function renderizarAdmin() {
     `).join('');
 }
 
-// --- NAVEGAÇÃO ENTRE ABAS ---
+// --- 2. GESTÃO DE USUÁRIOS ---
+async function carregarUsuarios() {
+    const corpoTabela = document.getElementById('lista-usuarios-corpo');
+    const contador = document.getElementById('contagem-usuarios');
+    const emailAdmin = localStorage.getItem('prof_email');
+
+    if (!corpoTabela) return;
+    corpoTabela.innerHTML = `<tr><td colspan="2" class="p-10 text-center text-slate-400 text-xs">Carregando...</td></tr>`;
+
+    try {
+        const res = await fetch(`https://educamateriais.shop/admin/usuarios?email_admin=${emailAdmin}`);
+        const dados = await res.json();
+
+        if (contador) contador.innerText = dados.total || 0;
+
+        if (!dados.lista || dados.lista.length === 0) {
+            corpoTabela.innerHTML = `<tr><td colspan="2" class="p-10 text-center text-slate-400 text-xs">Nenhum usuário encontrado.</td></tr>`;
+            return;
+        }
+
+        corpoTabela.innerHTML = dados.lista.map(u => `
+            <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50">
+                <td class="p-6">
+                    <p class="font-bold text-slate-700 text-sm">${u.nome}</p>
+                    <p class="text-slate-400 text-[11px]">${u.email}</p>
+                </td>
+                <td class="p-6 text-right space-x-2">
+                    <button onclick="editarUsuario('${u.email}', '${u.nome}')" class="text-blue-500 hover:bg-blue-50 px-3 py-2 rounded-lg font-bold text-[10px] uppercase transition-all">Editar</button>
+                    <button onclick="deletarUsuario('${u.email}')" class="text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg font-bold text-[10px] uppercase transition-all">Excluir</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        console.error("Erro ao carregar usuários:", err);
+    }
+}
+
+async function deletarUsuario(email) {
+    if (!confirm(`Deseja excluir permanentemente o usuário ${email}?`)) return;
+    const emailAdmin = localStorage.getItem('prof_email');
+
+    try {
+        const res = await fetch(`https://educamateriais.shop/admin/usuarios/${email}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email_admin: emailAdmin })
+        });
+
+        const resultado = await res.json();
+        if (resultado.sucesso) {
+            alert("✅ Usuário removido!");
+            carregarUsuarios();
+        } else {
+            alert("❌ Erro: " + (resultado.erro || "Falha ao deletar"));
+        }
+    } catch (err) {
+        alert("💥 Erro de conexão ao deletar.");
+    }
+}
+
+async function editarUsuario(email, nomeAtual) {
+    const novoNome = prompt("Novo nome para o usuário:", nomeAtual);
+    if (!novoNome || novoNome === nomeAtual) return;
+
+    const emailAdmin = localStorage.getItem('prof_email');
+
+    try {
+        const res = await fetch(`https://educamateriais.shop/admin/usuarios/${email}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome: novoNome, email_admin: emailAdmin })
+        });
+
+        if (res.ok) {
+            alert("✅ Nome atualizado!");
+            carregarUsuarios();
+        }
+    } catch (err) {
+        alert("💥 Erro ao editar.");
+    }
+}
+
+// --- 3. NAVEGAÇÃO E RELATÓRIOS ---
 function mudarAba(idAba, botao) {
     const secoes = document.querySelectorAll('.aba-conteudo');
     const botoes = document.querySelectorAll('.menu-btn');
 
     if (!document.getElementById(idAba)) return;
 
-    // 1. Esconde todas as seções
     secoes.forEach(aba => aba.classList.add('hidden'));
-
-    // 2. Mostra a aba selecionada
     document.getElementById(idAba).classList.remove('hidden');
 
-    // 3. Reseta e ativa botões
     botoes.forEach(btn => {
         btn.classList.remove('active-tab');
         btn.classList.add('text-slate-500');
@@ -64,24 +142,23 @@ function mudarAba(idAba, botao) {
         botao.classList.remove('text-slate-500');
     }
 
-    // 4. Cargas específicas
     if (idAba === 'aba-usuarios') carregarUsuarios();
     if (idAba === 'aba-faturamento') carregarRelatorios();
 }
 
-// --- MODAL ---
+function carregarRelatorios() {
+    const fat = document.getElementById('faturamento-total');
+    if (fat) fat.innerText = "R$ 1.250,00"; // Aqui você faria o fetch de vendas depois
+}
+
+// --- 4. CRUD PRODUTOS (MODAL) ---
 function abrirModalCadastro() {
     const modal = document.getElementById('modal-produto');
     const form = document.getElementById('form-produto');
-    const titulo = document.getElementById('modal-titulo');
-
-    if (titulo) titulo.innerText = "Novo Produto";
     if (form) form.reset();
-    
-    const inputId = document.getElementById('edit-id');
-    if (inputId) inputId.value = ""; 
-
-    if (modal) modal.style.display = 'flex'; // Usando style para garantir visibilidade
+    document.getElementById('edit-id').value = ""; 
+    document.getElementById('modal-titulo').innerText = "Novo Produto";
+    if (modal) modal.style.display = 'flex';
 }
 
 function fecharModal() {
@@ -93,43 +170,27 @@ function prepararEdicao(id) {
     const p = produtosAdmin.find(item => item.id == id);
     if (!p) return;
 
-    // Preenchimento seguro
-    const campos = {
-        'modal-titulo': 'Editar Material',
-        'edit-id': p.id,
-        'edit-nome': p.nome || "",
-        'edit-preco': p.preco || "",
-        'edit-descricao': p.descricao || "",
-        'edit-capa': p.imagem_url || "",
-        'edit-foto1': p.foto_extra1 || "",
-        'edit-foto2': p.foto_extra2 || "",
-        'edit-categoria': p.categoria || "Atividades",
-        'edit-link': p.link_download || ""
-    };
-
-    for (const [idElemento, valor] of Object.entries(campos)) {
-        const el = document.getElementById(idElemento);
-        if (el) {
-            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
-                el.value = valor;
-            } else {
-                el.innerText = valor;
-            }
-        }
-    }
+    document.getElementById('modal-titulo').innerText = "Editar Material";
+    document.getElementById('edit-id').value = p.id;
+    document.getElementById('edit-nome').value = p.nome || "";
+    document.getElementById('edit-preco').value = p.preco || "";
+    document.getElementById('edit-descricao').value = p.descricao || "";
+    document.getElementById('edit-capa').value = p.imagem_url || "";
+    document.getElementById('edit-foto1').value = p.foto_extra1 || "";
+    document.getElementById('edit-foto2').value = p.foto_extra2 || ""; 
+    document.getElementById('edit-categoria').value = p.categoria || "Atividades";
+    document.getElementById('edit-link').value = p.link_download || "";
 
     const modal = document.getElementById('modal-produto');
     if (modal) modal.style.display = 'flex';
 }
 
-// --- AÇÕES (CRUD) ---
 function configurarFormulario() {
     const form = document.getElementById('form-produto');
     if (!form) return;
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-
         const id = document.getElementById('edit-id').value;
         const emailAdmin = localStorage.getItem('prof_email');
 
@@ -156,53 +217,28 @@ function configurarFormulario() {
             });
 
             if (res.ok) {
-                alert("✅ Sucesso!");
+                alert("✅ Salvo com sucesso!");
                 fecharModal();
                 carregarProdutosAdmin();
             } else {
                 alert("❌ Erro ao salvar.");
             }
         } catch (err) {
-            alert("💥 Erro na conexão.");
+            alert("💥 Erro de conexão.");
         }
     });
 }
 
 async function deletarProduto(id) {
-    if (!confirm("Excluir permanentemente?")) return;
+    if (!confirm("Excluir material permanentemente?")) return;
     const emailAdmin = localStorage.getItem('prof_email');
 
     try {
-        const res = await fetch(`https://educamateriais.shop/produtos/${id}`, {
+        await fetch(`https://educamateriais.shop/produtos/${id}`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email_admin: emailAdmin })
         });
-        if (res.ok) carregarProdutosAdmin();
-    } catch (err) { 
-        console.error("Erro ao deletar:", err); 
-    }
-}
-
-// --- FUNÇÕES DE CARGA DE DADOS (STUBS) ---
-function carregarUsuarios() {
-    const container = document.getElementById('lista-usuarios');
-    if (!container) return;
-    container.innerHTML = `<tr><td colspan="4" class="py-10 text-center text-slate-400">Carregando usuários...</td></tr>`;
-    // Simulação de delay para teste visual
-    setTimeout(() => {
-        container.innerHTML = `
-            <tr>
-                <td class="py-4 font-bold text-slate-700">Professor Exemplo</td>
-                <td class="py-4 text-slate-500">contato@exemplo.com</td>
-                <td class="py-4"><span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-[9px] font-bold">ATIVO</span></td>
-                <td class="py-4"><button class="text-slate-400 hover:text-red-500">Remover</button></td>
-            </tr>
-        `;
-    }, 500);
-}
-
-function carregarRelatorios() {
-    const fat = document.getElementById('faturamento-total');
-    if (fat) fat.innerText = "R$ 1.250,00"; // Exemplo estático
+        carregarProdutosAdmin();
+    } catch (err) { console.error(err); }
 }
