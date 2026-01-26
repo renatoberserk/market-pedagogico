@@ -11,77 +11,55 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-
-        .loading-spinner {
-            width: 18px;
-            height: 18px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid #fff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
+        /* Estilo para garantir que as fotos fiquem bonitas */
+        .img-preview { object-fit: cover; width: 100%; height: 120px; border-radius: 1rem; }
     </style>
 </head>
 
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
 
-    <div
-        class="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200 overflow-hidden border border-slate-100 fade-in">
+    <div class="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200 overflow-hidden border border-slate-100 fade-in">
 
         <div class="relative">
-            <img src="https://placehold.co/600x450/6366f1/ffffff?text=Combo+Alfabetização"
+            <img id="capa-produto" src="https://placehold.co/600x450/6366f1/ffffff?text=Carregando..."
                 class="w-full h-64 object-cover">
             <div class="absolute top-4 left-4">
-                <span
-                    class="bg-white/90 backdrop-blur-sm text-orange-600 px-3 py-1 rounded-full text-xs font-black uppercase shadow-sm">🔥
-                    Oferta Limitada</span>
+                <span class="bg-white/90 backdrop-blur-sm text-orange-600 px-3 py-1 rounded-full text-[10px] font-black uppercase shadow-sm">
+                    🔥 Oferta Limitada
+                </span>
             </div>
         </div>
 
         <div class="p-8">
             <div class="text-center mb-6">
-                <h1 class="text-2xl font-black text-slate-800 leading-tight">Combo Alfabetização Criativa</h1>
+                <h1 id="titulo-produto" class="text-2xl font-black text-slate-800 leading-tight">Carregando...</h1>
                 <p class="text-slate-500 text-sm mt-2 px-4">Material didático pronto para imprimir em PDF.</p>
             </div>
 
-            <div class="flex items-center justify-center gap-2 mb-8">
+            <div class="flex items-center justify-center gap-2 mb-6">
                 <span class="text-4xl font-black text-green-600" id="valor-exibido">R$ --,--</span>
+            </div>
+
+            <div id="galeria-amostras" class="grid grid-cols-2 gap-3 mb-8">
+                <div class="space-y-1">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase text-center">Amostra 1</p>
+                    <img id="foto1-produto" src="https://placehold.co/300x300/e2e8f0/64748b?text=Amostra" class="img-preview border border-slate-100">
+                </div>
+                <div class="space-y-1">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase text-center">Amostra 2</p>
+                    <img id="foto2-produto" src="https://placehold.co/300x300/e2e8f0/64748b?text=Amostra" class="img-preview border border-slate-100">
+                </div>
             </div>
 
             <div id="etapa-email" class="space-y-4">
                 <div class="relative">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Seu
-                        melhor e-mail</label>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Seu melhor e-mail</label>
                     <input type="email" id="email-cliente"
                         class="w-full px-5 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-orange-500 focus:bg-white outline-none transition-all font-medium"
                         placeholder="seu-email@exemplo.com">
@@ -91,15 +69,12 @@
                     class="w-full bg-orange-500 hover:bg-orange-600 text-white py-5 rounded-2xl font-black text-lg transition-all active:scale-95 shadow-xl shadow-orange-200 flex items-center justify-center gap-3">
                     COMPRAR AGORA
                 </button>
+                
                 <div class="pt-6 text-center border-t border-slate-100 mt-4">
-                    <p class="text-xs text-slate-400 mb-2 font-medium">Procurando outro tema?</p>
-                    <a href="https://educamateriais.shop"
-                        class="text-indigo-600 hover:text-indigo-700 font-black text-base inline-flex items-center gap-2 transition-all">
-                        <span>Acessar vitrine completa de materiais</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    <a href="https://educamateriais.shop" class="text-indigo-600 hover:text-indigo-700 font-bold text-sm inline-flex items-center gap-2">
+                        <span>Ver outros materiais</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                         </svg>
                     </a>
                 </div>
@@ -108,18 +83,12 @@
             <div id="area-pagamento" class="hidden space-y-6 pt-4 border-t border-slate-100 fade-in">
                 <div class="text-center">
                     <p class="text-sm font-bold text-slate-700 mb-4">Escaneie o QR Code para pagar:</p>
-                    <div id="qrcode-placeholder"
-                        class="inline-block p-4 bg-white rounded-3xl border-2 border-slate-100 shadow-inner"></div>
+                    <div id="qrcode-placeholder" class="inline-block p-4 bg-white rounded-3xl border-2 border-slate-100 shadow-inner"></div>
                 </div>
-
                 <div class="space-y-3">
-                    <button onclick="copiarPix()"
-                        class="w-full py-3 text-sm font-bold text-indigo-600 bg-indigo-50 rounded-xl">📋 Copiar Código
-                        PIX</button>
-                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                        <p class="text-[10px] text-blue-800 leading-relaxed text-center font-bold">
-                            Não feche esta página! Após o pagamento, o acesso será liberado automaticamente aqui.
-                        </p>
+                    <button onclick="copiarPix()" class="w-full py-3 text-sm font-bold text-indigo-600 bg-indigo-50 rounded-xl">📋 Copiar Código PIX</button>
+                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 text-center">
+                        <p class="text-[10px] text-blue-800 font-bold">A liberação é automática após o pagamento!</p>
                     </div>
                 </div>
             </div>
@@ -127,7 +96,5 @@
     </div>
 
     <script src="oferta.js"></script>
-
 </body>
-
 </html>

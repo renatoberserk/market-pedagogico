@@ -5,26 +5,46 @@ let monitoramento = null;
 let PRECO_FINAL = "19.90";
 let LINK_DRIVE_FINAL = "";
 
-// 1. FUNÇÃO QUE BUSCA O QUE VOCÊ SALVOU NO MODO ADM
+// 1. FUNÇÃO QUE BUSCA TUDO (TÍTULO, PREÇO, LINK E IMAGENS)
 async function carregarProdutoAtivo() {
     try {
-        // Busca os dados que o seu Admin salvou no config-oferta.json
         const response = await fetch('https://educamateriais.shop/api/config-oferta');
         const dados = await response.json();
         
-        if (dados.preco && dados.link) {
-            PRECO_FINAL = dados.preco;
-            LINK_DRIVE_FINAL = dados.link;
+        if (dados) {
+            // Atualiza os dados globais
+            PRECO_FINAL = dados.preco || "19.90";
+            LINK_DRIVE_FINAL = dados.link || "";
             
-            // Atualiza o preço visualmente na página
+            // Atualiza o Título
+            const elTitulo = document.getElementById('titulo-produto');
+            if (elTitulo) elTitulo.innerText = dados.titulo || "Combo Alfabetização Criativa";
+
+            // Atualiza o Preço
             const elPreco = document.getElementById('valor-exibido');
             if (elPreco) {
                 elPreco.innerText = `R$ ${PRECO_FINAL.replace('.', ',')}`;
             }
-            console.log("Produto carregado do servidor:", PRECO_FINAL);
+
+            // ATUALIZA AS IMAGENS (CAPA + AMOSTRAS)
+            if (dados.capa) {
+                document.getElementById('capa-produto').src = dados.capa;
+            }
+            if (dados.foto1) {
+                const f1 = document.getElementById('foto1-produto');
+                f1.src = dados.foto1;
+                f1.parentElement.classList.remove('hidden'); // Mostra a div se estiver oculta
+            }
+            if (dados.foto2) {
+                const f2 = document.getElementById('foto2-produto');
+                f2.src = dados.foto2;
+                f2.parentElement.classList.remove('hidden');
+            }
+
+            console.log("✅ Interface atualizada com sucesso");
         }
     } catch (err) {
-        console.error("Erro ao carregar produto do servidor. Usando padrão.");
+        console.error("❌ Erro ao carregar produto:", err);
     }
 }
 
@@ -46,8 +66,7 @@ async function gerarPagamentoPix() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 email: email, 
-                total: parseFloat(PRECO_FINAL), // VALOR QUE VEIO DO ADM
-                itens: "Material Didático - Acesso VIP" 
+                total: parseFloat(PRECO_FINAL)
             })
         });
 
@@ -55,6 +74,10 @@ async function gerarPagamentoPix() {
 
         if (dados.qr_code_base64) {
             document.getElementById('etapa-email').classList.add('hidden');
+            // Esconde a galeria de amostras para dar foco ao QR Code
+            const galeria = document.getElementById('galeria-amostras');
+            if(galeria) galeria.classList.add('hidden');
+
             document.getElementById('area-pagamento').classList.remove('hidden');
             document.getElementById('qrcode-placeholder').innerHTML = `<img src="data:image/png;base64,${dados.qr_code_base64}" class="w-48 h-48 mx-auto">`;
             pixCopiaECola = dados.qr_code;
@@ -62,11 +85,14 @@ async function gerarPagamentoPix() {
         }
     } catch (err) {
         alert("Erro ao gerar PIX. Tente novamente.");
-        btn.disabled = false; btn.innerHTML = "COMPRAR AGORA";
+        btn.disabled = false; 
+        btn.innerHTML = "COMPRAR AGORA";
     }
 }
 
 function iniciarMonitoramento(id) {
+    if (monitoramento) clearInterval(monitoramento); // Limpa se houver um antigo
+    
     monitoramento = setInterval(async () => {
         try {
             const res = await fetch(`https://educamateriais.shop/verificar-pagamento/${id}`);
@@ -86,7 +112,7 @@ function sucessoTotal() {
         <div class="py-8 text-center fade-in">
             <div class="text-5xl mb-4 text-center">✅</div>
             <h2 class="text-2xl font-black text-slate-800">Pagamento Aprovado!</h2>
-            <p class="text-slate-500 mb-6">Seu acesso ao Google Drive foi liberado.</p>
+            <p class="text-slate-500 mb-6">O material foi enviado para seu e-mail e liberado abaixo:</p>
             
             <a href="${LINK_DRIVE_FINAL}" target="_blank" class="inline-block w-full bg-green-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-green-100 transition-transform active:scale-95 text-center mb-8">
                 🚀 ACESSAR MEU MATERIAL
@@ -95,13 +121,8 @@ function sucessoTotal() {
             <div class="mt-10 p-6 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
                 <p class="text-xs font-black text-orange-500 uppercase tracking-widest mb-2">✨ Não Pare por aqui!</p>
                 <h3 class="text-lg font-bold text-slate-800 mb-3">Gostou deste material?</h3>
-                <p class="text-slate-500 text-sm mb-5">Temos centenas de outras atividades criativas prontas para transformar suas aulas!</p>
-                
-                <a href="https://educamateriais.shop/" class="inline-flex items-center justify-center gap-2 w-full bg-slate-800 hover:bg-slate-900 text-white py-4 rounded-xl font-bold text-sm transition-all shadow-lg shadow-slate-200">
-                    <span>CONHECER TODOS OS MATERIAIS</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
+                <a href="https://educamateriais.shop/" class="inline-flex items-center justify-center gap-2 w-full bg-slate-800 text-white py-4 rounded-xl font-bold text-sm shadow-lg shadow-slate-200">
+                    <span>VITRINE COMPLETA</span>
                 </a>
             </div>
         </div>`;
@@ -109,8 +130,7 @@ function sucessoTotal() {
 
 function copiarPix() {
     navigator.clipboard.writeText(pixCopiaECola);
-    alert("Código copiado!");
+    alert("Código PIX copiado com sucesso!");
 }
 
-// IMPORTANTE: Agora chamamos carregarProdutoAtivo em vez de carregarConfiguracaoDaURL
 document.addEventListener('DOMContentLoaded', carregarProdutoAtivo);

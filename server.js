@@ -353,14 +353,18 @@ app.delete('/admin/usuarios/:email', async (req, res) => {
 
 // Rota para o Admin Salvar
 app.post('/api/salvar-oferta', (req, res) => {
-    try {
-        const dados = req.body; // { preco: "19.90", link: "..." }
-        fs.writeFileSync(CONFIG_PATH, JSON.stringify(dados, null, 2));
-        res.json({ sucesso: true });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ erro: "Erro ao salvar arquivo" });
-    }
+    const { preco, link, titulo, capa, foto1, foto2 } = req.body;
+    const dados = { 
+        preco, 
+        link, 
+        titulo, 
+        capa, 
+        foto1, 
+        foto2, 
+        atualizadoEm: new Date() 
+    };
+    fs.writeFileSync('./config-oferta.json', JSON.stringify(dados, null, 2));
+    res.json({ sucesso: true });
 });
 
 // Rota para a Página de Oferta ler os dados
