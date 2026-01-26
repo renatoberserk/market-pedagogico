@@ -135,26 +135,30 @@ app.put('/produtos/:id', (req, res) => {
 
 // --- ROTA PARA CADASTRAR NOVO (POST) ---
 app.post('/produtos', (req, res) => {
+    // 1. Desestruturação com nomes corrigidos para bater com o admin.js
     const { 
         email_admin, nome, preco, link_download, 
-        imagem_url, foto1, descricao, categoria 
+        imagem_url, foto_extra1, foto_extra2, descricao, categoria 
     } = req.body;
 
     if (email_admin !== process.env.ADMIN_EMAIL) {
         return res.status(403).json({ sucesso: false, erro: "Não autorizado" });
     }
 
+    // 2. SQL atualizado com foto_extra1 e foto_extra2
     const sql = `
-        INSERT INTO produtos (nome, preco, link_download, imagem_url, foto1, descricao, categoria) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO produtos (nome, preco, link_download, imagem_url, foto_extra1, foto_extra2, descricao, categoria) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    const valores = [nome, preco, link_download, imagem_url, foto1, descricao, categoria];
+    // 3. Ordem exata dos valores (8 itens no total)
+    const valores = [nome, preco, link_download, imagem_url, foto_extra1, foto_extra2, descricao, categoria];
 
     db.query(sql, valores, (err) => {
         if (err) {
             console.error("❌ Erro no SQL (Insert):", err);
-            return res.status(500).json({ sucesso: false, erro: "Erro ao cadastrar no banco" });
+            // Isso aqui vai te dizer no terminal se falta alguma coluna no Banco de Dados
+            return res.status(500).json({ sucesso: false, erro: err.message });
         }
         res.json({ sucesso: true });
     });
