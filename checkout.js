@@ -21,19 +21,31 @@ document.addEventListener('DOMContentLoaded', () => {
 async function gerarPixReal(total) {
     const email = localStorage.getItem('prof_email');
     const statusText = document.getElementById('pix-code');
+    
+    // Captura os dados do produto (se existirem na página) ou define padrões
+    // Isso evita o erro "is not defined" no servidor
+    const tituloMaterial = document.getElementById('titulo-produto')?.innerText || "Materiais Pedagógicos - Educa";
+    const linkMaterial = window.LINK_DRIVE_FINAL || "https://educamateriais.shop"; 
 
     try {
         const response = await fetch('https://educamateriais.shop/criar-pagamento-pix', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, total })
+            body: JSON.stringify({ 
+                email, 
+                total,
+                titulo: tituloMaterial, // Adicionado para satisfazer o servidor
+                link: linkMaterial      // Adicionado para satisfazer o servidor
+            })
         });
 
-        if (!response.ok) throw new Error("Erro na resposta do servidor");
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detalhes || "Erro na resposta do servidor");
+        }
 
         const data = await response.json();
 
-        // O segredo está aqui: verificar se o qr_code existe
         if (data.qr_code_base64 && data.qr_code) {
             paymentId = data.id;
             pixCopiaECola = data.qr_code;
@@ -42,15 +54,17 @@ async function gerarPixReal(total) {
             const loader = document.getElementById('qr-loader');
             if (loader) loader.classList.add('hidden');
 
-            // 2. Renderiza a Imagem (Mudei para image/png que é o padrão MP)
+            // 2. Renderiza a Imagem
             const img = document.getElementById('qr-code-img');
-            img.src = `data:image/png;base64,${data.qr_code_base64}`;
-            img.classList.remove('hidden');
+            if (img) {
+                img.src = `data:image/png;base64,${data.qr_code_base64}`;
+                img.classList.remove('hidden');
+            }
 
-            // 3. Exibe o código de texto para o usuário ver
+            // 3. Exibe o código de texto
             if (statusText) {
                 statusText.innerText = pixCopiaECola;
-                statusText.classList.remove('text-gray-400'); // Garante que a cor mude se estiver cinza
+                statusText.classList.remove('text-gray-400');
             }
 
             iniciarVerificacaoStatus(data.id);
@@ -59,7 +73,14 @@ async function gerarPixReal(total) {
         }
     } catch (error) {
         console.error("Erro ao gerar Pix:", error);
-        if (statusText) statusText.innerText = "Erro ao gerar código. Tente novamente.";
+        if (statusText) statusText.innerText = "Erro: " + error.message;
+        
+        // CORREÇÃO AQUI: Mudamos de btnRe-gerar para btnReGerar
+        const btnReGerar = document.getElementById('btn-gerar-pix');
+        if (btnReGerar) {
+            btnReGerar.disabled = false;
+            btnReGerar.innerHTML = "TENTAR NOVAMENTE";
+        }
     }
 }
 

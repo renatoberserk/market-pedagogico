@@ -177,31 +177,28 @@ app.delete('/produtos/:id', (req, res) => {
 
 app.post('/criar-pagamento-pix', async (req, res) => {
     try {
-        const { email, total } = req.body;
+        // Certifique-se de que 'titulo' e 'link' estão aqui dentro!
+        const { email, total, titulo, link } = req.body;
 
         if (!email || !total) {
-            return res.status(400).json({ erro: "E-mail ou total não informados" });
+            return res.status(400).json({ erro: "Dados incompletos" });
         }
 
-        const emailLimpo = email.trim();
-        // Dentro do app.post('/criar-pagamento-pix')
         const body = {
             transaction_amount: Number(parseFloat(total).toFixed(2)),
-            description: `Material: ${titulo}`,
+            // Se o título não vier do site, usamos um padrão para não dar erro
+            description: titulo || 'Material Pedagógico Educa', 
             payment_method_id: 'pix',
             payer: { email: email.trim() },
             metadata: {
-                link_entrega: linkParaEsteProduto, // O link que estava no admin na hora do clique
+                // Aqui também usamos um valor padrão ou o que veio do site
+                link_entrega: link || 'Link não informado',
                 email_cliente: email.trim()
             }
         };
 
         const response = await payment.create({ body });
-
-        // Algumas versões do SDK usam 'body', outras retornam o objeto direto
         const data = response.body || response;
-
-        console.log(`✅ Pix gerado para: ${emailLimpo} | ID: ${data.id}`);
 
         res.json({
             id: data.id,
@@ -211,13 +208,9 @@ app.post('/criar-pagamento-pix', async (req, res) => {
 
     } catch (error) {
         console.error("❌ Erro ao criar PIX:", error.message);
-        res.status(500).json({
-            erro: 'Erro interno no servidor',
-            detalhes: error.message
-        });
+        res.status(500).json({ erro: 'Erro interno', detalhes: error.message });
     }
 });
-
 /////////////////////////////////////////////////////////
 app.get('/verificar-pagamento/:id', async (req, res) => {
     const { id } = req.params;
