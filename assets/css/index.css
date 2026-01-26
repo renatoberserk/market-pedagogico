@@ -1199,3 +1199,19 @@ header {
         grid-template-columns: 1fr; /* Volta para 1 coluna se o espaço for mínimo */
     }
 }
+
+
+
+/* Esconde a barra de rolagem, mas permite o scroll */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Efeito de carregamento suave das imagens */
+.snap-center img {
+    transition: opacity 0.3s;
+}

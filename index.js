@@ -54,43 +54,59 @@ function renderizarProdutos(lista) {
     }
 
     container.innerHTML = lista.map(p => {
-        const imgFinal = p.imagem_url?.includes('http') ? p.imagem_url : 'https://placehold.co/400x300?text=Material';
         const nomeLimpo = p.nome.replace(/'/g, "\\'");
         const linkFinal = p.link_download || ""; 
+        
+        // Criamos um array com todas as imagens disponíveis
+        const imagens = [p.imagem_url, p.foto1, p.foto2].filter(img => img && img.trim() !== "");
 
         return `
             <div class="bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col h-full group">
-                <div class="relative bg-gray-50 rounded-xl h-32 md:h-40 mb-3 overflow-hidden cursor-zoom-in" onclick="abrirZoom('${imgFinal}')">
+                
+                <div class="relative mb-3 group/btn">
+                    <div id="carousel-${p.id}" class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth h-40 md:h-48 rounded-xl no-scrollbar bg-gray-50">
+                        ${imagens.map(img => `
+                            <div class="min-w-full h-full snap-center flex-shrink-0 cursor-zoom-in" onclick="abrirZoom('${img}')">
+                                <img src="${img}" class="w-full h-full object-cover">
+                            </div>
+                        `).join('')}
+                    </div>
+                    
                     <span class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-[8px] md:text-[10px] px-2 py-0.5 rounded-lg font-bold text-orange-600 shadow-sm z-10 uppercase">
                         ${p.categoria || 'Geral'}
                     </span>
-                    <img src="${imgFinal}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+
+                    ${imagens.length > 1 ? `
+                        <button onclick="document.getElementById('carousel-${p.id}').scrollBy({left: -150, behavior: 'smooth'})" class="absolute left-1 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full shadow-md hidden group-hover/btn:block">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <button onclick="document.getElementById('carousel-${p.id}').scrollBy({left: 150, behavior: 'smooth'})" class="absolute right-1 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full shadow-md hidden group-hover/btn:block">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    ` : ''}
                 </div>
 
                 <div class="flex flex-col flex-grow text-left">
                     <h3 class="font-bold text-gray-800 text-xs md:text-sm mb-1 line-clamp-2 h-8 leading-tight">${p.nome}</h3>
                     
-                    <p class="text-[9px] md:text-[11px] text-gray-500 line-clamp-2 mb-2 min-h-[24px]">
-                        ${p.descricao || 'Material pedagógico completo pronto para aplicar.'}
+                    <p class="text-[10px] md:text-[12px] text-gray-500 line-clamp-3 mb-3 flex-grow leading-relaxed">
+                        ${p.descricao || 'Material pedagógico completo, organizado e pronto para aplicação em sala de aula.'}
                     </p>
 
-                    <div class="flex gap-2 mb-3">
-                        ${p.foto1 ? `<img src="${p.foto1}" onclick="abrirZoom('${p.foto1}')" class="w-8 h-8 rounded border border-gray-200 object-cover cursor-zoom-in hover:border-orange-400 transition-all">` : ''}
-                        ${p.foto2 ? `<img src="${p.foto2}" onclick="abrirZoom('${p.foto2}')" class="w-8 h-8 rounded border border-gray-200 object-cover cursor-zoom-in hover:border-orange-400 transition-all">` : ''}
-                    </div>
-
-                    <p class="text-[8px] md:text-[9px] text-gray-400 mb-2 uppercase font-bold tracking-wider">📄 PDF Digital</p>
-                    
-                    <div class="mt-auto pt-2 border-t border-gray-50">
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-green-600 font-black text-sm md:text-base">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
-                            <span class="text-[8px] text-gray-400 line-through">R$ ${(parseFloat(p.preco) * 1.4).toFixed(2)}</span>
-                        </div>
+                    <div class="mt-auto">
+                        <p class="text-[8px] md:text-[9px] text-gray-400 mb-2 uppercase font-black tracking-tighter">📄 Arquivo Digital PDF</p>
                         
-                        <button onclick="adicionarAoCarrinho(${p.id}, '${nomeLimpo}', ${p.preco}, '${linkFinal}')" 
-                                class="w-full mt-2 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-bold text-[10px] md:text-xs transition-all active:scale-95 shadow-md shadow-orange-100 flex items-center justify-center gap-1">
-                            Adicionar ao Carrinho
-                        </button>
+                        <div class="flex items-center justify-between gap-2 border-t border-gray-50 pt-3">
+                            <div class="flex flex-col">
+                                <span class="text-green-600 font-black text-sm md:text-lg leading-none">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
+                                <span class="text-[8px] md:text-[10px] text-gray-400 line-through">R$ ${(parseFloat(p.preco) * 1.5).toFixed(2)}</span>
+                            </div>
+                            
+                            <button onclick="adicionarAoCarrinho(${p.id}, '${nomeLimpo}', ${p.preco}, '${linkFinal}')" 
+                                    class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] md:text-xs transition-all active:scale-95 shadow-md shadow-orange-100 flex items-center gap-1">
+                                Comprar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>`;
