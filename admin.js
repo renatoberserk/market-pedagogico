@@ -1,272 +1,251 @@
-let carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
-let produtosOriginais = [];
-let fotoAtual = 0;
-let fotosNoCarrossel = [];
+const emailLogado = localStorage.getItem('prof_email');
+let modoEdicaoId = null;
 
-window.onload = () => {
-    verificarSessao();
-    carregarProdutosLoja();
-    atualizarContadorCarrinho();
-};
+// 1. VERIFICAÇÃO DE ACESSO
+async function validarAcesso() {
+    if (!emailLogado) { window.location.href = 'index.html'; return; }
+    try {
+        const resp = await fetch(`https://educamateriais.shop/verificar-admin?email=${emailLogado}`);
+        const data = await resp.json();
 
-/* ===============================
-   SESSÃO / LOGIN
-================================ */
-function verificarSessao() {
-    const nome = localStorage.getItem('prof_nome');
-    const isAdmin = localStorage.getItem('prof_admin') === 'true';
-    const authContainer = document.getElementById('header-auth');
+        if (data.isAdmin) {
+            document.getElementById('painel-admin').style.display = 'block';
+            document.getElementById('admin-welcome').innerText = "Modo Administrador Ativo";
 
-    if (!nome || !authContainer) return;
-
-    const btnAdmin = isAdmin
-        ? `<button onclick="location.href='admin.html'"
-            class="bg-purple-600 text-white px-3 py-1.5 rounded-xl font-bold text-[12px] mr-2 hover:bg-purple-700">
-            👑 Admin
-           </button>`
-        : '';
-
-    authContainer.innerHTML = `
-        <div class="flex items-center gap-2">
-            ${btnAdmin}
-            <button onclick="location.href='meus-materiais.html'"
-                class="bg-blue-50 text-blue-600 px-3 py-2 rounded-xl font-bold text-xs">
-                Meus PDFs
-            </button>
-            <span class="text-xs font-bold text-gray-600">${nome.split(' ')[0]}</span>
-            <button onclick="logout()" class="text-lg pl-2">🚪</button>
-        </div>`;
+            carregarProdutosAdmin();
+            carregarDashboard();
+        } else {
+            alert("Acesso Negado!");
+            window.location.href = 'index.html';
+        }
+    } catch (err) {
+        console.error("Erro no acesso:", err);
+        window.location.href = 'index.html';
+    }
 }
 
-function logout() {
-    localStorage.clear();
-    location.href = 'index.html';
+// 2. BUSCAR DADOS DO SERVIDOR (DASHBOARD)
+async function carregarDashboard() {
+    try {
+        const response = await fetch('https://educamateriais.shop/admin/stats');
+        const dados = await response.json();
+        atualizarEstatisticasVisual(dados);
+    } catch (error) {
+        console.error("Erro ao carregar estatísticas:", error);
+    }
 }
 
-/* ===============================
-   PRODUTOS
-================================ */
-async function carregarProdutosLoja() {
-    const container = document.getElementById('vitrine-produtos');
-    if (!container) return;
+// 3. ATUALIZAR INTERFACE (CARDS E TABELA)
+function atualizarEstatisticasVisual(dados) {
+    document.getElementById('receita-dia').innerText = (dados.hoje || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    document.getElementById('receita-mes').innerText = (dados.mes_atual || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    document.getElementById('total-vendas').innerText = dados.total_vendas || 0;
 
+    const totalClientesElement = document.getElementById('total-clientes');
+    if (totalClientesElement) {
+        totalClientesElement.innerText = dados.lista_clientes ? dados.lista_clientes.length : (dados.total_clientes || 0);
+    }
+
+    const tabelaBody = document.getElementById('tabela-clientes-recentes');
+    if (tabelaBody && dados.lista_clientes) {
+        tabelaBody.innerHTML = dados.lista_clientes.map(cliente => `
+            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                <td class="py-4 text-sm font-bold text-gray-700">${cliente.nome}</td>
+                <td class="py-4 text-sm text-gray-500">${cliente.email}</td>
+                <td class="py-4 text-xs text-gray-400">${new Date(cliente.data_cadastro).toLocaleDateString('pt-BR')}</td>
+                <td class="py-4 text-right">
+                    <button onclick="excluirUsuario('${cliente.email}')" class="bg-red-50 text-red-500 p-2 rounded-xl hover:bg-red-500 hover:text-white transition-all">🗑️</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    estilizarComparativo(document.getElementById('comparativo-dia'), calcularVariacao(dados.hoje, dados.ontem));
+    estilizarComparativo(document.getElementById('comparativo-mes'), calcularVariacao(dados.mes_atual, dados.mes_anterior));
+}
+
+function calcularVariacao(atual, anterior) {
+    if (anterior <= 0) return atual > 0 ? 100 : 0;
+    return ((atual - anterior) / anterior) * 100;
+}
+
+function estilizarComparativo(elemento, variacao) {
+    if (!elemento) return;
+    if (variacao > 0) {
+        elemento.innerText = `↑ +${variacao.toFixed(1)}% rendimento`;
+        elemento.className = "text-[10px] font-bold p-1 rounded-lg inline-block bg-green-50 text-green-600";
+    } else if (variacao < 0) {
+        elemento.innerText = `↓ ${Math.abs(variacao).toFixed(1)}% queda`;
+        elemento.className = "text-[10px] font-bold p-1 rounded-lg inline-block bg-red-50 text-red-600";
+    } else {
+        elemento.innerText = "Estável";
+        elemento.className = "text-[10px] font-bold p-1 rounded-lg inline-block bg-gray-100 text-gray-500";
+    }
+}
+
+// 4. GESTÃO DE PRODUTOS (LISTAGEM)
+async function carregarProdutosAdmin() {
     try {
         const resp = await fetch('https://educamateriais.shop/produtos');
-        produtosOriginais = await resp.json();
-        renderizarProdutos(produtosOriginais);
-    } catch (err) {
-        console.error("Erro ao carregar produtos:", err);
-        container.innerHTML = `
-            <p class="col-span-full text-center text-red-400 font-bold">
-                Erro ao conectar com o servidor.
-            </p>`;
-    }
-}
+        const produtos = await resp.json();
+        const container = document.getElementById('lista-admin');
+        if (!container) return;
 
-function renderizarProdutos(lista) {
-    const container = document.getElementById('vitrine-produtos');
-    if (!container) return;
+        if (!produtos || produtos.length === 0) {
+            container.innerHTML = '<p class="text-gray-400 text-center py-10 italic">Nenhum produto cadastrado.</p>';
+            return;
+        }
 
-    if (!lista || lista.length === 0) {
-        container.innerHTML = `
-            <p class="col-span-full text-center text-gray-400 py-10">
-                Nenhum material encontrado.
-            </p>`;
-        return;
-    }
-
-    container.innerHTML = "";
-
-    lista.forEach(p => {
-        const card = document.createElement('div');
-        card.className =
-            "group bg-white rounded-3xl p-3 shadow-sm hover:shadow-xl transition-all border border-gray-100 flex flex-col h-full cursor-pointer";
-
-        const imgFinal = p.imagem_url || 'https://placehold.co/400x300?text=Material';
-
-        card.innerHTML = `
-            <div class="relative bg-gray-50 rounded-2xl h-40 md:h-48 mb-3 overflow-hidden">
-                <span class="absolute top-2 left-2 bg-white/90 text-[10px] px-2 py-1 rounded-lg font-bold text-orange-600 uppercase">
-                    ${p.categoria || 'Geral'}
-                </span>
-                <img src="${imgFinal}"
-                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-            </div>
-
-            <div class="flex flex-col flex-grow">
-                <h3 class="font-bold text-gray-800 text-sm mb-1 line-clamp-2">${p.nome}</h3>
-                <p class="text-[10px] text-gray-400 mb-2 uppercase font-bold">
-                    PDF Digital • Pronta Entrega
-                </p>
-
-                <div class="mt-auto pt-2 flex items-center justify-between">
-                    <div>
-                        <p class="text-[10px] text-gray-400 line-through">R$ 47,90</p>
-                        <p class="text-orange-500 font-black text-base">
-                            R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}
-                        </p>
+        container.innerHTML = ""; // Limpa para renderizar
+        produtos.forEach(p => {
+            const item = document.createElement('div');
+            item.className = "flex justify-between items-center p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-orange-200 transition-all";
+            item.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <img src="${p.imagem_url || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-lg object-cover shadow-sm">
+                    <div class="max-w-[150px] md:max-w-xs text-left">
+                        <h4 class="font-bold text-gray-800 truncate">${p.nome}</h4>
+                        <div class="flex items-center gap-2 mt-1">
+                            <p class="text-xs text-green-600 font-bold">R$ ${parseFloat(p.preco).toFixed(2)}</p>
+                            <span class="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">${p.categoria || 'Geral'}</span>
+                        </div>
                     </div>
-
-                    <button id="btn-add-${p.id}"
-                        class="bg-orange-500 hover:bg-orange-600 text-white p-2.5 rounded-xl active:scale-90 shadow-md">
-                        +
-                    </button>
                 </div>
-            </div>
-        `;
-
-        card.onclick = () => abrirModal(p);
-
-        const btnAdd = card.querySelector(`#btn-add-${p.id}`);
-        btnAdd.onclick = e => {
-            e.stopPropagation();
-            adicionarAoCarrinho(p.id, p.nome, p.preco, p.link_download);
-        };
-
-        container.appendChild(card);
-    });
-}
-
-/* ===============================
-   CARRINHO
-================================ */
-function adicionarAoCarrinho(id, nome, preco, link) {
-    carrinho.push({ id, nome, preco, link, uid: Date.now() });
-    localStorage.setItem('edu_cart', JSON.stringify(carrinho));
-    atualizarContadorCarrinho();
-    toggleCarrinho();
-}
-
-function atualizarContadorCarrinho() {
-    const contador = document.getElementById('cart-count');
-    if (contador) contador.innerText = carrinho.length;
-}
-
-function toggleCarrinho() {
-    const modal = document.getElementById('modal-carrinho');
-    if (!modal) return;
-
-    modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-    if (modal.style.display === 'flex') renderCarrinho();
-}
-
-function renderCarrinho() {
-    const cont = document.getElementById('itens-carrinho');
-    const totalElement = document.getElementById('total-carrinho');
-    let total = 0;
-
-    if (!carrinho.length) {
-        cont.innerHTML = `<p class="text-center text-gray-400 mt-10 italic">Seu carrinho está vazio</p>`;
-        totalElement.innerText = "R$ 0,00";
-        return;
-    }
-
-    cont.innerHTML = carrinho.map(i => {
-        total += parseFloat(i.preco);
-        return `
-            <div class="flex justify-between items-center bg-gray-50 p-3 rounded-2xl mb-3">
-                <div>
-                    <p class="font-bold text-xs">${i.nome}</p>
-                    <p class="text-green-600 font-bold text-xs">
-                        R$ ${parseFloat(i.preco).toFixed(2).replace('.', ',')}
-                    </p>
+                <div class="flex gap-2">
+                    <button class="btn-editar bg-blue-500 text-white p-2 rounded-xl hover:bg-blue-600 transition shadow-sm">✏️</button>
+                    <button onclick="excluirProduto(${p.id})" class="bg-red-500 text-white p-2 rounded-xl hover:bg-red-600 transition shadow-sm">🗑️</button>
                 </div>
-                <button onclick="remover(${i.uid})" class="text-red-500">🗑️</button>
-            </div>`;
-    }).join('');
-
-    totalElement.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+            `;
+            // Forma segura de passar o objeto sem quebrar o JSON no HTML
+            item.querySelector('.btn-editar').onclick = () => prepararEdicao(p);
+            container.appendChild(item);
+        });
+    } catch (err) { console.error("Erro ao listar produtos:", err); }
 }
 
-function remover(uid) {
-    carrinho = carrinho.filter(i => i.uid !== uid);
-    localStorage.setItem('edu_cart', JSON.stringify(carrinho));
-    atualizarContadorCarrinho();
-    renderCarrinho();
-}
-
-/* ===============================
-   MODAL + CARROSSEL
-================================ */
-function abrirModal(p) {
-    const modal = document.getElementById('modal-detalhes');
-    if (!modal) return;
-
-    document.getElementById('modal-nome').innerText = p.nome;
-    document.getElementById('modal-categoria').innerText = p.categoria || 'Geral';
-    document.getElementById('modal-preco').innerText =
-        `R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}`;
-
-    document.getElementById('modal-descricao').innerText =
-        p.descricao || 'Material pedagógico de alta qualidade, pronto para uso.';
-
-    document.getElementById('modal-btn-comprar-acao').onclick = () => {
-        adicionarAoCarrinho(p.id, p.nome, p.preco, p.link_download);
-        fecharModal();
+// 5. SALVAR OU EDITAR
+async function salvarProduto() {
+    const dados = {
+        email_admin: emailLogado,
+        nome: document.getElementById('prod-nome').value,
+        preco: document.getElementById('prod-preco').value,
+        categoria: document.getElementById('prod-categoria').value,
+        imagem_url: document.getElementById('prod-img').value,
+        link_download: document.getElementById('prod-link').value,
+        descricao: document.getElementById('prod-descricao').value,
+        foto_extra1: document.getElementById('prod-foto1').value,
+        foto_extra2: document.getElementById('prod-foto2').value
     };
 
-    fotosNoCarrossel = [p.imagem_url, p.foto_extra1, p.foto_extra2]
-        .filter(url => url && url.length > 10);
+    const url = modoEdicaoId 
+        ? `https://educamateriais.shop/produtos/${modoEdicaoId}` 
+        : 'https://educamateriais.shop/produtos';
 
-    renderizarCarrossel();
+    try {
+        const response = await fetch(url, {
+            method: modoEdicaoId ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
 
-    modal.classList.remove('hidden');
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-function renderizarCarrossel() {
-    const container = document.getElementById('carrossel-container');
-    const indicadores = document.getElementById('indicadores-fotos');
-    const botoes = document.getElementById('botoes-carrossel');
-
-    fotoAtual = 0;
-
-    if (!fotosNoCarrossel.length) {
-        container.innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400">Sem imagens</div>`;
-        if (botoes) botoes.style.display = 'none';
-        return;
+        const resultado = await response.json();
+        if (response.ok && resultado.sucesso) {
+            alert("Produto salvo com sucesso!");
+            limparFormulario();
+            carregarProdutosAdmin();
+        } else {
+            alert("Erro: " + (resultado.erro || "Falha ao salvar"));
+        }
+    } catch (error) {
+        console.error("Erro na requisição:", error);
     }
-
-    container.innerHTML = fotosNoCarrossel.map(url => `
-        <div class="w-full h-full flex-shrink-0">
-            <img src="${url}" class="w-full h-full object-contain">
-        </div>
-    `).join('');
-
-    indicadores.innerHTML = fotosNoCarrossel.length > 1
-        ? fotosNoCarrossel.map((_, i) =>
-            `<div class="${i === 0 ? 'w-5 bg-white' : 'w-1.5 bg-white/50'} h-1.5 rounded-full transition-all"></div>`
-          ).join('')
-        : '';
-
-    if (botoes) botoes.style.display = fotosNoCarrossel.length > 1 ? 'block' : 'none';
-
-    atualizarPosicaoCarrossel();
 }
 
-function mudarFoto(dir) {
-    fotoAtual += dir;
-    if (fotoAtual >= fotosNoCarrossel.length) fotoAtual = 0;
-    if (fotoAtual < 0) fotoAtual = fotosNoCarrossel.length - 1;
-    atualizarPosicaoCarrossel();
+// 6. AUXILIARES
+function prepararEdicao(produto) {
+    modoEdicaoId = produto.id;
+    document.getElementById('prod-nome').value = produto.nome;
+    document.getElementById('prod-preco').value = produto.preco;
+    document.getElementById('prod-img').value = produto.imagem_url;
+    document.getElementById('prod-link').value = produto.link_download;
+    document.getElementById('prod-categoria').value = produto.categoria;
+    document.getElementById('prod-descricao').value = produto.descricao || "";
+    document.getElementById('prod-foto1').value = produto.foto_extra1 || "";
+    document.getElementById('prod-foto2').value = produto.foto_extra2 || "";
+
+    document.getElementById('btn-submit').innerText = "Atualizar Material";
+    document.getElementById('form-title').innerText = "Editando Material";
+    document.getElementById('btn-cancelar')?.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function atualizarPosicaoCarrossel() {
-    const container = document.getElementById('carrossel-container');
-    if (!container) return;
-
-    container.style.transform = `translateX(-${fotoAtual * 100}%)`;
-
-    document.querySelectorAll('#indicadores-fotos div').forEach((dot, i) => {
-        dot.className =
-            i === fotoAtual
-                ? 'h-1.5 w-5 bg-white rounded-full transition-all'
-                : 'h-1.5 w-1.5 bg-white/50 rounded-full transition-all';
-    });
+function limparFormulario() {
+    modoEdicaoId = null;
+    document.getElementById('form-produto').reset();
+    document.getElementById('btn-submit').innerText = "Publicar Material";
+    document.getElementById('form-title').innerText = "Cadastrar Novo PDF";
+    document.getElementById('btn-cancelar')?.classList.add('hidden');
 }
 
-function fecharModal() {
-    document.getElementById('modal-detalhes').classList.add('hidden');
-    document.body.style.overflow = 'auto';
+async function excluirProduto(id) {
+    if (!confirm("Excluir este material?")) return;
+    try {
+        const resp = await fetch(`https://educamateriais.shop/produtos/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email_admin: emailLogado })
+        });
+        if (resp.ok) { carregarProdutosAdmin(); }
+    } catch (err) { console.error(err); }
 }
+
+async function excluirUsuario(email) {
+    if (!confirm(`Excluir usuário ${email}?`)) return;
+    try {
+        const response = await fetch(`https://educamateriais.shop/admin/usuarios/${email}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email_admin: emailLogado })
+        });
+        if (response.ok) carregarDashboard();
+    } catch (error) { console.error(error); }
+}
+
+async function salvarOfertaGeral(event) {
+    if (event) event.preventDefault();
+    const btnSalvar = event?.currentTarget;
+
+    const dados = {
+        titulo: document.getElementById('oferta-titulo').value.trim(),
+        preco: document.getElementById('oferta-preco').value.replace(',', '.'),
+        link: document.getElementById('oferta-link').value.trim(),
+        capa: document.getElementById('oferta-capa').value.trim(),
+        foto1: document.getElementById('oferta-foto1').value.trim(),
+        foto2: document.getElementById('oferta-foto2').value.trim()
+    };
+
+    try {
+        if (btnSalvar) btnSalvar.innerText = "⏳ SALVANDO...";
+        const response = await fetch('https://educamateriais.shop/api/salvar-oferta', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+
+        if (response.ok) {
+            document.getElementById('container-link-final')?.classList.remove('hidden');
+            alert("🚀 Oferta atualizada!");
+        }
+    } catch (err) { console.error(err); }
+    finally { if (btnSalvar) btnSalvar.innerText = "💾 SALVAR E ATUALIZAR SITE"; }
+}
+
+function copiarLinkOferta() {
+    const input = document.getElementById('link-final-input');
+    input.select();
+    navigator.clipboard.writeText(input.value);
+    alert("Copiado!");
+}
+
+// INICIALIZAÇÃO ÚNICA
+window.onload = validarAcesso;

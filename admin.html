@@ -1,224 +1,151 @@
-
-hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Educa Materiais - Materiais Pedagógicos Premium</title>
-
-    <!-- SEO -->
-    <meta name="description"
-        content="Materiais pedagógicos criativos e premium para professores. Atividades, jogos educativos, planejamentos e modelos em EVA.">
-    <meta name="keywords"
-        content="materiais pedagógicos, atividades escolares, jogos educativos, planejamento escolar, EVA">
-    <meta name="author" content="Educa Materiais">
-
-    <!-- Tailwind -->
+    <title>Painel Administrativo - Educa Materiais</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="assets/css/index.css">
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
+    <style>
+        body { font-family: 'Quicksand', sans-serif; }
+        #painel-admin { display: none; } /* O admin.js deve mudar para 'block' após o login */
+        .count-up { animation: countUp 1s ease-out; }
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 
-<body>
+<body class="bg-gray-50 p-4 md:p-10">
 
-    <!-- Header -->
-    <header>
-        <div class="header-logo-container cursor-pointer" onclick="location.href='index.html'">
-            <img src="assets/img/logo.png"
-                alt="Logo Educa Materiais - Materiais Pedagógicos Premium"
-                class="header-logo-img">
-
-            <div class="header-brand-text">
-                <h1 class="header-brand-title">Educa Materiais</h1>
-                <span class="header-brand-subtitle">Materiais Premium</span>
+    <div id="painel-admin" class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-8 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Painel de Controle ⚙️</h1>
+                <p class="text-sm text-gray-500" id="admin-welcome">Carregando permissões...</p>
             </div>
-        </div>
-
-        <div class="header-actions-container">
-            <button type="button" class="btn-carrinho" onclick="toggleCarrinho()" aria-label="Abrir carrinho">
-                🛒 <span class="hidden md:inline">Carrinho</span>
-                <span id="cart-count" class="cart-badge">0</span>
+            <button onclick="window.location.href='index.html'"
+                class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-2 rounded-2xl font-bold transition-all text-sm shadow-sm">
+                Sair do Painel
             </button>
+        </header>
 
-            <div id="header-auth">
-                <button type="button" onclick="location.href='login.html'" class="btn-login">
-                    Entrar
-                </button>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Receita Hoje</p>
+                <h2 id="receita-dia" class="text-3xl font-black text-gray-800">R$ 0,00</h2>
             </div>
-        </div>
-    </header>
-
-    <!-- Hero Banner -->
-    <div class="hero-banner">
-        <h2 class="hero-title">
-            Materiais Didáticos Criativos <span class="hero-emoji">🎨</span>
-        </h2>
-        <p class="hero-subtitle">Tudo para sua aula em um só lugar.</p>
-    </div>
-
-    <!-- Main -->
-    <main class="main-content">
-        <h3 class="section-title">Novidades para sua aula</h3>
-
-        <!-- Filtros -->
-        <div class="mb-8 overflow-hidden">
-            <div class="flex overflow-x-auto pb-4 gap-3 no-scrollbar scroll-smooth px-2 lg:justify-center">
-
-                <button type="button"
-                    onclick="filtrarProdutos('todos', this)"
-                    class="filter-btn active-filter whitespace-nowrap px-6 py-2 rounded-full font-bold shadow-sm transition-all text-sm bg-orange-500 text-white">
-                    Todos
-                </button>
-
-                <button type="button"
-                    onclick="filtrarProdutos('Atividades', this)"
-                    class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
-                    Atividades
-                </button>
-
-                <button type="button"
-                    onclick="filtrarProdutos('EVA', this)"
-                    class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
-                    Modelos em EVA
-                </button>
-
-                <button type="button"
-                    onclick="filtrarProdutos('Planejamentos', this)"
-                    class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
-                    Planejamentos
-                </button>
-
-                <button type="button"
-                    onclick="filtrarProdutos('Jogos', this)"
-                    class="filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 hover:border-orange-300 transition-all text-sm">
-                    Jogos Pedagógicos
-                </button>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Receita Mensal</p>
+                <h2 id="receita-mes" class="text-3xl font-black text-gray-800">R$ 0,00</h2>
+            </div>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Vendas Totais</p>
+                <h2 id="total-vendas" class="text-3xl font-black text-gray-800">0</h2>
+            </div>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total de Clientes</p>
+                <h2 id="total-clientes" class="text-3xl font-black text-gray-800">0</h2>
             </div>
         </div>
 
-        <!-- Vitrine -->
-        <div id="vitrine-produtos" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="col-span-full text-center py-10" id="loading-message">
-                <div class="loading-spinner mx-auto"></div>
-                <p class="text-gray-500 mt-2">Carregando materiais didáticos...</p>
-            </div>
-        </div>
-    </main>
-
-    <!-- Modal Carrinho -->
-    <div id="modal-carrinho" onclick="event.target === this && toggleCarrinho()">
-        <div class="modal-body">
-            <div class="modal-header">
-                <h2 class="modal-title">Meu Carrinho 🛒</h2>
-                <button type="button" onclick="toggleCarrinho()" class="close-modal" aria-label="Fechar carrinho">
-                    &times;
-                </button>
-            </div>
-
-            <div id="itens-carrinho" class="cart-items">
-                <div class="empty-cart">
-                    <div class="empty-cart-icon">🛒</div>
-                    <p class="empty-cart-text">Seu carrinho está vazio</p>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <div class="cart-total">
-                    <span>Total:</span>
-                    <span id="total-carrinho" class="total-price">R$ 0,00</span>
-                </div>
-                <button type="button" onclick="location.href='checkout.html'" class="btn-checkout">
-                    Finalizar Compra
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Detalhes -->
-    <div id="modal-detalhes"
-        class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-
-        <div
-            class="bg-white w-full max-w-4xl rounded-[32px] overflow-hidden shadow-2xl relative max-h-[95vh] flex flex-col md:flex-row">
-
-            <button type="button" onclick="fecharModal()"
-                aria-label="Fechar detalhes do produto"
-                class="absolute top-4 right-4 z-[70] bg-white shadow-xl text-gray-800 hover:bg-orange-500 hover:text-white w-10 h-10 rounded-full flex items-center justify-center transition-all font-bold border border-gray-100">
-                ✕
-            </button>
-
-            <!-- Carrossel -->
-            <div class="w-full md:w-1/2 bg-gray-100 relative h-80 md:h-auto overflow-hidden">
-                <div id="carrossel-container"
-                    class="flex w-full h-full transition-transform duration-500 ease-out"></div>
-
-                <button type="button" onclick="mudarFoto(-1)"
-                    class="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/80 p-2 rounded-full shadow-md hover:bg-white">
-                    ❮
-                </button>
-
-                <button type="button" onclick="mudarFoto(1)"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white/80 p-2 rounded-full shadow-md hover:bg-white">
-                    ❯
-                </button>
-
-                <div id="indicadores-fotos"
-                    class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20"></div>
-            </div>
-
-            <!-- Conteúdo -->
-            <div class="w-full md:w-1/2 p-6 md:p-10 flex flex-col bg-white overflow-y-auto">
-                <div class="flex-grow">
-                    <span id="modal-categoria"
-                        class="text-[10px] font-bold uppercase tracking-widest text-orange-600 bg-orange-50 px-2 py-1 rounded-md"></span>
-
-                    <h2 id="modal-nome"
-                        class="text-2xl md:text-3xl font-black text-gray-800 mt-2 leading-tight"></h2>
-
-                    <div class="flex items-center gap-3 mt-4">
-                        <span id="modal-preco" class="text-3xl font-black text-green-600"></span>
-                        <span class="text-sm text-gray-400 line-through font-medium">R$ 47,90</span>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+            
+            <div class="lg:col-span-1 bg-white p-8 rounded-3xl shadow-sm border border-gray-100 h-fit sticky top-10">
+                <h2 id="form-title" class="text-lg font-bold text-gray-700 mb-6">Cadastrar Novo PDF</h2>
+                <form id="form-produto" class="space-y-4" onsubmit="event.preventDefault(); salvarProduto();">
+                    
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-400 uppercase ml-1">Imagem de Capa (URL)</label>
+                        <input type="text" id="prod-img" placeholder="URL da imagem principal"
+                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
                     </div>
 
-                    <div class="mt-8">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                            Descrição Completa
-                        </h3>
-                        <div class="max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                            <p id="modal-descricao"
-                                class="text-gray-600 leading-relaxed text-sm whitespace-pre-line"></p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">Foto Extra 1</label>
+                            <input type="text" id="prod-foto1" placeholder="URL opcional"
+                                class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all text-xs">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">Foto Extra 2</label>
+                            <input type="text" id="prod-foto2" placeholder="URL opcional"
+                                class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all text-xs">
                         </div>
                     </div>
-                </div>
 
-                <div class="mt-8 pt-6 border-t border-gray-50">
-                    <button type="button" id="modal-btn-comprar-acao"
-                        class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-orange-100 transition-all active:scale-95 flex items-center justify-center gap-2">
-                        🛒 ADICIONAR AO CARRINHO
-                    </button>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-400 uppercase ml-1">Título</label>
+                        <input type="text" id="prod-nome" required placeholder="Ex: Caderno de Atividades"
+                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                    </div>
 
-                    <div class="flex items-center justify-center gap-4 mt-4">
-                        <p class="text-[10px] text-gray-400">🔒 Compra Segura</p>
-                        <p class="text-[10px] text-gray-400">⚡ Entrega Imediata</p>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-400 uppercase ml-1">Descrição do Produto</label>
+                        <textarea id="prod-descricao" placeholder="Explique o que o cliente está comprando..." rows="3"
+                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all resize-none"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">Preço (R$)</label>
+                            <input type="number" step="0.01" id="prod-preco" required placeholder="0.00"
+                                class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">Categoria</label>
+                            <select id="prod-categoria" required
+                                class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none bg-white transition-all">
+                                <option value="atividades">Atividades</option>
+                                <option value="eva">Modelos em EVA</option>
+                                <option value="planejamentos">Planejamentos</option>
+                                <option value="jogos">Jogos Pedagógicos</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-400 uppercase ml-1">Link para Download</label>
+                        <input type="text" id="prod-link" required placeholder="Link do Drive"
+                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                    </div>
+
+                    <button type="submit" id="btn-submit"
+                        class="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-orange-600 transition-all active:scale-95">Publicar Material</button>
+                    
+                    <button type="button" id="btn-cancelar" onclick="limparFormulario()"
+                        class="w-full hidden bg-gray-200 text-gray-600 font-bold py-3 rounded-2xl mt-2 transition-all hover:bg-gray-300">Cancelar Edição</button>
+                </form>
+            </div>
+
+            <div class="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                <h2 class="text-lg font-bold text-gray-700 mb-6">Materiais na Loja</h2>
+                <div id="lista-admin" class="space-y-4">
+                    <div class="flex justify-center py-10">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- JS -->
-    <script src="index.js" defer></script>
+        <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 mb-10">
+            <h2 class="text-lg font-bold text-gray-700 mb-6">👤 Clientes Recentes</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
+                            <th class="pb-4 font-bold">Nome</th>
+                            <th class="pb-4 font-bold">E-mail</th>
+                            <th class="pb-4 font-bold text-right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-clientes-recentes"></tbody>
+                </table>
+            </div>
+        </div>
 
+    </div> <script src="admin.js"></script>
 </body>
-
 </html>
