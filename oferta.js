@@ -1,65 +1,72 @@
+// VARIÁVEIS GLOBAIS
 let pixCopiaECola = "";
 let monitoramento = null;
-
-// VARIÁVEIS QUE VÃO RECEBER OS DADOS DO SERVIDOR
 let PRECO_FINAL = "19.90";
 let LINK_DRIVE_FINAL = "";
 let TITULO_PRODUTO = "";
 
-// 1. CARREGA AS CONFIGURAÇÕES DO SERVIDOR
+// 1. CARREGA OS DADOS DO PRODUTO ASSIM QUE A PÁGINA ABRE
 async function carregarProdutoAtivo() {
     try {
+        // Aproveitamos esta requisição para pegar TUDO o que o servidor sabe sobre a oferta
         const response = await fetch('https://educamateriais.shop/api/config-oferta');
         const dados = await response.json();
         
         if (dados) {
+            // Guardamos o link e os dados nas variáveis globais
+            // Nota: usamos 'link_download' que é o nome da sua coluna no MySQL
             PRECO_FINAL = dados.preco || "19.90";
-            LINK_DRIVE_FINAL = dados.link || "";
-            TITULO_PRODUTO = dados.titulo || "Material Pedagógico";
+            LINK_DRIVE_FINAL = dados.link_download || dados.link || ""; 
+            TITULO_PRODUTO = dados.nome || dados.titulo || "Material Pedagógico";
             
-            // Atualiza Título na página
+            // Atualiza os elementos visuais da página
             const elTitulo = document.getElementById('titulo-produto');
             if (elTitulo) elTitulo.innerText = TITULO_PRODUTO;
 
-            // Atualiza Preço na página
             const elPreco = document.getElementById('valor-exibido');
             if (elPreco) {
-                elPreco.innerText = `R$ ${PRECO_FINAL.replace('.', ',')}`;
+                elPreco.innerText = `R$ ${parseFloat(PRECO_FINAL).toFixed(2).replace('.', ',')}`;
             }
 
-            // Atualiza Imagens
-            if (dados.capa) document.getElementById('capa-produto').src = dados.capa;
-            
+            // Atualiza a imagem principal (Capa)
+            const elCapa = document.getElementById('capa-produto');
+            if (elCapa && (dados.imagem_url || dados.capa)) {
+                elCapa.src = dados.imagem_url || dados.capa;
+            }
+
+            // Fotos extras da galeria (se existirem)
             if (dados.foto1) {
                 const f1 = document.getElementById('foto1-produto');
-                f1.src = dados.foto1;
-                f1.parentElement.classList.remove('hidden');
+                if(f1) { f1.src = dados.foto1; f1.parentElement.classList.remove('hidden'); }
             }
             if (dados.foto2) {
                 const f2 = document.getElementById('foto2-produto');
-                f2.src = dados.foto2;
-                f2.parentElement.classList.remove('hidden');
+                if(f2) { f2.src = dados.foto2; f2.parentElement.classList.remove('hidden'); }
             }
 
-            console.log("✅ Interface da oferta carregada.");
+            console.log("✅ Dados da oferta carregados. Pronto para venda.");
         }
     } catch (err) {
-        console.error("❌ Erro ao carregar produto:", err);
+        console.error("❌ Erro ao carregar configurações da oferta:", err);
     }
 }
 
-// 2. GERA O PAGAMENTO COM BLINDAGEM DE METADATA
+// 2. GERA O PAGAMENTO PIX
 async function gerarPagamentoPix() {
-    const email = document.getElementById('email-cliente').value.trim();
+    const emailInput = document.getElementById('email-cliente');
+    const email = emailInput ? emailInput.value.trim() : "";
     const btn = document.getElementById('btn-comprar');
 
+    // Validação de E-mail (Fundamental para o Resend enviar o material)
     if (!email || !email.includes('@')) {
-        alert("Por favor, insira um e-mail válido.");
+        alert("Por favor, informe um e-mail válido para receber o material.");
+        if (emailInput) emailInput.focus();
         return;
     }
 
+    // Feedback visual de carregamento
     btn.disabled = true;
-    btn.innerHTML = `<span class="loading-spinner"></span> Gerando PIX...`;
+    btn.innerHTML = `<span class="animate-spin inline-block mr-2">🌀</span> Gerando QR Code...`;
 
     try {
         const response = await fetch('https://educamateriais.shop/criar-pagamento-pix', {
@@ -68,36 +75,40 @@ async function gerarPagamentoPix() {
             body: JSON.stringify({ 
                 email: email, 
                 total: parseFloat(PRECO_FINAL),
-                titulo: TITULO_PRODUTO,   // Enviado para o Metadata
-                link: LINK_DRIVE_FINAL,   // Enviado para o Metadata
-                origem: 'oferta_ativa'    // Orienta o servidor a usar o link oficial
+                titulo: TITULO_PRODUTO,
+                link: LINK_DRIVE_FINAL, // O link que pegamos lá no carregarProdutoAtivo
+                origem: 'landing_page_oferta' 
             })
         });
 
         const dados = await response.json();
 
         if (dados.qr_code_base64) {
-            // UI Feedback
-            document.getElementById('etapa-email').classList.add('hidden');
-            const galeria = document.getElementById('galeria-amostras');
-            if(galeria) galeria.classList.add('hidden');
-
-            document.getElementById('area-pagamento').classList.remove('hidden');
-            document.getElementById('qrcode-placeholder').innerHTML = `
-                <img src="data:image/png;base64,${dados.qr_code_base64}" class="w-48 h-48 mx-auto shadow-lg rounded-lg">
-            `;
+            // Esconde a parte do e-mail e mostra o PIX
+            document.getElementById('etapa-email')?.classList.add('hidden');
+            document.getElementById('area-pagamento')?.classList.remove('hidden');
+            
+            const qrPlaceholder = document.getElementById('qrcode-placeholder');
+            if (qrPlaceholder) {
+                qrPlaceholder.innerHTML = `
+                    <img src="data:image/png;base64,${dados.qr_code_base64}" class="w-48 h-48 mx-auto shadow-xl rounded-2xl border-4 border-white">
+                `;
+            }
             
             pixCopiaECola = dados.qr_code;
             iniciarMonitoramento(dados.id);
+        } else {
+            throw new Error("Resposta inválida do servidor de pagamento.");
         }
     } catch (err) {
-        alert("Erro ao gerar pagamento. Tente novamente.");
-        btn.disabled = false; 
+        console.error("Erro PIX:", err);
+        alert("Houve um erro ao gerar o pagamento. Tente novamente.");
+        btn.disabled = false;
         btn.innerHTML = "COMPRAR AGORA";
     }
 }
 
-// 3. MONITORAMENTO DE STATUS
+// 3. MONITORAMENTO DE PAGAMENTO (Checa a cada 5 segundos)
 function iniciarMonitoramento(id) {
     if (monitoramento) clearInterval(monitoramento);
     
@@ -110,37 +121,57 @@ function iniciarMonitoramento(id) {
                 clearInterval(monitoramento);
                 sucessoTotal();
             }
-        } catch (e) { console.error("Aguardando confirmação..."); }
+        } catch (e) { 
+            console.log("Aguardando aprovação..."); 
+        }
     }, 5000);
 }
 
-// 4. TELA DE SUCESSO
+// 4. TELA DE SUCESSO E ENTREGA
 function sucessoTotal() {
-    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    // Se tiver a biblioteca canvas-confetti instalada:
+    if (typeof confetti === 'function') {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    }
     
-    document.getElementById('area-pagamento').innerHTML = `
-        <div class="py-8 text-center fade-in">
-            <div class="text-6xl mb-4">✅</div>
-            <h2 class="text-2xl font-bold text-slate-800">Pagamento Confirmado!</h2>
-            <p class="text-slate-500 mb-6 px-4">Enviamos o material para o seu e-mail, mas você já pode baixar agora:</p>
-            
-            <a href="${LINK_DRIVE_FINAL}" target="_blank" class="inline-block w-full bg-green-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl hover:bg-green-700 transition-all active:scale-95 text-center mb-8">
-                🚀 ACESSAR MEU MATERIAL
-            </a>
-
-            <div class="mt-10 p-6 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
-                <p class="text-xs font-bold text-orange-500 uppercase tracking-widest mb-2">Dica Educa</p>
-                <h3 class="text-md font-bold text-slate-800 mb-3">Conheça nossos outros materiais!</h3>
-                <a href="https://educamateriais.shop/" class="inline-block w-full bg-slate-800 text-white py-3 rounded-xl font-bold text-sm">
-                    VOLTAR PARA A LOJA
+    const areaPagamento = document.getElementById('area-pagamento');
+    if (areaPagamento) {
+        areaPagamento.innerHTML = `
+            <div class="py-10 text-center animate-bounce-short">
+                <div class="text-7xl mb-6">🎉</div>
+                <h2 class="text-3xl font-black text-slate-800 mb-2">Pagamento Confirmado!</h2>
+                <p class="text-slate-500 mb-8">O material foi enviado para o seu e-mail, mas você pode baixar agora mesmo:</p>
+                
+                <a href="${LINK_DRIVE_FINAL}" target="_blank" class="inline-block w-full bg-green-500 text-white py-6 rounded-3xl font-black text-xl shadow-2xl hover:bg-green-600 transition-all active:scale-95 text-center mb-10">
+                    📥 BAIXAR MATERIAL AGORA
                 </a>
-            </div>
-        </div>`;
+
+                <div class="p-6 bg-orange-50 rounded-3xl border-2 border-dashed border-orange-200">
+                    <p class="text-orange-600 font-bold mb-2 text-sm uppercase">Obrigado pela confiança!</p>
+                    <a href="https://educamateriais.shop/" class="text-slate-800 font-bold underline decoration-orange-400">Ver outros materiais na loja</a>
+                </div>
+            </div>`;
+    }
 }
 
+// 5. FUNÇÃO COPIAR PIX
 function copiarPix() {
+    if (!pixCopiaECola) return;
     navigator.clipboard.writeText(pixCopiaECola);
-    alert("Código copiado! Use o 'Pix Copia e Cola' no seu banco.");
+    
+    const btnCopy = document.getElementById('btn-copy-pix');
+    if (btnCopy) {
+        const originalText = btnCopy.innerText;
+        btnCopy.innerText = "✅ COPIADO!";
+        btnCopy.classList.add('bg-green-600');
+        setTimeout(() => {
+            btnCopy.innerText = originalText;
+            btnCopy.classList.remove('bg-green-600');
+        }, 2000);
+    } else {
+        alert("Código Pix Copiado!");
+    }
 }
 
+// INICIALIZAÇÃO
 document.addEventListener('DOMContentLoaded', carregarProdutoAtivo);
