@@ -214,7 +214,6 @@ app.post('/criar-pagamento-pix', async (req, res) => {
 /////////////////////////////////////////////////////////
 app.get('/verificar-pagamento/:id', async (req, res) => {
     const { id } = req.params;
-
     try {
         const response = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
             headers: { 'Authorization': `Bearer ${process.env.MP_ACCESS_TOKEN}` }
@@ -222,43 +221,24 @@ app.get('/verificar-pagamento/:id', async (req, res) => {
         const data = await response.json();
 
         if (data.status === 'approved') {
-            // 1. TRAVA DE LOOP: Se já enviamos para este ID, apenas responda 'approved' e pare aqui.
-            if (enviosRealizados.has(id)) {
+            // BUSCA NO METADATA, MAS SE FOR NULL, TENTA O PAYER
+            const emailCliente = data.metadata?.email_cliente || data.payer?.email;
+            const linkEntrega = data.metadata?.link_entrega || "https://educamateriais.shop/ajuda";
+
+            console.log(`✅ Pagamento aprovado! Entregando para: ${emailCliente}`);
+
+            if (emailCliente && emailCliente !== "null") {
+                await enviarEmailEntrega(emailCliente, linkEntrega);
                 return res.json({ status: 'approved' });
-            }
-
-            // 2. CAPTURA DO E-MAIL (Tenta o payer ou o external_reference se o payer falhar)
-            let emailCliente = data.payer?.email;
-
-            // Se o e-mail vier mascarado (XXXX) ou vazio, tentamos o external_reference
-            if (!emailCliente || !emailCliente.includes('@')) {
-                emailCliente = data.external_reference;
-            }
-
-            console.log(`Tentando entregar para: ${emailCliente}`);
-
-            if (emailCliente && emailCliente.includes('@')) {
-                const configPath = path.join(__dirname, 'config-oferta.json');
-                if (fs.existsSync(configPath)) {
-                    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-
-                    if (config.link) {
-                        await enviarEmailEntrega(emailCliente.trim(), config.link);
-                        enviosRealizados.add(id); // Marca como enviado para este ID
-                        console.log(`✅ Sucesso: E-mail enviado para ${emailCliente}`);
-                    }
-                }
             } else {
-                console.error("❌ Erro: O MP não forneceu um e-mail válido. Recebido:", emailCliente);
+                console.error("❌ Erro: E-mail do cliente é null mesmo após aprovação.");
+                return res.status(400).json({ status: 'error', message: 'E-mail não encontrado' });
             }
-
-            return res.json({ status: 'approved' });
         }
-
-        res.json({ status: data.status || 'pending' });
-
+        
+        res.json({ status: data.status });
     } catch (error) {
-        console.error("Erro na verificação:", error);
+        console.error("❌ Erro na verificação:", error);
         res.status(500).json({ erro: "Erro interno" });
     }
 });
