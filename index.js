@@ -1,5 +1,5 @@
 let carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
-let produtosOriginais = [];
+let produtosOriginais = []; // Aqui guardamos tudo o que vem do banco
 let galeriaAtual = [];
 let indiceGaleria = 0;
 let produtoSelecionadoNoModal = null;
@@ -10,35 +10,48 @@ window.onload = () => {
     atualizarContadorCarrinho();
 };
 
-// --- SESSÃO ---
-function verificarSessao() {
-    const nome = localStorage.getItem('prof_nome');
-    const isAdmin = localStorage.getItem('prof_admin') === 'true';
-    const authContainer = document.getElementById('header-auth');
-    if (nome && authContainer) {
-        let btnAdmin = isAdmin ? `<button onclick="location.href='admin.html'" class="bg-purple-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] mr-1">👑 Admin</button>` : '';
-        authContainer.innerHTML = `
-            <div class="flex items-center gap-2">
-                ${btnAdmin}
-                <button onclick="location.href='meus-materiais.html'" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-xl font-bold text-[10px]">Meus PDFs</button>
-                <button onclick="logout()" class="text-lg pl-1 cursor-pointer">🚪</button>
-            </div>`;
-    }
-}
-function logout() { localStorage.clear(); location.href = 'index.html'; }
-
-// --- CARREGAR LOJA ---
+// --- CARREGAR PRODUTOS ---
 async function carregarProdutosLoja() {
     try {
         const resp = await fetch('https://educamateriais.shop/produtos?t=' + new Date().getTime());
-        produtosOriginais = await resp.json();
+        const dados = await resp.json();
+        produtosOriginais = dados; // Salva a lista completa para poder filtrar depois
         renderizarProdutos(produtosOriginais);
     } catch (err) { console.error("Erro:", err); }
 }
 
+// --- FUNÇÃO DE FILTRO (O QUE ESTAVA FALTANDO) ---
+function filtrarProdutos(categoria, botao) {
+    // 1. Lógica de filtro
+    let filtrados = [];
+    if (categoria === 'todos') {
+        filtrados = produtosOriginais;
+    } else {
+        filtrados = produtosOriginais.filter(p => p.categoria === categoria);
+    }
+    renderizarProdutos(filtrados);
+
+    // 2. Estilo visual dos botões (Feedback)
+    const botoes = document.querySelectorAll('button[onclick*="filtrarProdutos"]');
+    botoes.forEach(btn => {
+        btn.classList.remove('bg-orange-500', 'text-white');
+        btn.classList.add('bg-white', 'text-gray-500', 'border-gray-100');
+    });
+
+    botao.classList.remove('bg-white', 'text-gray-500');
+    botao.classList.add('bg-orange-500', 'text-white', 'shadow-sm');
+}
+
+// --- RENDERIZAR VITRINE ---
 function renderizarProdutos(lista) {
     const container = document.getElementById('vitrine-produtos');
     if (!container) return;
+    
+    if (lista.length === 0) {
+        container.innerHTML = `<p class="col-span-full text-center py-20 text-gray-400">Nenhum material encontrado nesta categoria.</p>`;
+        return;
+    }
+
     container.innerHTML = lista.map(p => {
         const nomeLimpo = p.nome.replace(/'/g, "\\'");
         const descLimpa = (p.descricao || "").replace(/'/g, "\\'").replace(/\n/g, ' ');
@@ -52,9 +65,9 @@ function renderizarProdutos(lista) {
                     <img src="${p.imagem_url}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                 </div>
                 <div class="flex flex-col flex-grow px-1">
-                    <h3 class="font-bold text-gray-800 text-xs mb-1 line-clamp-2 h-8">${p.nome}</h3>
+                    <h3 class="font-bold text-gray-800 text-[11px] mb-1 line-clamp-2 h-8">${p.nome}</h3>
                     <div class="mt-auto pt-2 flex items-center justify-between">
-                        <span class="text-green-600 font-black text-sm">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
+                        <span class="text-green-600 font-black text-xs">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
                         <button onclick="adicionarAoCarrinho('${p.id}', '${nomeLimpo}', ${p.preco}, '${p.link_download}')" 
                                 class="bg-orange-500 text-white p-2 rounded-xl active:scale-90 transition-transform">🛒</button>
                     </div>
@@ -63,7 +76,7 @@ function renderizarProdutos(lista) {
     }).join('');
 }
 
-// --- GALERIA E DETALHES ---
+// --- MODAL E GALERIA ---
 function abrirGaleria(fotos, titulo, preco, link, descricao) {
     galeriaAtual = fotos;
     indiceGaleria = 0;
@@ -74,7 +87,7 @@ function abrirGaleria(fotos, titulo, preco, link, descricao) {
     const elIndicadores = document.getElementById('galeria-indicadores');
 
     if (elTitulo) elTitulo.innerText = titulo;
-    if (elDesc) elDesc.innerText = descricao || "Material pedagógico completo.";
+    if (elDesc) elDesc.innerText = descricao || "Material em PDF de alta qualidade.";
     if (elIndicadores) {
         elIndicadores.innerHTML = fotos.map((_, i) => 
             `<div class="h-1 flex-1 rounded-full bg-gray-200"><div id="barrinha-${i}" class="h-full bg-orange-500 rounded-full transition-all duration-300" style="width: 0%"></div></div>`
@@ -82,8 +95,7 @@ function abrirGaleria(fotos, titulo, preco, link, descricao) {
     }
 
     atualizarGaleria();
-    const modal = document.getElementById('modal-galeria');
-    if (modal) modal.style.display = 'flex';
+    document.getElementById('modal-galeria').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
 
@@ -97,22 +109,20 @@ function atualizarGaleria() {
 }
 
 function mudarFoto(passo) {
-    if (galeriaAtual.length === 0) return;
+    if (galeriaAtual.length <= 1) return;
     indiceGaleria = (indiceGaleria + passo + galeriaAtual.length) % galeriaAtual.length;
     atualizarGaleria();
 }
 
 function fecharGaleria() {
-    const modal = document.getElementById('modal-galeria');
-    if (modal) modal.style.display = 'none';
+    document.getElementById('modal-galeria').style.display = 'none';
     document.body.style.overflow = 'auto';
 }
 
-// --- CARRINHO (AQUI ESTÁ O QUE CORRIGE O CLIQUE) ---
+// --- CARRINHO ---
 function toggleCarrinho() {
     const modal = document.getElementById('modal-carrinho');
-    if (!modal) return console.error("Modal do carrinho não encontrado!");
-    
+    if (!modal) return;
     if (modal.style.display === 'flex') {
         modal.style.display = 'none';
         document.body.style.overflow = 'auto';
@@ -130,17 +140,17 @@ function renderizarItensCarrinho() {
 
     let total = 0;
     if (carrinho.length === 0) {
-        container.innerHTML = `<p class="text-gray-400 text-center py-10 text-xs">O seu carrinho está vazio.</p>`;
+        container.innerHTML = `<p class="text-gray-400 text-center py-10 text-[10px]">Vazio</p>`;
     } else {
         container.innerHTML = carrinho.map(item => {
             total += item.preco;
             return `
-                <div class="flex justify-between items-center py-4 border-b border-gray-50">
-                    <div class="flex-grow">
-                        <p class="font-bold text-gray-800 text-[11px] leading-tight">${item.nome}</p>
-                        <p class="text-green-600 font-bold text-[10px]">R$ ${item.preco.toFixed(2).replace('.', ',')}</p>
+                <div class="flex justify-between items-center py-3 border-b border-gray-50">
+                    <p class="font-bold text-gray-700 text-[10px] truncate max-w-[140px]">${item.nome}</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-600 font-bold text-[10px]">R$ ${item.preco.toFixed(2).replace('.', ',')}</span>
+                        <button onclick="removerItemCarrinho('${item.id}')" class="text-red-400 text-lg">×</button>
                     </div>
-                    <button onclick="removerItemCarrinho('${item.id}')" class="text-red-400 text-xl px-2">×</button>
                 </div>`;
         }).join('');
     }
@@ -166,3 +176,15 @@ function atualizarContadorCarrinho() {
     const c = document.getElementById('cart-count');
     if (c) c.innerText = carrinho.length;
 }
+
+// --- AUTH / SESSÃO ---
+function verificarSessao() {
+    const nome = localStorage.getItem('prof_nome');
+    const isAdmin = localStorage.getItem('prof_admin') === 'true';
+    const authContainer = document.getElementById('header-auth');
+    if (nome && authContainer) {
+        let btnAdmin = isAdmin ? `<button onclick="location.href='admin.html'" class="bg-purple-600 text-white px-3 py-2 rounded-xl font-bold text-[10px]">👑 Admin</button>` : '';
+        authContainer.innerHTML = `<div class="flex gap-2">${btnAdmin} <button onclick="logout()" class="text-sm">🚪</button></div>`;
+    }
+}
+function logout() { localStorage.clear(); location.href = 'index.html'; }
