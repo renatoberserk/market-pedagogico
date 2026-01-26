@@ -4,12 +4,11 @@ document.addEventListener('DOMContentLoaded', carregarProdutosAdmin);
 
 async function carregarProdutosAdmin() {
     try {
-        // Adicionamos um timestamp para evitar cache do navegador
         const res = await fetch(`https://educamateriais.shop/produtos?t=${new Date().getTime()}`);
         produtosAdmin = await res.json();
         renderizarAdmin();
     } catch (err) { 
-        console.error("Erro ao carregar produtos:", err); 
+        console.error("Erro ao carregar:", err); 
     }
 }
 
@@ -18,30 +17,36 @@ function renderizarAdmin() {
     if (!container) return;
     
     container.innerHTML = produtosAdmin.map(p => `
-        <div class="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100 flex flex-col h-full">
-            <img src="${p.imagem_url}" class="w-full h-32 object-cover rounded-2xl mb-4 bg-gray-50">
+        <div class="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-100 flex flex-col h-full hover:shadow-md transition-shadow">
+            <img src="${p.imagem_url}" class="w-full h-40 object-cover rounded-2xl mb-4 bg-slate-50">
             <div class="flex-grow">
-                <h3 class="font-bold text-gray-800 text-sm mb-1 line-clamp-1">${p.nome}</h3>
-                <p class="text-orange-500 font-bold text-xs mb-2">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</p>
-                <p class="text-[10px] text-gray-400 line-clamp-2 mb-4">${p.descricao || 'Sem descrição'}</p>
+                <h3 class="font-bold text-slate-800 text-sm mb-1 line-clamp-1">${p.nome}</h3>
+                <p class="text-orange-500 font-bold text-xs mb-4">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</p>
+                <div class="bg-slate-50 p-3 rounded-xl mb-4">
+                    <p class="text-[10px] text-slate-400 uppercase font-black mb-1">Preview Descrição:</p>
+                    <p class="text-[11px] text-slate-600 line-clamp-2 italic">${p.descricao || 'Sem descrição cadastrada.'}</p>
+                </div>
             </div>
             <div class="flex gap-2">
-                <button onclick="prepararEdicao('${p.id}')" class="flex-1 bg-gray-100 text-gray-600 py-2.5 rounded-xl text-[10px] font-bold uppercase hover:bg-orange-500 hover:text-white transition-all">Editar</button>
-                <button onclick="deletarProduto('${p.id}')" class="bg-red-50 text-red-500 px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase hover:bg-red-500 hover:text-white transition-all">Excluir</button>
+                <button onclick="prepararEdicao('${p.id}')" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl text-[10px] font-bold uppercase hover:bg-orange-500 hover:text-white transition-all">Editar</button>
+                <button onclick="deletarProduto('${p.id}')" class="bg-red-50 text-red-500 px-4 py-3 rounded-xl text-[10px] font-bold uppercase hover:bg-red-500 hover:text-white transition-all">Excluir</button>
             </div>
         </div>
     `).join('');
 }
 
 function abrirModalCadastro() {
-    document.getElementById('modal-titulo').innerText = "Cadastrar Novo Material";
+    document.getElementById('modal-titulo').innerText = "Novo Produto";
     document.getElementById('form-produto').reset();
     document.getElementById('edit-id').value = ""; 
-    document.getElementById('modal-produto').style.display = 'flex';
+    document.getElementById('modal-produto').classList.add('modal-active');
+}
+
+function fecharModal() {
+    document.getElementById('modal-produto').classList.remove('modal-active');
 }
 
 function prepararEdicao(id) {
-    // Procuramos o produto pelo ID (usando == para evitar erro de tipo string/number)
     const p = produtosAdmin.find(item => item.id == id);
     if (!p) return;
 
@@ -51,31 +56,20 @@ function prepararEdicao(id) {
     document.getElementById('edit-preco').value = p.preco || "";
     document.getElementById('edit-descricao').value = p.descricao || "";
     document.getElementById('edit-capa').value = p.imagem_url || "";
-    
-    // IMPORTANTE: Nomes que batem com o seu Banco de Dados
     document.getElementById('edit-foto1').value = p.foto_extra1 || "";
     document.getElementById('edit-foto2').value = p.foto_extra2 || ""; 
-    
-    const campoCat = document.getElementById('edit-categoria');
-    if(campoCat) campoCat.value = p.categoria || "Atividades";
-
+    document.getElementById('edit-categoria').value = p.categoria || "Atividades";
     document.getElementById('edit-link').value = p.link_download || "";
 
-    document.getElementById('modal-produto').style.display = 'flex';
+    document.getElementById('modal-produto').classList.add('modal-active');
 }
 
-function fecharModal() {
-    document.getElementById('modal-produto').style.display = 'none';
-}
-
-// OUVINTE DE SUBMIT ÚNICO E CORRIGIDO
 document.getElementById('form-produto').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const id = document.getElementById('edit-id').value;
     const emailAdmin = localStorage.getItem('prof_email');
 
-    // Montamos o objeto exatamente como o Backend e o Banco esperam
     const dados = {
         email_admin: emailAdmin,
         nome: document.getElementById('edit-nome').value,
@@ -85,7 +79,7 @@ document.getElementById('form-produto').addEventListener('submit', async (e) => 
         foto_extra1: document.getElementById('edit-foto1').value,
         foto_extra2: document.getElementById('edit-foto2').value,
         link_download: document.getElementById('edit-link').value,
-        categoria: document.getElementById('edit-categoria')?.value || "Atividades"
+        categoria: document.getElementById('edit-categoria').value
     };
 
     const url = id ? `https://educamateriais.shop/produtos/${id}` : `https://educamateriais.shop/produtos`;
@@ -98,38 +92,28 @@ document.getElementById('form-produto').addEventListener('submit', async (e) => 
             body: JSON.stringify(dados)
         });
 
-        const resultado = await res.json();
-
-        if (res.ok && (resultado.sucesso || resultado.success)) {
-            alert("✅ Salvo com sucesso!");
+        if (res.ok) {
+            alert("✅ Sucesso!");
             fecharModal();
-            carregarProdutosAdmin(); // Recarrega a lista para mostrar as mudanças
+            carregarProdutosAdmin();
         } else {
-            alert("❌ Erro: " + (resultado.erro || "Falha na operação"));
+            alert("❌ Erro ao salvar.");
         }
     } catch (err) {
-        console.error(err);
-        alert("💥 Erro ao conectar com o servidor.");
+        alert("💥 Erco na conexão.");
     }
 });
 
 async function deletarProduto(id) {
-    if (!confirm("Tem certeza que deseja excluir este material?")) return;
-
+    if (!confirm("Excluir permanentemente?")) return;
     const emailAdmin = localStorage.getItem('prof_email');
 
     try {
-        const res = await fetch(`https://educamateriais.shop/produtos/${id}`, {
+        await fetch(`https://educamateriais.shop/produtos/${id}`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email_admin: emailAdmin })
         });
-
-        if (res.ok) {
-            alert("🗑️ Produto removido!");
-            carregarProdutosAdmin();
-        }
-    } catch (err) {
-        alert("Erro ao excluir.");
-    }
+        carregarProdutosAdmin();
+    } catch (err) { console.error(err); }
 }
