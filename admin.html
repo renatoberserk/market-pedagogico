@@ -10,7 +10,7 @@
     <style>
         body { font-family: 'Quicksand', sans-serif; scroll-behavior: smooth; }
         #painel-admin { display: none; } 
-        .input-focus { @apply focus:border-orange-400 outline-none transition-all border-2 border-gray-50; }
+        .input-focus { focus: border-orange-400; outline: none; transition: all; border-width: 2px; border-color: #f9fafb; }
     </style>
 </head>
 
@@ -20,15 +20,15 @@
         <header class="flex justify-between items-center mb-8 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Painel de Controle ⚙️</h1>
-                <p class="text-sm text-gray-500" id="admin-welcome">Bem-vinda, Administradora</p>
+                <p class="text-sm text-gray-500" id="admin-welcome">Verificando acesso...</p>
             </div>
-            <button onclick="window.location.href='index.html'"
+            <button onclick="localStorage.clear(); window.location.href='index.html'"
                 class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-2 rounded-2xl font-bold transition-all text-sm">
                 Sair do Painel
             </button>
         </header>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
                 <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Receita Hoje</p>
                 <h2 id="receita-dia" class="text-3xl font-black text-gray-800">R$ 0,00</h2>
@@ -37,45 +37,62 @@
                 <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Vendas Totais</p>
                 <h2 id="total-vendas" class="text-3xl font-black text-gray-800">0</h2>
             </div>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Clientes na Base</p>
+                <h2 id="total-clientes" class="text-3xl font-black text-gray-800">0</h2>
             </div>
+        </div>
 
         <div class="mb-10 bg-gradient-to-r from-orange-500 to-red-600 p-[2px] rounded-3xl shadow-lg">
             <div class="bg-white p-8 rounded-[calc(1.5rem-1px)]">
-                <div class="flex items-center gap-3 mb-6">
-                    <span class="text-2xl">🔥</span>
-                    <h2 class="text-xl font-bold text-gray-800">Configurar Oferta Única (Página de Vendas)</h2>
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🔥</span>
+                        <h2 class="text-xl font-bold text-gray-800">Editar Página de Oferta Especial</h2>
+                    </div>
+                    <div id="container-link-final" class="hidden animate-pulse">
+                        <button onclick="copiarLinkOferta()" id="link-final-input" value="https://educamateriais.shop/oferta" class="text-xs bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-bold">
+                            🔗 Copiar Link da Oferta
+                        </button>
+                    </div>
                 </div>
                 
-                <form id="form-oferta-unica" class="grid grid-cols-1 md:grid-cols-3 gap-6" onsubmit="event.preventDefault(); salvarOfertaUnica();">
+                <form id="form-oferta-unica" class="grid grid-cols-1 md:grid-cols-3 gap-6" onsubmit="salvarOfertaGeral(event)">
                     <div class="space-y-4">
                         <div>
-                            <label class="text-xs font-bold text-gray-400 uppercase">Título da Oferta</label>
-                            <input type="text" id="off-titulo" class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="Ex: Mega Pack Alfabetização">
+                            <label class="text-xs font-bold text-gray-400 uppercase">Título do Produto</label>
+                            <input type="text" id="oferta-titulo" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="Ex: Combo Alfabetização Ativa">
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-gray-400 uppercase">Preço De: (R$)</label>
-                            <input type="number" id="off-preco-de" class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="47.00">
+                            <label class="text-xs font-bold text-gray-400 uppercase">Preço de Venda (R$)</label>
+                            <input type="text" id="oferta-preco" required class="w-full px-4 py-3 rounded-xl bg-green-50 border-2 border-transparent focus:border-green-400 outline-none font-bold text-green-700" placeholder="19.90">
                         </div>
                     </div>
 
                     <div class="space-y-4">
                         <div>
-                            <label class="text-xs font-bold text-gray-400 uppercase">Link da Imagem Principal</label>
-                            <input type="text" id="off-img" class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="https://...">
+                            <label class="text-xs font-bold text-gray-400 uppercase">URL da Capa Principal</label>
+                            <input type="text" id="oferta-capa" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="Link da imagem">
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-gray-400 uppercase text-green-600">Preço Por: (R$)</label>
-                            <input type="number" id="off-preco-por" class="w-full px-4 py-3 rounded-xl bg-green-50 border-2 border-transparent focus:border-green-400 outline-none font-bold text-green-700" placeholder="19.90">
+                            <label class="text-xs font-bold text-gray-400 uppercase">Link do Material (Google Drive)</label>
+                            <input type="text" id="oferta-link" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="Link que o cliente recebe">
                         </div>
                     </div>
 
-                    <div class="space-y-4 flex flex-col justify-end">
-                        <div>
-                            <label class="text-xs font-bold text-gray-400 uppercase">Tempo do Cronômetro (Minutos)</label>
-                            <input type="number" id="off-tempo" class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="15">
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-xs font-bold text-gray-400 uppercase">Amostra 1</label>
+                                <input type="text" id="oferta-foto1" class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="URL">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-gray-400 uppercase">Amostra 2</label>
+                                <input type="text" id="oferta-foto2" class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="URL">
+                            </div>
                         </div>
-                        <button type="submit" class="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl hover:bg-black transition-all shadow-md">
-                            Atualizar Página de Oferta
+                        <button type="submit" class="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl hover:bg-black transition-all shadow-md flex items-center justify-center gap-2">
+                            💾 SALVAR E ATUALIZAR SITE
                         </button>
                     </div>
                 </form>
@@ -83,35 +100,18 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
             <div class="lg:col-span-1 bg-white p-8 rounded-3xl shadow-sm border border-gray-100 h-fit sticky top-10">
-                <h2 id="form-title" class="text-lg font-bold text-gray-700 mb-6">Gerenciar Materiais</h2>
+                <h2 id="form-title" class="text-lg font-bold text-gray-700 mb-6">Cadastrar Novo PDF</h2>
                 <form id="form-produto" class="space-y-4" onsubmit="event.preventDefault(); salvarProduto();">
                     
-                    <div class="space-y-1">
+                    <div>
                         <label class="text-xs font-bold text-gray-400 uppercase ml-1">Imagem de Capa (URL)</label>
                         <input type="text" id="prod-img" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="text-xs font-bold text-gray-400 uppercase">Foto Extra 1</label>
-                            <input type="text" id="prod-foto1" class="w-full px-4 py-2 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none text-xs">
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-gray-400 uppercase">Foto Extra 2</label>
-                            <input type="text" id="prod-foto2" class="w-full px-4 py-2 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none text-xs">
-                        </div>
-                    </div>
-
                     <div>
-                        <label class="text-xs font-bold text-gray-400 uppercase">Título</label>
+                        <label class="text-xs font-bold text-gray-400 uppercase">Título do Material</label>
                         <input type="text" id="prod-nome" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none">
-                    </div>
-
-                    <div>
-                        <label class="text-xs font-bold text-gray-400 uppercase">Descrição (Aparece na Oferta)</label>
-                        <textarea id="prod-descricao" rows="3" class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none resize-none" placeholder="Ex: Material com 50 páginas..."></textarea>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -123,7 +123,6 @@
                             <label class="text-xs font-bold text-gray-400 uppercase">Categoria</label>
                             <select id="prod-categoria" class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none">
                                 <option value="atividades">Atividades</option>
-                                <option value="eva">EVA</option>
                                 <option value="planejamentos">Planejamentos</option>
                                 <option value="jogos">Jogos</option>
                             </select>
@@ -131,24 +130,25 @@
                     </div>
 
                     <div>
-                        <label class="text-xs font-bold text-gray-400 uppercase">Link de Download</label>
-                        <input type="text" id="prod-link" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="Link do Google Drive">
+                        <label class="text-xs font-bold text-gray-400 uppercase">Link do Drive</label>
+                        <input type="text" id="prod-link" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none">
                     </div>
 
                     <button type="submit" id="btn-submit" class="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-orange-600 transition-all active:scale-95">
-                        Salvar Material
+                        Publicar Material
                     </button>
                     
-                    <button type="button" id="btn-cancelar" onclick="limparFormulario()" class="w-full hidden bg-gray-200 text-gray-600 font-bold py-3 rounded-2xl mt-2">
+                    <button type="button" id="btn-cancelar" onclick="limparFormulario()" class="w-full hidden bg-gray-100 text-gray-500 font-bold py-3 rounded-2xl mt-2">
                         Cancelar Edição
                     </button>
                 </form>
             </div>
 
             <div class="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                <h2 class="text-lg font-bold text-gray-700 mb-6">Materiais Cadastrados</h2>
+                <h2 class="text-lg font-bold text-gray-700 mb-6">Materiais na Vitrine</h2>
                 <div id="lista-admin" class="space-y-4">
-                    </div>
+                    <p class="text-center text-gray-400 py-10">Carregando materiais...</p>
+                </div>
             </div>
         </div>
     </div> 
