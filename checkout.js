@@ -1,8 +1,8 @@
-// 1. RECUPERAÇÃO DO LINK
-// Isso busca o link que você salvou lá na página da vitrine (index.js)
-window.LINK_DRIVE_FINAL = localStorage.getItem('link_pendente');
+// 1. RECUPERAÇÃO DO LINK COM PROTEÇÃO
+// O uso de '|| ""' evita que o .trim() quebre se o localStorage estiver vazio
+window.LINK_DRIVE_FINAL = localStorage.getItem('link_pendente') || "";
 
-console.log("🔗 Link recuperado para o checkout:", window.LINK_DRIVE_FINAL);
+console.log("🔗 Link recuperado do cache:", window.LINK_DRIVE_FINAL);
 
 let paymentId = null;
 let pixCopiaECola = "";
@@ -10,47 +10,56 @@ let checkInterval = null;
 
 // 2. INICIALIZAÇÃO DA PÁGINA
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("🚀 Checkout iniciado...");
+    
     const carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
     
-    // Verifica se o carrinho existe e tem itens, senão volta para a loja
+    // Se o carrinho sumiu ou está vazio, volta para a loja
     if (!carrinho || carrinho.length === 0) {
+        console.warn("🛒 Carrinho não encontrado.");
         window.location.href = 'index.html';
         return;
     }
 
-    // Calcula o total
+    // Soma o total do carrinho
     const total = carrinho.reduce((acc, item) => acc + parseFloat(item.preco), 0);
     
-    // Atualiza o valor na tela com formatação brasileira
     const valorDisplay = document.getElementById('valor-final');
     if (valorDisplay) {
         valorDisplay.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
     }
 
-    // Dispara a geração do Pix
+    // Inicia a geração do Pix passando o total calculado
     gerarPixReal(total);
 });
 
 // 3. GERAÇÃO DO PIX NO MERCADO PAGO
 async function gerarPixReal(total) {
-    const email = localStorage.getItem('prof_email');
+    const email = localStorage.getItem('prof_email') || "";
     const statusText = document.getElementById('pix-code');
     const loader = document.getElementById('qr-loader');
     const img = document.getElementById('qr-code-img');
     const btnGerar = document.getElementById('btn-gerar-pix');
 
-    // --- TRAVA DE SEGURANÇA ---
-    if (!window.LINK_DRIVE_FINAL || window.LINK_DRIVE_FINAL === 'undefined' || window.LINK_DRIVE_FINAL.trim() === "") {
-        console.error("❌ Abortado: Tentativa de gerar Pix sem link de produto.");
-        alert("Ops! O link do material não foi carregado corretamente. Por favor, volte à loja e selecione o produto novamente.");
-        
-        if (btnGerar) {
-            btnGerar.disabled = false;
-            btnGerar.innerHTML = "ERRO: SELECIONE O PRODUTO NOVAMENTE";
-        }
+    // --- VALIDAÇÃO CRÍTICA PARA EVITAR O ERRO 'NULL' ---
+    const linkFinal = window.LINK_DRIVE_FINAL.toString().trim();
+
+    if (!linkFinal || linkFinal === "" || linkFinal === "undefined") {
+        console.error("❌ Erro fatal: Link do drive não existe no localStorage.");
+        alert("Ops! O material selecionado não foi carregado corretamente. Por favor, tente selecionar o material novamente na loja.");
+        if(btnGerar) btnGerar.innerHTML = "ERRO NO PRODUTO";
         return; 
     }
 
+    if (!email || !email.includes('@')) {
+        console.error("❌ Erro: Email inválido ou nulo.");
+        alert("E-mail não encontrado. Por favor, preencha seus dados novamente.");
+        return;
+    }
+
+    console.log("📡 Enviando Link para API:", linkFinal);
+
+    // Feedback Visual
     if (loader) loader.classList.remove('hidden');
     if (img) img.classList.add('hidden');
 
@@ -59,20 +68,21 @@ async function gerarPixReal(total) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                email: email, 
+                email: email.trim(), 
                 total: total,
-                link: window.LINK_DRIVE_FINAL 
+                link: linkFinal // Link exato recuperado do ADM
             })
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detalhes || "Erro no servidor");
+            throw new Error(errorData.detalhes || "Erro 500 no Servidor");
         }
 
         const data = await response.json();
 
-        if (data.qr_code_base64 && data.qr_code) {
+        if (data.qr_code_base64) {
+            console.log("✅ Pix Gerado! Aguardando pagamento...");
             paymentId = data.id;
             pixCopiaECola = data.qr_code;
 
@@ -89,17 +99,15 @@ async function gerarPixReal(total) {
             }
 
             iniciarVerificacaoStatus(data.id);
-        } else {
-            throw new Error("Resposta do Pix incompleta");
         }
     } catch (error) {
-        console.error("Erro ao gerar Pix:", error);
-        if (statusText) statusText.innerText = "Erro ao gerar código.";
+        console.error("❌ Falha na geração do Pix:", error);
+        if (statusText) statusText.innerText = "Erro ao gerar código. Tente recarregar.";
         if (loader) loader.classList.add('hidden');
     }
 }
 
-// 4. VERIFICAÇÃO AUTOMÁTICA DE PAGAMENTO
+// 4. VERIFICAÇÃO AUTOMÁTICA
 function iniciarVerificacaoStatus(id) {
     if (checkInterval) clearInterval(checkInterval);
 
@@ -109,85 +117,58 @@ function iniciarVerificacaoStatus(id) {
             const data = await res.json();
 
             if (data.status === 'approved') {
+                console.log("💰 Pagamento aprovado com sucesso!");
                 clearInterval(checkInterval);
                 finalizarCompraSucesso(); 
             }
         } catch (e) {
-            console.log("Aguardando confirmação...");
+            console.log("⏳ Aguardando confirmação...");
         }
     }, 5000); 
 }
 
-// 5. FINALIZAÇÃO E LIMPEZA
+// 5. FINALIZAÇÃO
 async function finalizarCompraSucesso() {
     const email = localStorage.getItem('prof_email');
     const carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
 
     try {
+        console.log("💾 Registrando venda e limpando dados...");
         await fetch('https://educamateriais.shop/registrar-venda', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, produtos: carrinho })
         });
 
-        // Limpa os dados de compra para não duplicar
+        // Limpa o link e o carrinho para evitar lixo no navegador
         localStorage.removeItem('edu_cart');
         localStorage.removeItem('link_pendente');
         
         window.location.href = 'meus-materiais.html?sucesso=true';
 
     } catch (err) {
-        console.error("Erro ao registrar venda:", err);
-        localStorage.removeItem('edu_cart');
+        console.error("⚠️ Pagamento aprovado, mas erro ao registrar:", err);
         window.location.href = 'meus-materiais.html?verificar=1';
     }
 }
 
-// 6. FUNÇÕES DE COPIAR CÓDIGO PIX
+// 6. COPIAR PIX
 function copyPix() {
     const pixElement = document.getElementById('pix-code');
-    const textoParaCopiar = pixElement ? pixElement.innerText : pixCopiaECola;
+    const texto = pixElement ? pixElement.innerText : pixCopiaECola;
 
-    if (!textoParaCopiar || textoParaCopiar === "Gerando código..." || textoParaCopiar.includes("Erro")) {
-        alert("Aguarde o código ser gerado.");
-        return;
-    }
+    if (!texto || texto.includes("Gerando") || texto.includes("Erro")) return;
 
-    if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(textoParaCopiar).then(() => {
-            animarBotaoSucesso();
-        }).catch(() => {
-            fallbackCopyText(textoParaCopiar);
-        });
-    } else {
-        fallbackCopyText(textoParaCopiar);
-    }
-}
-
-function fallbackCopyText(text) {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    document.body.appendChild(textArea);
-    textArea.select();
-    try {
-        document.execCommand('copy');
-        animarBotaoSucesso();
-    } catch (err) {
-        alert("Copie manualmente o código.");
-    }
-    document.body.removeChild(textArea);
-}
-
-function animarBotaoSucesso() {
-    const btn = document.getElementById('btn-copy');
-    if (!btn) return;
-
-    const originalText = btn.innerText;
-    btn.innerText = "✅ COPIADO!";
-    btn.classList.add('bg-green-600');
-    
-    setTimeout(() => {
-        btn.innerText = originalText;
-        btn.classList.remove('bg-green-600');
-    }, 2000);
+    navigator.clipboard.writeText(texto).then(() => {
+        const btn = document.getElementById('btn-copy');
+        if (btn) {
+            const original = btn.innerText;
+            btn.innerText = "✅ COPIADO!";
+            btn.classList.add('bg-green-600');
+            setTimeout(() => {
+                btn.innerText = original;
+                btn.classList.remove('bg-green-600');
+            }, 2000);
+        }
+    });
 }
