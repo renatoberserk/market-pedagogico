@@ -8,13 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Quicksand', sans-serif; }
-        #painel-admin { display: none; } /* O admin.js deve mudar para 'block' após o login */
-        .count-up { animation: countUp 1s ease-out; }
-        @keyframes countUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        body { font-family: 'Quicksand', sans-serif; scroll-behavior: smooth; }
+        #painel-admin { display: none; } 
+        .input-focus { @apply focus:border-orange-400 outline-none transition-all border-2 border-gray-50; }
     </style>
 </head>
 
@@ -24,10 +20,10 @@
         <header class="flex justify-between items-center mb-8 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Painel de Controle ⚙️</h1>
-                <p class="text-sm text-gray-500" id="admin-welcome">Carregando permissões...</p>
+                <p class="text-sm text-gray-500" id="admin-welcome">Bem-vinda, Administradora</p>
             </div>
             <button onclick="window.location.href='index.html'"
-                class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-2 rounded-2xl font-bold transition-all text-sm shadow-sm">
+                class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-2 rounded-2xl font-bold transition-all text-sm">
                 Sair do Painel
             </button>
         </header>
@@ -38,114 +34,125 @@
                 <h2 id="receita-dia" class="text-3xl font-black text-gray-800">R$ 0,00</h2>
             </div>
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Receita Mensal</p>
-                <h2 id="receita-mes" class="text-3xl font-black text-gray-800">R$ 0,00</h2>
-            </div>
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
                 <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Vendas Totais</p>
                 <h2 id="total-vendas" class="text-3xl font-black text-gray-800">0</h2>
             </div>
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total de Clientes</p>
-                <h2 id="total-clientes" class="text-3xl font-black text-gray-800">0</h2>
+            </div>
+
+        <div class="mb-10 bg-gradient-to-r from-orange-500 to-red-600 p-[2px] rounded-3xl shadow-lg">
+            <div class="bg-white p-8 rounded-[calc(1.5rem-1px)]">
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="text-2xl">🔥</span>
+                    <h2 class="text-xl font-bold text-gray-800">Configurar Oferta Única (Página de Vendas)</h2>
+                </div>
+                
+                <form id="form-oferta-unica" class="grid grid-cols-1 md:grid-cols-3 gap-6" onsubmit="event.preventDefault(); salvarOfertaUnica();">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Título da Oferta</label>
+                            <input type="text" id="off-titulo" class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="Ex: Mega Pack Alfabetização">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Preço De: (R$)</label>
+                            <input type="number" id="off-preco-de" class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="47.00">
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Link da Imagem Principal</label>
+                            <input type="text" id="off-img" class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="https://...">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase text-green-600">Preço Por: (R$)</label>
+                            <input type="number" id="off-preco-por" class="w-full px-4 py-3 rounded-xl bg-green-50 border-2 border-transparent focus:border-green-400 outline-none font-bold text-green-700" placeholder="19.90">
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 flex flex-col justify-end">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Tempo do Cronômetro (Minutos)</label>
+                            <input type="number" id="off-tempo" class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="15">
+                        </div>
+                        <button type="submit" class="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl hover:bg-black transition-all shadow-md">
+                            Atualizar Página de Oferta
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             <div class="lg:col-span-1 bg-white p-8 rounded-3xl shadow-sm border border-gray-100 h-fit sticky top-10">
-                <h2 id="form-title" class="text-lg font-bold text-gray-700 mb-6">Cadastrar Novo PDF</h2>
+                <h2 id="form-title" class="text-lg font-bold text-gray-700 mb-6">Gerenciar Materiais</h2>
                 <form id="form-produto" class="space-y-4" onsubmit="event.preventDefault(); salvarProduto();">
                     
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-gray-400 uppercase ml-1">Imagem de Capa (URL)</label>
-                        <input type="text" id="prod-img" placeholder="URL da imagem principal"
-                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                        <input type="text" id="prod-img" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none">
                     </div>
 
                     <div class="grid grid-cols-2 gap-2">
-                        <div class="space-y-1">
-                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">Foto Extra 1</label>
-                            <input type="text" id="prod-foto1" placeholder="URL opcional"
-                                class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all text-xs">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Foto Extra 1</label>
+                            <input type="text" id="prod-foto1" class="w-full px-4 py-2 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none text-xs">
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">Foto Extra 2</label>
-                            <input type="text" id="prod-foto2" placeholder="URL opcional"
-                                class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all text-xs">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Foto Extra 2</label>
+                            <input type="text" id="prod-foto2" class="w-full px-4 py-2 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none text-xs">
                         </div>
                     </div>
 
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-400 uppercase ml-1">Título</label>
-                        <input type="text" id="prod-nome" required placeholder="Ex: Caderno de Atividades"
-                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                    <div>
+                        <label class="text-xs font-bold text-gray-400 uppercase">Título</label>
+                        <input type="text" id="prod-nome" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none">
                     </div>
 
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-400 uppercase ml-1">Descrição do Produto</label>
-                        <textarea id="prod-descricao" placeholder="Explique o que o cliente está comprando..." rows="3"
-                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all resize-none"></textarea>
+                    <div>
+                        <label class="text-xs font-bold text-gray-400 uppercase">Descrição (Aparece na Oferta)</label>
+                        <textarea id="prod-descricao" rows="3" class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none resize-none" placeholder="Ex: Material com 50 páginas..."></textarea>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">Preço (R$)</label>
-                            <input type="number" step="0.01" id="prod-preco" required placeholder="0.00"
-                                class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Preço (R$)</label>
+                            <input type="number" step="0.01" id="prod-preco" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none">
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">Categoria</label>
-                            <select id="prod-categoria" required
-                                class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none bg-white transition-all">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Categoria</label>
+                            <select id="prod-categoria" class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none">
                                 <option value="atividades">Atividades</option>
-                                <option value="eva">Modelos em EVA</option>
+                                <option value="eva">EVA</option>
                                 <option value="planejamentos">Planejamentos</option>
-                                <option value="jogos">Jogos Pedagógicos</option>
+                                <option value="jogos">Jogos</option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-400 uppercase ml-1">Link para Download</label>
-                        <input type="text" id="prod-link" required placeholder="Link do Drive"
-                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-50 focus:border-orange-400 outline-none transition-all">
+                    <div>
+                        <label class="text-xs font-bold text-gray-400 uppercase">Link de Download</label>
+                        <input type="text" id="prod-link" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-orange-400 outline-none" placeholder="Link do Google Drive">
                     </div>
 
-                    <button type="submit" id="btn-submit"
-                        class="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-orange-600 transition-all active:scale-95">Publicar Material</button>
+                    <button type="submit" id="btn-submit" class="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-orange-600 transition-all active:scale-95">
+                        Salvar Material
+                    </button>
                     
-                    <button type="button" id="btn-cancelar" onclick="limparFormulario()"
-                        class="w-full hidden bg-gray-200 text-gray-600 font-bold py-3 rounded-2xl mt-2 transition-all hover:bg-gray-300">Cancelar Edição</button>
+                    <button type="button" id="btn-cancelar" onclick="limparFormulario()" class="w-full hidden bg-gray-200 text-gray-600 font-bold py-3 rounded-2xl mt-2">
+                        Cancelar Edição
+                    </button>
                 </form>
             </div>
 
             <div class="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                <h2 class="text-lg font-bold text-gray-700 mb-6">Materiais na Loja</h2>
+                <h2 class="text-lg font-bold text-gray-700 mb-6">Materiais Cadastrados</h2>
                 <div id="lista-admin" class="space-y-4">
-                    <div class="flex justify-center py-10">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
                     </div>
-                </div>
             </div>
         </div>
+    </div> 
 
-        <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 mb-10">
-            <h2 class="text-lg font-bold text-gray-700 mb-6">👤 Clientes Recentes</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
-                            <th class="pb-4 font-bold">Nome</th>
-                            <th class="pb-4 font-bold">E-mail</th>
-                            <th class="pb-4 font-bold text-right">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-clientes-recentes"></tbody>
-                </table>
-            </div>
-        </div>
-
-    </div> <script src="admin.js"></script>
+    <script src="admin.js"></script>
 </body>
 </html>
