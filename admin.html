@@ -1,26 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo</title>
+    <title>Painel Administrativo | Educa Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Quicksand', sans-serif;
-        }
-
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-
-        .active-tab {
-            background-color: #fff7ed;
-            color: #f97316;
-            border-right: 4px solid #f97316;
-        }
+        body { font-family: 'Quicksand', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .active-tab { background-color: #fff7ed; color: #f97316; border-right: 4px solid #f97316; }
     </style>
 </head>
 
@@ -32,31 +22,28 @@
         </div>
 
         <nav class="flex-grow p-4 space-y-2">
-            <button onclick="mudarAba('aba-produtos', this)"
-                class="menu-btn active-tab w-full flex items-center gap-3 p-4 rounded-xl font-bold text-xs transition-all">
+            <button onclick="mudarAba('aba-produtos', this)" class="menu-btn active-tab w-full flex items-center gap-3 p-4 rounded-xl font-bold text-xs transition-all">
                 📦 Gerenciar Vitrine
             </button>
-            <button onclick="mudarAba('aba-usuarios', this)"
-                class="menu-btn w-full flex items-center gap-3 p-4 rounded-xl text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">
+            <button onclick="mudarAba('aba-usuarios', this)" class="menu-btn w-full flex items-center gap-3 p-4 rounded-xl text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">
                 👥 Usuários
             </button>
-            <button onclick="mudarAba('aba-faturamento', this)"
-                class="menu-btn w-full flex items-center gap-3 p-4 rounded-xl text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">
+            <button onclick="mudarAba('aba-faturamento', this)" class="menu-btn w-full flex items-center gap-3 p-4 rounded-xl text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">
                 💰 Faturamento
             </button>
         </nav>
 
-        <div class="p-4"><button onclick="location.href='index.html'"
-                class="text-[10px] font-bold text-slate-400 uppercase">Sair</button></div>
+        <div class="p-4 border-t border-slate-50">
+            <button onclick="location.href='index.html'" class="text-[10px] font-bold text-slate-400 uppercase hover:text-red-500 transition-colors">Sair do Painel</button>
+        </div>
     </aside>
 
     <main class="flex-grow overflow-y-auto p-8 no-scrollbar">
 
         <section id="aba-produtos" class="aba-conteudo">
             <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-bold">Produtos</h2>
-                <button onclick="abrirModalCadastro()"
-                    class="bg-orange-500 text-white px-6 py-2 rounded-xl text-xs font-bold">+ Novo</button>
+                <h2 class="text-2xl font-bold text-slate-800">Produtos</h2>
+                <button onclick="abrirModalCadastro()" class="bg-orange-500 text-white px-6 py-3 rounded-2xl text-xs font-bold shadow-lg shadow-orange-100 hover:scale-105 transition-all">+ Novo Material</button>
             </div>
             <div id="lista-admin" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </section>
@@ -68,7 +55,6 @@
                     Total: <span id="contagem-usuarios">0</span>
                 </span>
             </div>
-
             <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
                 <table class="w-full text-left">
                     <thead class="bg-slate-50 border-b border-slate-100">
@@ -82,86 +68,88 @@
             </div>
         </section>
 
+        <section id="aba-faturamento" class="aba-conteudo hidden">
+            <h2 class="text-2xl font-bold text-slate-800 mb-8">Desempenho de Vendas</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Hoje</p>
+                    <h3 id="fat-hoje" class="text-2xl font-black text-green-500">R$ 0,00</h3>
+                </div>
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Ontem</p>
+                    <h3 id="fat-ontem" class="text-2xl font-black text-slate-600">R$ 0,00</h3>
+                </div>
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Este Mês</p>
+                    <h3 id="fat-mes" class="text-2xl font-black text-slate-800">R$ 0,00</h3>
+                    <p id="comparacao-resultado" class="text-[10px] mt-2 text-slate-400 font-medium italic"></p>
+                </div>
+                <div class="bg-orange-500 p-6 rounded-[2rem] shadow-lg shadow-orange-100">
+                    <p class="text-[10px] font-black text-orange-200 uppercase mb-2">Mês Anterior</p>
+                    <h3 id="fat-ano" class="text-2xl font-black text-white">R$ 0,00</h3>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                <h4 class="font-bold text-slate-700 mb-6 text-sm">Evolução Diária</h4>
+                <canvas id="graficoVendas" height="100"></canvas>
+            </div>
+        </section>
+
     </main>
-      <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Este Mês</p>
-            <h3 id="fat-mes" class="text-2xl font-black text-slate-800">R$ 0,00</h3>
-            <p id="comparacao-resultado" class="text-[10px] mt-2 text-slate-400 font-medium"></p>
-        </div>
 
-    <div id="modal-produto"
-        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
-        <div
-            class="bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
-            <button onclick="fecharModal()"
-                class="absolute top-6 right-8 text-3xl text-slate-300 hover:text-slate-500">&times;</button>
-
-            <h3 id="modal-titulo" class="text-2xl font-black text-slate-800 mb-8">Editar Material</h3>
-
+    <div id="modal-produto" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
+            <button onclick="fecharModal()" class="absolute top-6 right-8 text-3xl text-slate-300 hover:text-slate-500">&times;</button>
+            <h3 id="modal-titulo" class="text-2xl font-black text-slate-800 mb-8">Novo Material</h3>
             <form id="form-produto" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input type="hidden" id="edit-id">
-
                 <div class="space-y-4">
                     <div>
                         <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Nome do Produto</label>
-                        <input type="text" id="edit-nome" placeholder="Ex: Painel Volta às Aulas"
-                            class="w-full bg-slate-50 p-4 rounded-2xl border-none focus:ring-2 focus:ring-orange-500 outline-none text-sm">
+                        <input type="text" id="edit-nome" class="w-full bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Valor (R$)</label>
-                        <input type="number" step="0.01" id="edit-preco" placeholder="0.00"
-                            class="w-full bg-slate-50 p-4 rounded-2xl border-none focus:ring-2 focus:ring-orange-500 outline-none text-sm">
+                        <input type="number" step="0.01" id="edit-preco" class="w-full bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Categoria</label>
-                        <select id="edit-categoria"
-                            class="w-full bg-slate-50 p-4 rounded-2xl border-none focus:ring-2 focus:ring-orange-500 outline-none text-sm appearance-none">
+                        <select id="edit-categoria" class="w-full bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 text-sm appearance-none cursor-pointer">
                             <option value="Atividades">Atividades</option>
                             <option value="Jogos">Jogos</option>
                             <option value="Decoração">Decoração</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Descrição do Material</label>
-                        <textarea id="edit-descricao" rows="4" placeholder="Conte detalhes sobre o PDF..."
-                            class="w-full bg-slate-50 p-4 rounded-2xl border-none focus:ring-2 focus:ring-orange-500 outline-none text-sm resize-none"></textarea>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Descrição</label>
+                        <textarea id="edit-descricao" rows="4" class="w-full bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 text-sm resize-none"></textarea>
                     </div>
                 </div>
-
                 <div class="space-y-4">
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Link da Capa
-                            (Principal)</label>
-                        <input type="text" id="edit-capa" placeholder="URL da imagem"
-                            class="w-full bg-slate-50 p-4 rounded-2xl border-none focus:ring-2 focus:ring-orange-500 outline-none text-sm">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Capa Principal (URL)</label>
+                        <input type="text" id="edit-capa" class="w-full bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Link Foto Extra 1</label>
-                        <input type="text" id="edit-foto1" placeholder="URL opcional"
-                            class="w-full bg-slate-50 p-4 rounded-2xl border-none focus:ring-2 focus:ring-orange-500 outline-none text-sm">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Foto Extra 1 (URL)</label>
+                        <input type="text" id="edit-foto1" class="w-full bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Link Foto Extra 2</label>
-                        <input type="text" id="edit-foto2" placeholder="URL opcional"
-                            class="w-full bg-slate-50 p-4 rounded-2xl border-none focus:ring-2 focus:ring-orange-500 outline-none text-sm">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Foto Extra 2 (URL)</label>
+                        <input type="text" id="edit-foto2" class="w-full bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-orange-500 uppercase ml-2">Link do Drive
-                            (Download)</label>
-                        <input type="text" id="edit-link" placeholder="Link do arquivo PDF"
-                            class="w-full bg-orange-50 p-4 rounded-2xl border-2 border-orange-100 focus:border-orange-500 outline-none text-sm font-bold">
+                        <label class="text-[10px] font-bold text-orange-500 uppercase ml-2">Link do Google Drive</label>
+                        <input type="text" id="edit-link" class="w-full bg-orange-50 p-4 rounded-2xl border-2 border-orange-100 outline-none focus:border-orange-500 text-sm font-bold">
                     </div>
                 </div>
-
-                <button type="submit"
-                    class="md:col-span-2 w-full bg-orange-500 text-white py-5 rounded-3xl font-black uppercase tracking-widest shadow-xl shadow-orange-100 hover:scale-[1.02] active:scale-95 transition-all mt-4">
-                    Salvar Alterações
-                </button>
+                <button type="submit" class="md:col-span-2 w-full bg-orange-500 text-white py-5 rounded-3xl font-black uppercase tracking-widest shadow-xl shadow-orange-100 hover:scale-[1.01] transition-all mt-4">Salvar Alterações</button>
             </form>
         </div>
     </div>
 
     <script src="admin.js"></script>
 </body>
-
 </html>
