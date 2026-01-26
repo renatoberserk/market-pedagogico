@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeria Premium</title>
+    <style>
+        :root {
+            --primary-bg: #0f172a;
+            --accent-color: #38bdf8;
+            --text-color: #f8fafc;
+            --overlay: rgba(15, 23, 42, 0.95);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: var(--accent-color);
+        }
+
+        /* Grid de Fotos */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.03);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Modal / Carrossel */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--overlay);
+            display: none; /* Escondido por padrão */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            position: relative;
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-img {
+            width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .caption {
+            margin-top: 1.5rem;
+            font-size: 1.2rem;
+            color: var(--accent-color);
+        }
+
+        /* Controles */
+        .close-btn {
+            position: absolute;
+            top: -50px;
+            right: 0;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+        }
+
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 1rem;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .nav-btn:hover { background: var(--accent-color); }
+        .prev { left: -70px; }
+        .next { right: -70px; }
+
+        @media (max-width: 768px) {
+            .nav-btn { position: static; transform: none; margin: 10px; }
+            .prev { margin-right: 50px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>MINHA GALERIA EXPLORER</h1>
+
+    <div class="gallery-grid" id="gallery">
+        </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <button class="nav-btn prev" onclick="changeImage(-1)">&#10094;</button>
+            <img src="" id="modal-img" class="modal-img">
+            <button class="nav-btn next" onclick="changeImage(1)">&#10095;</button>
+            <div class="caption" id="caption"></div>
+        </div>
+    </div>
+
+    <script>
+        const images = [
+            { url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800', desc: 'Montanhas Majestosas ao Pôr do Sol' },
+            { url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800', desc: 'A Calmaria da Natureza Verde' },
+            { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800', desc: 'Caminho Iluminado pela Floresta' },
+            { url: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800', desc: 'Reflexos de um Lago Cristalino' },
+            { url: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=800', desc: 'O Vale do Silêncio Eterno' },
+            { url: 'https://images.unsplash.com/photo-1532274402911-5a3b04759bd7?w=800', desc: 'Campos Dourados sob o Céu Azul' }
+        ];
+
+        let currentIndex = 0;
+        const gallery = document.getElementById('gallery');
+        const modal = document.getElementById('modal');
+        const modalImg = document.getElementById('modal-img');
+        const caption = document.getElementById('caption');
+
+        // Renderizar a Galeria
+        images.forEach((img, index) => {
+            const item = document.createElement('div');
+            item.className = 'gallery-item';
+            item.innerHTML = `<img src="${img.url}" alt="Imagem ${index}">`;
+            item.onclick = () => openModal(index);
+            gallery.appendChild(item);
+        });
+
+        function openModal(index) {
+            currentIndex = index;
+            updateModal();
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        function changeImage(step) {
+            currentIndex += step;
+            if (currentIndex >= images.length) currentIndex = 0;
+            if (currentIndex < 0) currentIndex = images.length - 1;
+            updateModal();
+        }
+
+        function updateModal() {
+            modalImg.src = images[currentIndex].url;
+            caption.innerText = images[currentIndex].desc;
+        }
+
+        // Fechar ao clicar fora da imagem
+        window.onclick = function(event) {
+            if (event.target == modal) closeModal();
+        }
+    </script>
+</body>
+</html>
