@@ -178,25 +178,16 @@ function atualizarContadorCarrinho() {
 }
 
 function fazerLogout() {
-    // Remove os dados do usuário do navegador
-    localStorage.removeItem('user_email'); // ou 'prof_email' se for o admin
-    localStorage.removeItem('user_nome');
+    // Limpa os dados de login
+    localStorage.removeItem('prof_email');
+    localStorage.removeItem('user_email');
     
-    // Recarrega a página ou manda para o login
-    alert("Você saiu da conta!");
-    location.reload(); 
-}
-
-// No final da função que carrega os dados do usuário ou no DOMContentLoaded
-function verificarLogado() {
-    const botaoSair = document.querySelector('button[onclick="fazerLogout()"]');
-    const estaLogado = localStorage.getItem('prof_email') || localStorage.getItem('user_email');
+    // Feedback visual rápido
+    alert("Até logo! 👋");
     
-    if (!estaLogado && botaoSair) {
-        botaoSair.style.display = 'none'; // Esconde o botão se não houver e-mail salvo
-    }
+    // Redireciona para a página inicial ou login
+    window.location.href = 'index.html'; 
 }
-verificarLogado();
 
 // --- AUTH / SESSÃO ---
 function verificarSessao() {
