@@ -91,8 +91,16 @@ async function carregarProdutosAdmin() {
         const container = document.getElementById('lista-admin');
         if (!container) return;
 
-        container.innerHTML = produtos.length ? produtos.map(p => `
-            <div class="flex justify-between items-center p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-orange-200 transition-all">
+        if (!produtos || produtos.length === 0) {
+            container.innerHTML = '<p class="text-gray-400 text-center py-10 italic">Nenhum produto cadastrado.</p>';
+            return;
+        }
+
+        container.innerHTML = ""; // Limpa para renderizar
+        produtos.forEach(p => {
+            const item = document.createElement('div');
+            item.className = "flex justify-between items-center p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-orange-200 transition-all";
+            item.innerHTML = `
                 <div class="flex items-center gap-4">
                     <img src="${p.imagem_url || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-lg object-cover shadow-sm">
                     <div class="max-w-[150px] md:max-w-xs text-left">
@@ -104,52 +112,33 @@ async function carregarProdutosAdmin() {
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick='prepararEdicao(${JSON.stringify(p)})' class="bg-blue-500 text-white p-2 rounded-xl hover:bg-blue-600 transition shadow-sm">✏️</button>
+                    <button class="btn-editar bg-blue-500 text-white p-2 rounded-xl hover:bg-blue-600 transition shadow-sm">✏️</button>
                     <button onclick="excluirProduto(${p.id})" class="bg-red-500 text-white p-2 rounded-xl hover:bg-red-600 transition shadow-sm">🗑️</button>
                 </div>
-            </div>
-        `).join('') : '<p class="text-gray-400 text-center py-10 italic">Nenhum produto cadastrado.</p>';
+            `;
+            // Forma segura de passar o objeto sem quebrar o JSON no HTML
+            item.querySelector('.btn-editar').onclick = () => prepararEdicao(p);
+            container.appendChild(item);
+        });
     } catch (err) { console.error("Erro ao listar produtos:", err); }
 }
 
-// 5. SALVAR OU EDITAR (AÇÃO DO FORMULÁRIO)
-// Adicione este Listener para o formulário funcionar ao clicar no botão submit
-document.getElementById('form-produto')?.addEventListener('submit', function (e) {
-    e.preventDefault();
-    salvarProduto();
-});
-
+// 5. SALVAR OU EDITAR
 async function salvarProduto() {
-    // Capturando os campos antigos
-    const nome = document.getElementById('prod-nome').value;
-    const preco = document.getElementById('prod-preco').value;
-    const categoria = document.getElementById('prod-categoria').value;
-    const imagem_url = document.getElementById('prod-img').value;
-    const link_download = document.getElementById('prod-link').value;
-
-    // NOVO: Capturando os novos campos de detalhes
-    // Certifique-se de que os IDs no seu HTML sejam esses abaixo:
-    const descricao = document.getElementById('prod-descricao').value;
-    const foto_extra1 = document.getElementById('prod-foto1').value;
-    const foto_extra2 = document.getElementById('prod-foto2').value;
-
-    const email_admin = localStorage.getItem('prof_email');
-
-    // Agora o objeto 'dados' está COMPLETO para o seu novo servidor
     const dados = {
-        email_admin,
-        nome,
-        preco,
-        categoria,
-        imagem_url,
-        link_download,
-        descricao,     // <--- Enviando a descrição
-        foto_extra1,   // <--- Enviando foto 1
-        foto_extra2    // <--- Enviando foto 2
+        email_admin: emailLogado,
+        nome: document.getElementById('prod-nome').value,
+        preco: document.getElementById('prod-preco').value,
+        categoria: document.getElementById('prod-categoria').value,
+        imagem_url: document.getElementById('prod-img').value,
+        link_download: document.getElementById('prod-link').value,
+        descricao: document.getElementById('prod-descricao').value,
+        foto_extra1: document.getElementById('prod-foto1').value,
+        foto_extra2: document.getElementById('prod-foto2').value
     };
 
-    const url = modoEdicaoId
-        ? `https://educamateriais.shop/produtos/${modoEdicaoId}`
+    const url = modoEdicaoId 
+        ? `https://educamateriais.shop/produtos/${modoEdicaoId}` 
         : 'https://educamateriais.shop/produtos';
 
     try {
@@ -160,9 +149,8 @@ async function salvarProduto() {
         });
 
         const resultado = await response.json();
-
         if (response.ok && resultado.sucesso) {
-            alert("Produto salvo com todos os detalhes!");
+            alert("Produto salvo com sucesso!");
             limparFormulario();
             carregarProdutosAdmin();
         } else {
@@ -170,79 +158,45 @@ async function salvarProduto() {
         }
     } catch (error) {
         console.error("Erro na requisição:", error);
-        alert("Erro de conexão com o servidor.");
     }
 }
 
-// 6. AUXILIARES (EDIÇÃO E EXCLUSÃO)
+// 6. AUXILIARES
 function prepararEdicao(produto) {
     modoEdicaoId = produto.id;
+    document.getElementById('prod-nome').value = produto.nome;
+    document.getElementById('prod-preco').value = produto.preco;
+    document.getElementById('prod-img').value = produto.imagem_url;
+    document.getElementById('prod-link').value = produto.link_download;
+    document.getElementById('prod-categoria').value = produto.categoria;
+    document.getElementById('prod-descricao').value = produto.descricao || "";
+    document.getElementById('prod-foto1').value = produto.foto_extra1 || "";
+    document.getElementById('prod-foto2').value = produto.foto_extra2 || "";
 
-    const setCampo = (id, valor) => {
-        const el = document.getElementById(id);
-        if (el) el.value = valor || "";
-    };
-
-    // Preenchendo campos básicos
-    setCampo('prod-nome', produto.nome);
-    setCampo('prod-preco', produto.preco);
-    setCampo('prod-img', produto.imagem_url);
-    setCampo('prod-link', produto.link_download);
-    setCampo('prod-categoria', produto.categoria);
-
-    // CORREÇÃO: Usando 'produto' em vez de 'p' e garantindo que os campos novos sejam preenchidos
-    setCampo('prod-descricao', produto.descricao);
-    setCampo('prod-foto1', produto.foto_extra1);
-    setCampo('prod-foto2', produto.foto_extra2);
-
-    // Ajustes de Interface
     document.getElementById('btn-submit').innerText = "Atualizar Material";
     document.getElementById('form-title').innerText = "Editando Material";
     document.getElementById('btn-cancelar')?.classList.remove('hidden');
-
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function limparFormulario() {
     modoEdicaoId = null;
-    
-    // O reset() já limpa todos os inputs, textareas e selects do form automaticamente
-    const form = document.getElementById('form-produto');
-    if (form) form.reset(); 
-
-    // Voltando a interface ao estado original
+    document.getElementById('form-produto').reset();
     document.getElementById('btn-submit').innerText = "Publicar Material";
     document.getElementById('form-title').innerText = "Cadastrar Novo PDF";
     document.getElementById('btn-cancelar')?.classList.add('hidden');
 }
 
 async function excluirProduto(id) {
-    if (!confirm("Tem certeza que deseja excluir este material permanentemente?")) return;
-
+    if (!confirm("Excluir este material?")) return;
     try {
-        // Buscamos o email do admin que está logado no navegador
-        const emailLogado = localStorage.getItem('prof_email');
-
         const resp = await fetch(`https://educamateriais.shop/produtos/${id}`, {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            // O seu backend exige o email_admin para validar o process.env.ADMIN_EMAIL
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email_admin: emailLogado })
         });
-
-        if (resp.ok) {
-            alert("Material removido com sucesso!");
-            carregarProdutosAdmin(); // Atualiza a lista na tela
-        } else {
-            const erro = await resp.json();
-            alert("Erro ao excluir: " + (erro.erro || "Não autorizado"));
-        }
-    } catch (err) {
-        console.error("Erro na conexão ao tentar excluir:", err);
-        alert("Erro de conexão. Verifique se o SSL do domínio está ativo.");
-    }
+        if (resp.ok) { carregarProdutosAdmin(); }
+    } catch (err) { console.error(err); }
 }
 
 async function excluirUsuario(email) {
@@ -258,13 +212,9 @@ async function excluirUsuario(email) {
 }
 
 async function salvarOfertaGeral(event) {
-    // 1. Evita erro caso o evento não seja passado
-    if (event && event.preventDefault) event.preventDefault();
+    if (event) event.preventDefault();
+    const btnSalvar = event?.currentTarget;
 
-    // 2. Tenta capturar o botão de forma segura
-    const btnSalvar = (event && event.currentTarget) ? event.currentTarget : null;
-
-    // 3. Coleta os dados dos inputs
     const dados = {
         titulo: document.getElementById('oferta-titulo').value.trim(),
         preco: document.getElementById('oferta-preco').value.replace(',', '.'),
@@ -274,19 +224,8 @@ async function salvarOfertaGeral(event) {
         foto2: document.getElementById('oferta-foto2').value.trim()
     };
 
-    // Validação
-    if (!dados.titulo || !dados.preco || !dados.link) {
-        alert("Preencha os campos obrigatórios: Título, Preço e Link do Drive.");
-        return;
-    }
-
     try {
-        // Feedback visual de carregamento
-        if (btnSalvar) {
-            btnSalvar.disabled = true;
-            btnSalvar.innerText = "⏳ SALVANDO...";
-        }
-
+        if (btnSalvar) btnSalvar.innerText = "⏳ SALVANDO...";
         const response = await fetch('https://educamateriais.shop/api/salvar-oferta', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -294,52 +233,19 @@ async function salvarOfertaGeral(event) {
         });
 
         if (response.ok) {
-            // Mostra o container do link final
-            const containerLink = document.getElementById('container-link-final');
-            if (containerLink) containerLink.classList.remove('hidden');
-
-            if (btnSalvar) {
-                btnSalvar.innerText = "✅ SITE ATUALIZADO!";
-                btnSalvar.classList.add('text-green-600');
-            }
-
-            alert("🚀 Tudo pronto! Site atualizado.");
-        } else {
-            throw new Error("Erro no servidor");
+            document.getElementById('container-link-final')?.classList.remove('hidden');
+            alert("🚀 Oferta atualizada!");
         }
-    } catch (err) {
-        console.error("Erro ao salvar:", err);
-        alert("Ocorreu um erro ao salvar as configurações.");
-    } finally {
-        // Restaura o botão após 3 segundos
-        if (btnSalvar) {
-            setTimeout(() => {
-                btnSalvar.disabled = false;
-                btnSalvar.innerText = "💾 SALVAR E ATUALIZAR SITE";
-                btnSalvar.classList.remove('text-green-600');
-            }, 3000);
-        }
-    }
+    } catch (err) { console.error(err); }
+    finally { if (btnSalvar) btnSalvar.innerText = "💾 SALVAR E ATUALIZAR SITE"; }
 }
+
 function copiarLinkOferta() {
     const input = document.getElementById('link-final-input');
     input.select();
     navigator.clipboard.writeText(input.value);
-    alert("Link da oferta copiado!");
+    alert("Copiado!");
 }
 
-
-// Adicione isso para garantir que o formulário NÃO use o método padrão (GET)
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('form-produto');
-    if (form) {
-        form.onsubmit = async (e) => {
-            e.preventDefault(); // ISSO impede o erro "Cannot GET"
-
-        };
-    }
-});
+// INICIALIZAÇÃO ÚNICA
 window.onload = validarAcesso;
-
-// await salvarProduto();
-//             await carregarConfigOferta(); 
