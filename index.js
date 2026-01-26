@@ -55,9 +55,8 @@ function renderizarProdutos(lista) {
 
     container.innerHTML = lista.map(p => {
         const nomeLimpo = p.nome.replace(/'/g, "\\'");
-        const linkFinal = p.link_download || ""; 
-        
-        // Reunimos a capa e as fotos extras em uma lista
+        // GARANTIA: Se o link vier nulo do banco, ele não quebra o clique
+        const linkFinal = (p.link_download || p.link || "").trim(); 
         const imagens = [p.imagem_url, p.foto1, p.foto2].filter(img => img && img.trim() !== "");
 
         return `
@@ -72,37 +71,31 @@ function renderizarProdutos(lista) {
                         `).join('')}
                     </div>
                     
-                    <span class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-[8px] md:text-[10px] px-2 py-0.5 rounded-lg font-bold text-orange-600 shadow-sm z-10 uppercase">
-                        ${p.categoria || 'Geral'}
-                    </span>
-
                     ${imagens.length > 1 ? `
-                        <button onclick="document.getElementById('carousel-${p.id}').scrollBy({left: -200, behavior: 'smooth'})" 
-                            class="absolute left-1 top-1/2 -translate-y-1/2 bg-white/90 p-1.5 rounded-full shadow-lg hidden group-hover/btn:flex items-center justify-center text-gray-700 hover:text-orange-500 transition-colors z-20">
+                        <button onclick="event.stopPropagation(); document.getElementById('carousel-${p.id}').scrollBy({left: -200, behavior: 'smooth'})" 
+                            class="absolute left-1 top-1/2 -translate-y-1/2 bg-white/90 p-1.5 rounded-full shadow-lg hidden group-hover/btn:flex z-20">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
                         </button>
-                        <button onclick="document.getElementById('carousel-${p.id}').scrollBy({left: 200, behavior: 'smooth'})" 
-                            class="absolute right-1 top-1/2 -translate-y-1/2 bg-white/90 p-1.5 rounded-full shadow-lg hidden group-hover/btn:flex items-center justify-center text-gray-700 hover:text-orange-500 transition-colors z-20">
+                        <button onclick="event.stopPropagation(); document.getElementById('carousel-${p.id}').scrollBy({left: 200, behavior: 'smooth'})" 
+                            class="absolute right-1 top-1/2 -translate-y-1/2 bg-white/90 p-1.5 rounded-full shadow-lg hidden group-hover/btn:flex z-20">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M9 5l7 7-7 7"/></svg>
                         </button>
                     ` : ''}
                 </div>
 
-                <div class="flex flex-col flex-grow">
+                <div class="flex flex-col flex-grow text-left">
                     <h3 class="font-bold text-gray-800 text-xs md:text-sm mb-1 line-clamp-2 h-8 leading-tight">${p.nome}</h3>
-                    
-                    <p class="text-[10px] md:text-[12px] text-gray-500 line-clamp-3 mb-3 leading-relaxed">
-                        ${p.descricao || 'Material pedagógico completo, pronto para imprimir e usar.'}
+                    <p class="text-[10px] md:text-[11px] text-gray-500 line-clamp-3 mb-3 leading-relaxed flex-grow">
+                        ${p.descricao || 'Material pedagógico completo pronto para aplicação.'}
                     </p>
 
                     <div class="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between gap-2">
                         <div class="flex flex-col">
                             <span class="text-green-600 font-black text-sm md:text-lg leading-none">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
-                            <span class="text-[8px] md:text-[10px] text-gray-400 line-through">R$ ${(parseFloat(p.preco) * 1.5).toFixed(2)}</span>
                         </div>
                         
                         <button onclick="adicionarAoCarrinho(${p.id}, '${nomeLimpo}', ${p.preco}, '${linkFinal}')" 
-                                class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl font-bold text-[10px] md:text-xs transition-all active:scale-95 shadow-md shadow-orange-100 uppercase">
+                                class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl font-bold text-[10px] md:text-xs shadow-md uppercase">
                             Comprar
                         </button>
                     </div>
@@ -111,30 +104,31 @@ function renderizarProdutos(lista) {
     }).join('');
 }
 
-// FUNÇÃO PARA ABRIR O ZOOM
-function abrirZoom(src) {
-    const modal = document.getElementById('modal-zoom');
-    const img = document.getElementById('img-zoom');
-    if (modal && img) {
-        img.src = src;
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.style.overflow = 'hidden'; // Trava o scroll do fundo
+
+function adicionarAoCarrinho(id, nome, preco, link) {
+    console.log("🛒 Tentando comprar:", { id, nome, preco, link });
+
+    // 1. Validação do Link (O link não pode ser vazio para o checkout funcionar)
+    if (!link || link === "" || link === "undefined") {
+        console.error("❌ Erro: Este produto não tem link de download cadastrado!");
+        alert("Desculpe, este material está temporariamente indisponível (link não encontrado).");
+        return;
     }
+
+    // 2. Salva no localStorage para o Checkout
+    localStorage.setItem('link_pendente', link);
+    localStorage.setItem('prof_email', localStorage.getItem('prof_email') || ""); // Mantém o e-mail se existir
+    
+    const item = { id, nome, preco: parseFloat(preco) };
+    let carrinho = [item]; // Como você quer direto para o checkout, limpamos o anterior e colocamos esse
+    
+    localStorage.setItem('edu_cart', JSON.stringify(carrinho));
+
+    console.log("✅ Dados salvos! Redirecionando para o checkout...");
+
+    // 3. Redireciona
+    window.location.href = 'checkout.html';
 }
-
-// FUNÇÃO PARA FECHAR O ZOOM
-function fecharZoom() {
-    const modal = document.getElementById('modal-zoom');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        document.body.style.overflow = 'auto'; // Libera o scroll
-    }
-}
-
-
-
 
 function filtrarProdutos(categoriaAlvo, elemento) {
     if (!produtosOriginais || produtosOriginais.length === 0) return;
