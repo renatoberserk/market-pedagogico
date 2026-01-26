@@ -67,22 +67,24 @@
         <div id="vitrine-produtos" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
     </main>
 
-<div id="modal-galeria" ...>
-    <div class="bg-white ... flex flex-col md:flex-row">
+<div id="modal-galeria" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] hidden items-center justify-center p-4">
+    <div class="bg-white w-full max-w-4xl rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
         
-        <div class="md:w-1/2"> ... </div>
+        <div class="w-full md:w-1/2 bg-gray-100 relative h-80 md:h-auto">
+            <img id="modal-img" src="" class="w-full h-full object-cover transition-all">
+            <button onclick="mudarFoto(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/50 p-2 rounded-full">❮</button>
+            <button onclick="mudarFoto(1)" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/50 p-2 rounded-full">❯</button>
+            
+            <div id="galeria-indicadores" class="absolute bottom-4 left-6 right-6 flex gap-2"></div>
+        </div>
 
-        <div class="md:w-1/2 p-8 flex flex-col justify-between">
-            <div>
+        <div class="w-full md:w-1/2 p-8 flex flex-col">
+            <button onclick="fecharGaleria()" class="self-end text-gray-400 text-2xl">&times;</button>
+            <div class="flex-grow">
                 <h2 id="modal-titulo-detalhe" class="text-xl font-bold text-gray-800 mb-4"></h2>
-                
-                <p id="modal-descricao-detalhe" class="text-gray-500 text-sm leading-relaxed whitespace-pre-line overflow-y-auto max-h-60 no-scrollbar">
-                    </p>
+                <p id="modal-descricao-detalhe" class="text-gray-500 text-sm leading-relaxed whitespace-pre-line"></p>
             </div>
-
-            <button onclick="adicionarAoCarrinhoDoModal()" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold mt-6">
-                COMPRAR AGORA
-            </button>
+            <button onclick="fecharGaleria()" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold mt-6">ADICIONAR AO CARRINHO</button>
         </div>
     </div>
 </div>

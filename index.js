@@ -16,7 +16,7 @@ async function carregarProdutosLoja() {
         produtosOriginais = await resp.json();
         renderizarProdutos(produtosOriginais);
     } catch (err) {
-        console.error("Erro:", err);
+        console.error("Erro ao carregar produtos:", err);
     }
 }
 
@@ -25,7 +25,6 @@ function renderizarProdutos(lista) {
     if (!container) return;
     container.innerHTML = lista.map(p => {
         const nomeLimpo = p.nome.replace(/'/g, "\\'");
-        // Preparamos a descrição para ser enviada como texto seguro para o clique
         const descLimpa = (p.descricao || "").replace(/'/g, "\\'").replace(/\n/g, ' ');
         const fotos = [p.imagem_url, p.foto_extra1, p.foto_extra2].filter(f => f && f.trim() !== "");
         const fotosJSON = JSON.stringify(fotos).replace(/"/g, '&quot;');
@@ -35,8 +34,8 @@ function renderizarProdutos(lista) {
                 <div class="relative mb-3 overflow-hidden rounded-[1.8rem] bg-gray-50 h-44 cursor-pointer" 
                      onclick="abrirGaleria(${fotosJSON}, '${nomeLimpo}', ${p.preco}, '${p.link_download}', '${descLimpa}')">
                     <img src="${p.imagem_url}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                    <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span class="bg-white text-gray-800 px-4 py-2 rounded-full font-bold text-[10px] shadow-lg">VER DETALHES</span>
+                    <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold text-[10px]">
+                        VER DETALHES
                     </div>
                 </div>
                 <div class="flex flex-col flex-grow px-1">
@@ -51,56 +50,60 @@ function renderizarProdutos(lista) {
     }).join('');
 }
 
-// FUNÇÃO DA GALERIA + DESCRIÇÃO
 function abrirGaleria(fotos, titulo, preco, link, descricao) {
     galeriaAtual = fotos;
     indiceGaleria = 0;
-    produtoSelecionadoNoModal = { nome: titulo, preco: preco, link: link };
+    produtoSelecionadoNoModal = { id: Date.now(), nome: titulo, preco: preco, link: link };
 
-    // Injetando o Título e a Descrição no Modal
-    document.getElementById('modal-titulo-detalhe').innerText = titulo;
-    
-    const elementoDesc = document.getElementById('modal-descricao-detalhe');
-    if (elementoDesc) {
-        // Usamos innerText para manter as quebras de linha ou innerHTML se quiser aceitar tags
-        elementoDesc.innerText = descricao || "Este material didático em PDF foi desenvolvido para facilitar o aprendizado de forma lúdica e prática.";
+    // Preencher Textos com proteção (if)
+    const elTitulo = document.getElementById('modal-titulo-detalhe');
+    const elDesc = document.getElementById('modal-descricao-detalhe');
+    const elIndicadores = document.getElementById('galeria-indicadores');
+
+    if (elTitulo) elTitulo.innerText = titulo;
+    if (elDesc) elDesc.innerText = descricao || "Material pedagógico de alta qualidade.";
+
+    // Preencher Indicadores com proteção
+    if (elIndicadores) {
+        elIndicadores.innerHTML = fotos.map((_, i) => 
+            `<div class="h-1 flex-1 rounded-full bg-gray-200"><div id="barrinha-${i}" class="h-full bg-orange-500 rounded-full transition-all duration-300" style="width: 0%"></div></div>`
+        ).join('');
     }
 
-    // Gerar as barrinhas do carrossel
-    document.getElementById('galeria-indicadores').innerHTML = fotos.map((_, i) => 
-        `<div class="h-1 flex-1 rounded-full bg-gray-200"><div id="barrinha-${i}" class="h-full bg-orange-500 rounded-full transition-all duration-300" style="width: 0%"></div></div>`
-    ).join('');
-
     atualizarGaleria();
-    document.getElementById('modal-galeria').style.display = 'flex';
+    const modal = document.getElementById('modal-galeria');
+    if (modal) modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
 
 function atualizarGaleria() {
     const img = document.getElementById('modal-img');
-    img.src = galeriaAtual[indiceGaleria];
+    if (img) img.src = galeriaAtual[indiceGaleria];
+    
     galeriaAtual.forEach((_, i) => {
         const bar = document.getElementById(`barrinha-${i}`);
-        if(bar) bar.style.width = i === indiceGaleria ? '100%' : '0%';
+        if (bar) bar.style.width = i === indiceGaleria ? '100%' : '0%';
     });
 }
 
 function mudarFoto(passo) {
+    if (galeriaAtual.length === 0) return;
     indiceGaleria = (indiceGaleria + passo + galeriaAtual.length) % galeriaAtual.length;
     atualizarGaleria();
 }
 
 function fecharGaleria() {
-    document.getElementById('modal-galeria').style.display = 'none';
+    const modal = document.getElementById('modal-galeria');
+    if (modal) modal.style.display = 'none';
     document.body.style.overflow = 'auto';
 }
 
-// CARRINHO E SESSÃO (Mantidos)
 function adicionarAoCarrinho(id, nome, preco, link) {
-    if (carrinho.find(item => item.id === id)) return alert("Item já está no carrinho!");
+    if (carrinho.find(item => item.id === id)) return alert("Já está no carrinho!");
     carrinho.push({ id, nome, preco: parseFloat(preco), link });
     localStorage.setItem('edu_cart', JSON.stringify(carrinho));
-    atualizarContadorCarrinho();
+    const c = document.getElementById('cart-count');
+    if (c) c.innerText = carrinho.length;
     alert("Adicionado! 🛒");
 }
 
