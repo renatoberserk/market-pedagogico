@@ -152,23 +152,39 @@ app.post('/produtos', (req, res) => {
 
 app.put('/produtos/:id', (req, res) => {
     const { id } = req.params;
-    // Adicionado categoria aqui embaixo:
-    const { email_admin, nome, preco, link_download, imagem_url, categoria } = req.body;
+    
+    // Pegando TODOS os campos necessários do corpo da requisição
+    const { 
+        email_admin, 
+        nome, 
+        preco, 
+        link_download, 
+        imagem_url, 
+        foto1,       // Adicionado
+        descricao,   // Adicionado
+        categoria 
+    } = req.body;
 
-    // Verificação de segurança
+    // Verificação de segurança (essencial)
     if (email_admin !== process.env.ADMIN_EMAIL) {
-        return res.status(403).json({ erro: "Não autorizado" });
+        return res.status(403).json({ erro: "Acesso negado: você não é um administrador." });
     }
 
-    // SQL atualizado para incluir a categoria
-    const sql = "UPDATE produtos SET nome=?, preco=?, link_download=?, imagem_url=?, categoria=? WHERE id=?";
+    // SQL atualizado com todos os campos para edição total
+    const sql = `
+        UPDATE produtos 
+        SET nome=?, preco=?, link_download=?, imagem_url=?, foto1=?, descricao=?, categoria=? 
+        WHERE id=?
+    `;
 
-    db.query(sql, [nome, preco, link_download, imagem_url, categoria, id], (err) => {
+    const valores = [nome, preco, link_download, imagem_url, foto1, descricao, categoria, id];
+
+    db.query(sql, valores, (err) => {
         if (err) {
-            console.error(err);
-            return res.status(500).json({ sucesso: false });
+            console.error("Erro ao atualizar produto no banco:", err);
+            return res.status(500).json({ sucesso: false, erro: "Erro interno no servidor" });
         }
-        res.json({ sucesso: true });
+        res.json({ sucesso: true, mensagem: "Produto atualizado com sucesso!" });
     });
 });
 
