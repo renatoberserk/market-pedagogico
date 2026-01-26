@@ -177,16 +177,28 @@ function atualizarContadorCarrinho() {
     if (c) c.innerText = carrinho.length;
 }
 
+
 function fazerLogout() {
-    // Limpa os dados de login
-    localStorage.removeItem('prof_email');
+    // 1. Limpa os dados de sessão
     localStorage.removeItem('user_email');
-    
-    // Feedback visual rápido
-    alert("Até logo! 👋");
-    
-    // Redireciona para a página inicial ou login
-    window.location.href = 'index.html'; 
+    localStorage.removeItem('prof_email');
+    localStorage.removeItem('user_nome');
+
+    // 2. Feedback visual
+    console.log("Sessão encerrada");
+
+    // 3. Redireciona para a página de login/cadastro (ela mesma, para resetar)
+    window.location.href = 'login.html'; 
+}
+
+// Aproveitando para adicionar a função switchTab que você usa no HTML
+function switchTab(modo) {
+    const isLogin = modo === 'login';
+    document.getElementById('wrapper-nome').classList.toggle('hidden', isLogin);
+    document.getElementById('wrapper-whats').classList.toggle('hidden', isLogin);
+    document.getElementById('tab-login').classList.toggle('tab-active', isLogin);
+    document.getElementById('tab-cadastro').classList.toggle('tab-active', !isLogin);
+    document.getElementById('btn-submit').innerText = isLogin ? 'Entrar Agora' : 'Criar minha Conta';
 }
 
 // --- AUTH / SESSÃO ---
