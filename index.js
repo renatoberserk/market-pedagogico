@@ -104,7 +104,8 @@ function mudarFoto(passo) {
 
 function atualizarGaleria() {
     const img = document.getElementById('modal-img');
-    const caption = document.getElementById('caption-modal');
+    const titleElement = document.getElementById('modal-titulo-detalhe');
+    
     if (!img) return;
 
     img.style.opacity = 0;
@@ -112,8 +113,11 @@ function atualizarGaleria() {
     setTimeout(() => {
         img.src = galeriaAtual[indiceGaleria];
         img.style.opacity = 1;
-        if (caption) caption.innerText = produtoSelecionadoNoModal.nome;
         
+        // Insere o título na área de descrição
+        if (titleElement) titleElement.innerText = produtoSelecionadoNoModal.nome;
+        
+        // Atualiza as barrinhas de progresso
         galeriaAtual.forEach((_, i) => {
             const bar = document.getElementById(`barrinha-${i}`);
             if (bar) bar.style.width = i === indiceGaleria ? '100%' : '0%';
