@@ -234,25 +234,21 @@ app.get('/verificar-pagamento/:id', async (req, res) => {
         const data = await response.json();
 
         if (data.status === 'approved') {
-            // BUSCA NO METADATA, MAS SE FOR NULL, TENTA O PAYER
-            const emailCliente = data.metadata?.email_cliente || data.payer?.email;
-            const linkEntrega = data.metadata?.link_entrega || "https://educamateriais.shop/ajuda";
+            // BUSCA EXATAMENTE O LINK QUE FOI GRAVADO NO PIX
+            const linkFinal = data.metadata.link_entrega;
+            const emailCliente = data.metadata.email_cliente;
 
-            console.log(`✅ Pagamento aprovado! Entregando para: ${emailCliente}`);
+            console.log(`🚀 Enviando material agora: ${linkFinal} para ${emailCliente}`);
 
-            if (emailCliente && emailCliente !== "null") {
-                await enviarEmailEntrega(emailCliente, linkEntrega);
+            if (linkFinal && emailCliente) {
+                await enviarEmailEntrega(emailCliente, linkFinal);
                 return res.json({ status: 'approved' });
-            } else {
-                console.error("❌ Erro: E-mail do cliente é null mesmo após aprovação.");
-                return res.status(400).json({ status: 'error', message: 'E-mail não encontrado' });
             }
         }
-        
         res.json({ status: data.status });
     } catch (error) {
-        console.error("❌ Erro na verificação:", error);
-        res.status(500).json({ erro: "Erro interno" });
+        console.error("❌ Erro ao verificar:", error);
+        res.status(500).json({ erro: "Erro na verificação" });
     }
 });
 /////////////////////////////////////////////////////////
@@ -371,42 +367,57 @@ app.get('/api/config-oferta', (req, res) => {
 
 
 
+async function enviarEmailEntrega(emailDestino, linkMaterial) {
+    // Configuração do seu transportador (Nodemailer)
+    const transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST,
+        port: process.env.EMAIL_PORT,
+        secure: true, 
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
 
-
-
-
-
-async function enviarEmailEntrega(emailCliente, linkDrive) {
-    if (!linkDrive) {
-        console.error("❌ Erro: Link do Drive não encontrado no config-oferta.json");
-        return;
-    }
-
-    try {
-        await resend.emails.send({
-            from: 'Educa Materiais <entrega@educamateriais.shop>',
-            to: emailCliente,
-            subject: '🚀 Seu Material Chegou! (Acesso Google Drive)',
-            html: `
-                <div style="font-family: sans-serif; padding: 30px; border: 1px solid #eee; border-radius: 20px; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #1e293b;">Olá! Seu material está pronto.</h2>
-                    <p style="color: #64748b; line-height: 1.6;">Obrigado por confiar na <strong>Educa Materiais</strong>. O seu pagamento foi confirmado e o acesso à sua pasta no Google Drive já está liberado:</p>
+    const mailOptions = {
+        from: `"Educa Materiais" <${process.env.EMAIL_USER}>`,
+        to: emailDestino,
+        subject: '✅ Seu Material Chegou! | Educa Materiais',
+        // Versão em HTML para um e-mail profissional
+        html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 20px; overflow: hidden;">
+                <div style="background-color: #4f46e5; padding: 40px 20px; text-align: center; color: white;">
+                    <h1 style="margin: 0; font-size: 24px;">Pagamento Confirmado!</h1>
+                    <p style="opacity: 0.9;">Obrigado por confiar na Educa Materiais.</p>
+                </div>
+                <div style="padding: 40px 30px; text-align: center; background-color: white;">
+                    <p style="font-size: 16px; color: #475569; margin-bottom: 30px;">
+                        Seu material didático já está disponível. Clique no botão abaixo para acessar sua pasta no Google Drive:
+                    </p>
                     
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="${linkDrive}" style="display: inline-block; background: #16a34a; color: white; padding: 18px 30px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                            🚀 ACESSAR GOOGLE DRIVE
-                        </a>
-                    </div>
-                    
-                    <p style="color: #94a3b8; font-size: 12px; border-top: 1px solid #f1f5f9; pt: 20px; margin-top: 30px;">
-                        <strong>Dica:</strong> Salve este e-mail nos seus favoritos para acessar o conteúdo sempre que precisar. Se tiver dúvidas, basta responder a este e-mail.
+                    <a href="${linkMaterial}" target="_blank" style="display: inline-block; background-color: #16a34a; color: white; padding: 18px 35px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 18px; box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);">
+                        🚀 ACESSAR MEU MATERIAL
+                    </a>
+
+                    <p style="margin-top: 40px; font-size: 12px; color: #94a3b8;">
+                        Dica: Recomendamos salvar o link nos seus favoritos ou fazer uma cópia dos arquivos para o seu próprio Drive.
                     </p>
                 </div>
-            `
-        });
-        console.log(`✅ E-mail de entrega enviado para: ${emailCliente}`);
+                <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                    <p style="margin: 0; font-size: 12px; color: #64748b;">
+                        Dúvidas? Responda a este e-mail ou acesse educamateriais.shop
+                    </p>
+                </div>
+            </div>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`📧 E-mail enviado com sucesso para: ${emailDestino}`);
     } catch (error) {
-        console.error("❌ Erro ao enviar e-mail via Resend:", error);
+        console.error("❌ Erro ao enviar e-mail:", error);
+        throw error; // Repassa o erro para o log do PM2 capturar
     }
 }
 
