@@ -110,23 +110,6 @@
             </div>
         </div>
     </div>
-    <div id="modal-zoom" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/90 p-4 backdrop-blur-sm transition-all" onclick="fecharZoom()">
-    <div class="relative max-w-4xl w-full flex items-center justify-center">
-        <button class="absolute -top-10 right-0 text-white text-4xl font-light hover:text-orange-500">&times;</button>
-        
-        <img id="img-zoom" src="" class="max-w-full max-h-[90vh] rounded-lg shadow-2xl object-contain animate-zoom-in" onclick="event.stopPropagation()">
-    </div>
-</div>
-
-<style>
-@keyframes zoom-in {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
-.animate-zoom-in {
-    animation: zoom-in 0.2s ease-out forwards;
-}
-</style>
 
     <!-- JavaScript -->
     <script src="index.js"></script>
