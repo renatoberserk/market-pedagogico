@@ -245,3 +245,35 @@ async function deletarProduto(id) {
         carregarProdutosAdmin();
     } catch (err) { console.error(err); }
 }
+
+async function carregarRelatorios() {
+    const emailAdmin = localStorage.getItem('prof_email');
+    
+    try {
+        const res = await fetch(`https://educamateriais.shop/admin/stats?email_admin=${emailAdmin}`);
+        const d = await res.json();
+
+        const formatar = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        // Preencher os Cards
+        document.getElementById('fat-hoje').innerText = formatar(d.hoje);
+        document.getElementById('fat-ontem').innerText = formatar(d.ontem);
+        document.getElementById('fat-mes').innerText = formatar(d.mes_atual);
+        document.getElementById('fat-ano').innerText = formatar(d.mes_anterior); // Usei para comparar
+
+        // Lógica de Comparação (Crescimento)
+        const diff = d.mes_atual - d.mes_anterior;
+        const porcentagem = d.mes_anterior > 0 ? (diff / d.mes_anterior) * 100 : 100;
+        
+        const infoComparacao = document.getElementById('comparacao-resultado');
+        if (infoComparacao) {
+            infoComparacao.innerHTML = diff >= 0 
+                ? `<span class="text-green-500 font-bold">▲ ${porcentagem.toFixed(1)}%</span> mais que o mês passado`
+                : `<span class="text-red-500 font-bold">▼ ${Math.abs(porcentagem).toFixed(1)}%</span> menos que o mês passado`;
+        }
+
+        renderizarGraficoSimples(d.ontem, d.hoje); // Gráfico básico com dados reais
+    } catch (err) {
+        console.error("Erro ao processar estatísticas:", err);
+    }
+}
