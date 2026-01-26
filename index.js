@@ -10,6 +10,7 @@ window.onload = () => {
     atualizarContadorCarrinho();
 };
 
+// 1. GESTÃO DE SESSÃO
 function verificarSessao() {
     const nome = localStorage.getItem('prof_nome');
     const isAdmin = localStorage.getItem('prof_admin') === 'true';
@@ -27,31 +28,41 @@ function verificarSessao() {
 
 function logout() { localStorage.clear(); location.href = 'index.html'; }
 
+// 2. CARREGAMENTO DE DADOS
 async function carregarProdutosLoja() {
     try {
-        const resp = await fetch('https://educamateriais.shop/produtos');
+        // Adicionando timestamp para evitar cache de produtos antigos
+        const resp = await fetch('https://educamateriais.shop/produtos?t=' + new Date().getTime());
         const dados = await resp.json();
         produtosOriginais = dados; 
         renderizarProdutos(produtosOriginais);
     } catch (err) {
-        console.error("Erro:", err);
+        console.error("Erro ao carregar loja:", err);
     }
 }
 
+// 3. RENDERIZAÇÃO DA VITRINE
 function renderizarProdutos(lista) {
     const container = document.getElementById('vitrine-produtos');
     if (!container) return;
+    
     container.innerHTML = lista.map(p => {
         const nomeLimpo = p.nome.replace(/'/g, "\\'");
+        const descLimpa = (p.descricao || "").replace(/'/g, "\\'").replace(/\n/g, ' ');
         const linkFinal = (p.link_download || "").trim();
-        const fotos = [p.imagem_url, p.foto1, p.foto2].filter(f => f && f.trim() !== "");
+        
+        // Mapeando as fotos conforme os nomes novos do banco
+        const fotos = [p.imagem_url, p.foto_extra1, p.foto_extra2].filter(f => f && f.trim() !== "");
         const fotosJSON = JSON.stringify(fotos).replace(/"/g, '&quot;');
+
         return `
-            <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition-all">
-                <div class="relative mb-3 overflow-hidden rounded-xl bg-gray-50 h-40 cursor-pointer" 
-                     onclick="abrirGaleria(${fotosJSON}, '${nomeLimpo}', ${p.preco}, '${linkFinal}')">
-                    <img src="${p.imagem_url}" class="w-full h-full object-cover">
-                    <div class="absolute bottom-2 right-2 bg-black/60 text-white text-[9px] px-2 py-1 rounded-lg">🔍 Ver fotos</div>
+            <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition-all group">
+                <div class="relative mb-3 overflow-hidden rounded-xl bg-gray-50 h-44 cursor-pointer" 
+                     onclick="abrirGaleria(${fotosJSON}, '${nomeLimpo}', ${p.preco}, '${linkFinal}', '${descLimpa}', '${p.categoria || 'Material'}')">
+                    <img src="${p.imagem_url}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                         <span class="bg-white/90 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-xl">Ver detalhes</span>
+                    </div>
                 </div>
                 <div class="flex flex-col flex-grow text-left">
                     <h3 class="font-bold text-gray-800 text-xs mb-1 line-clamp-2 h-8">${p.nome}</h3>
@@ -65,29 +76,52 @@ function renderizarProdutos(lista) {
     }).join('');
 }
 
-function abrirGaleria(fotos, titulo, preco, link) {
+// 4. MODAL DE DETALHES E GALERIA
+function abrirGaleria(fotos, titulo, preco, link, descricao, categoria) {
     galeriaAtual = fotos;
     indiceGaleria = 0;
     produtoSelecionadoNoModal = { id: Date.now(), nome: titulo, preco: preco, link: link };
-    document.getElementById('galeria-indicadores').innerHTML = fotos.map((_, i) => 
-        `<div class="h-1 flex-1 rounded-full bg-gray-200"><div id="barrinha-${i}" class="h-full bg-orange-500 rounded-full transition-all duration-300" style="width: 0%"></div></div>`
-    ).join('');
+
+    // Preencher informações do Modal
+    document.getElementById('modal-titulo-detalhe').innerText = titulo;
+    const descElem = document.getElementById('detalhe-descricao');
+    if(descElem) descElem.innerText = descricao || "Nenhuma descrição disponível.";
+    
+    const catElem = document.getElementById('detalhe-categoria');
+    if(catElem) catElem.innerText = categoria;
+
+    // Gerar indicadores (barrinhas)
+    const indicadores = document.getElementById('galeria-indicadores');
+    if(indicadores) {
+        indicadores.innerHTML = fotos.map((_, i) => 
+            `<div class="h-1 flex-1 rounded-full bg-gray-200"><div id="barrinha-${i}" class="h-full bg-orange-500 rounded-full transition-all duration-300" style="width: 0%"></div></div>`
+        ).join('');
+    }
+
     atualizarGaleria();
     document.getElementById('modal-galeria').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
 
 function mudarFoto(passo) {
-    indiceGaleria += (indiceGaleria + passo + galeriaAtual.length) % galeriaAtual.length;
+    if (galeriaAtual.length <= 1) return;
+    indiceGaleria = (indiceGaleria + passo + galeriaAtual.length) % galeriaAtual.length;
     atualizarGaleria();
 }
 
 function atualizarGaleria() {
     const img = document.getElementById('modal-img');
-    img.src = galeriaAtual[indiceGaleria];
-    document.getElementById('modal-titulo-detalhe').innerText = produtoSelecionadoNoModal.nome;
+    if (!img) return;
+    
+    img.style.opacity = '0';
+    setTimeout(() => {
+        img.src = galeriaAtual[indiceGaleria];
+        img.style.opacity = '1';
+    }, 150);
+
     galeriaAtual.forEach((_, i) => {
-        document.getElementById(`barrinha-${i}`).style.width = i === indiceGaleria ? '100%' : '0%';
+        const bar = document.getElementById(`barrinha-${i}`);
+        if(bar) bar.style.width = i === indiceGaleria ? '100%' : '0%';
     });
 }
 
@@ -96,11 +130,14 @@ function fecharGaleria() {
     document.body.style.overflow = 'auto';
 }
 
+// 5. GESTÃO DO CARRINHO
 function adicionarAoCarrinho(id, nome, preco, link) {
     if (carrinho.find(item => item.id === id)) return alert("Item já está no carrinho!");
     carrinho.push({ id, nome, preco: parseFloat(preco), link });
     localStorage.setItem('edu_cart', JSON.stringify(carrinho));
     atualizarContadorCarrinho();
+    
+    // Pequeno feedback visual ao invés de alert se preferir (opcional)
     alert("Adicionado ao carrinho! 🛒");
 }
 
@@ -111,6 +148,7 @@ function atualizarContadorCarrinho() {
 
 function toggleCarrinho() {
     const modal = document.getElementById('modal-carrinho');
+    if(!modal) return;
     modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
     renderizarItensCarrinho();
 }
@@ -118,14 +156,23 @@ function toggleCarrinho() {
 function renderizarItensCarrinho() {
     const container = document.getElementById('itens-carrinho');
     const totalElem = document.getElementById('total-carrinho');
+    if(!container || !totalElem) return;
+
     let total = 0;
-    container.innerHTML = carrinho.map(item => {
-        total += item.preco;
-        return `<div class="flex justify-between items-center py-2 border-b border-gray-50 text-[11px]">
-                    <span class="font-bold text-gray-700">${item.nome}</span>
-                    <button onclick="removerItemCarrinho('${item.id}')" class="text-red-500 ml-2">×</button>
-                </div>`;
-    }).join('');
+    if (carrinho.length === 0) {
+        container.innerHTML = `<p class="text-gray-400 text-center py-4 text-xs">Carrinho vazio</p>`;
+    } else {
+        container.innerHTML = carrinho.map(item => {
+            total += item.preco;
+            return `<div class="flex justify-between items-center py-3 border-b border-gray-50 text-[11px]">
+                        <span class="font-bold text-gray-700 max-w-[150px] truncate">${item.nome}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-600 font-bold">R$ ${item.preco.toFixed(2).replace('.', ',')}</span>
+                            <button onclick="removerItemCarrinho('${item.id}')" class="text-red-400 hover:text-red-600 text-lg ml-2">×</button>
+                        </div>
+                    </div>`;
+        }).join('');
+    }
     totalElem.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
