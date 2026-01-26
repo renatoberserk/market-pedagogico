@@ -1,7 +1,6 @@
 let carrinho = JSON.parse(localStorage.getItem('edu_cart')) || [];
-let produtosOriginais = []; // Global para o filtro acessar
+let produtosOriginais = [];
 
-// 1. INICIALIZAÇÃO
 window.onload = () => {
     verificarSessao();
     carregarProdutosLoja();
@@ -26,12 +25,8 @@ function verificarSessao() {
     }
 }
 
-function logout() { 
-    localStorage.clear(); 
-    location.href = 'index.html'; 
-}
+function logout() { localStorage.clear(); location.href = 'index.html'; }
 
-// 2. CARREGAMENTO DE DADOS
 async function carregarProdutosLoja() {
     const container = document.getElementById('vitrine-produtos');
     if (!container) return;
@@ -42,14 +37,13 @@ async function carregarProdutosLoja() {
         
         produtosOriginais = dados; 
         renderizarProdutos(produtosOriginais);
-        console.log("Produtos carregados:", produtosOriginais.length);
     } catch (err) {
         console.error("Erro ao carregar:", err);
         container.innerHTML = "<p class='col-span-full text-center text-red-400 font-bold'>Erro ao conectar com o servidor.</p>";
     }
 }
 
-// 3. RENDERIZAÇÃO (Ajustada para passar o LINK)
+// 3. RENDERIZAÇÃO (AGORA COM link_download)
 function renderizarProdutos(lista) {
     const container = document.getElementById('vitrine-produtos');
     if (!container) return;
@@ -64,10 +58,10 @@ function renderizarProdutos(lista) {
             ? p.imagem_url 
             : 'https://placehold.co/400x300/f3f4f6/6366f1?text=Material';
 
-        // Sanitização simples do nome para não quebrar o onclick
         const nomeLimpo = p.nome.replace(/'/g, "\\'");
-        // Garantindo que o link exista ou enviando vazio
-        const linkFinal = p.link_drive || "";
+        
+        // CORREÇÃO AQUI: Mudamos de link_drive para link_download
+        const linkFinal = p.link_download || ""; 
 
         return `
             <div class="bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col h-full group">
@@ -93,7 +87,6 @@ function renderizarProdutos(lista) {
     }).join('');
 }
 
-// 4. FILTRAGEM
 function filtrarProdutos(categoriaAlvo, elemento) {
     if (!produtosOriginais || produtosOriginais.length === 0) return;
 
@@ -103,7 +96,6 @@ function filtrarProdutos(categoriaAlvo, elemento) {
     });
     if (elemento) {
         elemento.classList.add('bg-orange-500', 'text-white');
-        elemento.classList.remove('bg-white', 'text-gray-600');
     }
 
     if (categoriaAlvo === 'todos') {
@@ -116,8 +108,6 @@ function filtrarProdutos(categoriaAlvo, elemento) {
     }
 }
 
-// --- LÓGICA DO CARRINHO ---
-
 function toggleCarrinho() {
     const m = document.getElementById('modal-carrinho');
     if (!m) return;
@@ -126,12 +116,11 @@ function toggleCarrinho() {
 }
 
 function adicionarAoCarrinho(id, nome, preco, link) {
-    // SALVA O LINK NO LOCALSTORAGE PARA O CHECKOUT RECUPERAR
     if (link && link !== "") {
         localStorage.setItem('link_pendente', link);
-        console.log("🔗 Link capturado:", link);
+        console.log("🔗 Link capturado com sucesso:", link);
     } else {
-        console.warn("⚠️ Produto sem link detectado!");
+        console.warn("⚠️ Atenção: Este produto no banco de dados está sem link_download!");
     }
 
     carrinho.push({ id, nome, preco, link, uid: Date.now() });
@@ -150,10 +139,7 @@ function remover(uid) {
 
 function atualizarContadorCarrinho() {
     const contador = document.getElementById('cart-count');
-    if (!contador) return;
-    const qtd = carrinho.length;
-    contador.innerText = qtd;
-    contador.style.display = qtd > 0 ? 'inline-block' : 'none';
+    if (contador) contador.innerText = carrinho.length;
 }
 
 function renderCarrinho() {
