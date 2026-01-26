@@ -117,33 +117,46 @@ async function deletarProduto(id) {
         carregarProdutosAdmin();
     } catch (err) { console.error(err); }
 }
-
-function mudarAba(abaId) {
+// Função para trocar de aba
+function mudarAba(idAba, botao) {
     // 1. Esconde todas as seções
     document.querySelectorAll('.aba-conteudo').forEach(aba => {
         aba.classList.add('hidden');
     });
 
-    // 2. Mostra a aba clicada
-    document.getElementById(abaId).classList.remove('hidden');
+    // 2. Mostra a aba selecionada
+    document.getElementById(idAba).classList.remove('hidden');
 
-    // 3. Estilo visual nos botões do menu
+    // 3. Reseta os botões do menu
     document.querySelectorAll('.menu-btn').forEach(btn => {
-        btn.classList.remove('bg-orange-50', 'text-orange-600');
+        btn.classList.remove('active-tab');
         btn.classList.add('text-slate-500');
     });
 
-    // Adiciona o estilo ativo ao botão que foi clicado
-    event.currentTarget.classList.add('bg-orange-50', 'text-orange-600');
-    event.currentTarget.classList.remove('text-slate-500');
+    // 4. Ativa o botão atual
+    botao.classList.add('active-tab');
+    botao.classList.remove('text-slate-500');
 
-    // 4. Se for a aba de faturamento ou usuários, carrega os dados deles
-    if (abaId === 'aba-faturamento') carregarFaturamento();
-    if (abaId === 'aba-usuarios') carregarUsuarios();
+    // 5. Carrega os dados específicos daquela aba
+    if (idAba === 'aba-usuarios') carregarUsuarios();
+    if (idAba === 'aba-faturamento') carregarRelatorios();
 }
 
-// Exemplo de função para carregar faturamento
-async function carregarFaturamento() {
-    // Aqui você faria um fetch para uma rota de vendas no seu backend
-    console.log("Carregando relatório de vendas...");
+// Exemplo de como listar usuários
+async function carregarUsuarios() {
+    const container = document.getElementById('lista-usuarios');
+    // Aqui você faria um fetch na sua API de usuários
+    container.innerHTML = `
+        <tr>
+            <td class="py-4 font-bold text-slate-700">Professor Exemplo</td>
+            <td class="py-4 text-slate-500">contato@exemplo.com</td>
+            <td class="py-4"><span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-[9px] font-bold">ATIVO</span></td>
+            <td class="py-4"><button class="text-slate-400 hover:text-red-500">Remover</button></td>
+        </tr>
+    `;
 }
+
+// Inicializar carregando os produtos
+document.addEventListener('DOMContentLoaded', () => {
+    carregarProdutosAdmin(); 
+});

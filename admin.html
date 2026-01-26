@@ -1,44 +1,61 @@
-<body class="bg-slate-50 font-['Quicksand'] flex h-screen overflow-hidden">
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educa Admin - Sistema de Gestão</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Quicksand', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .active-tab { background-color: #fff7ed; color: #f97316; border-right: 4px solid #f97316; }
+    </style>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden">
 
-    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col shadow-sm">
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col shadow-sm h-full">
         <div class="p-6 border-b border-slate-50">
             <h1 class="font-bold text-slate-800 text-lg">Educa Admin</h1>
             <p class="text-[10px] text-orange-500 font-black uppercase">Painel de Controle</p>
         </div>
 
-        <nav class="flex-grow p-4 space-y-2">
-            <button onclick="mudarAba('aba-produtos')" class="menu-btn w-full flex items-center gap-3 p-3 rounded-xl bg-orange-50 text-orange-600 font-bold text-xs transition-all">
+        <nav class="flex-grow p-4 space-y-2 overflow-y-auto no-scrollbar">
+            <button onclick="mudarAba('aba-produtos', this)" class="menu-btn active-tab w-full flex items-center gap-3 p-4 rounded-xl font-bold text-xs transition-all">
                 📦 Gerenciar Vitrine
             </button>
-            <button onclick="mudarAba('aba-usuarios')" class="menu-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">
-                👥 Usuários/Alunos
+            <button onclick="mudarAba('aba-usuarios', this)" class="menu-btn w-full flex items-center gap-3 p-4 rounded-xl text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">
+                👥 Usuários / Alunos
             </button>
-            <button onclick="mudarAba('aba-ofertas')" class="menu-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">
+            <button onclick="mudarAba('aba-ofertas', this)" class="menu-btn w-full flex items-center gap-3 p-4 rounded-xl text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">
                 🏷️ Ofertas e Cupons
             </button>
-            <button onclick="mudarAba('aba-faturamento')" class="menu-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">
+            <button onclick="mudarAba('aba-faturamento', this)" class="menu-btn w-full flex items-center gap-3 p-4 rounded-xl text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">
                 💰 Faturamento
             </button>
         </nav>
 
         <div class="p-4 border-t border-slate-50">
-            <button onclick="location.href='index.html'" class="w-full p-3 text-slate-400 text-[10px] font-bold uppercase hover:text-red-500 transition-colors">Sair do Painel</button>
+            <button onclick="location.href='index.html'" class="w-full p-4 text-slate-400 text-[10px] font-bold uppercase hover:text-orange-500 transition-colors">Voltar para Loja</button>
         </div>
     </aside>
 
-    <main class="flex-grow overflow-y-auto p-8 no-scrollbar">
+    <main class="flex-grow overflow-y-auto p-8 no-scrollbar bg-slate-50">
         
-        <section id="aba-produtos" class="aba-conteudo">
+        <section id="aba-produtos" class="aba-conteudo animate-in fade-in duration-300">
             <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-bold text-slate-800">Vitrine de Produtos</h2>
-                <button onclick="abrirModalCadastro()" class="bg-orange-500 text-white px-6 py-3 rounded-2xl font-bold text-xs">+ Novo Produto</button>
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">Vitrine de Produtos</h2>
+                    <p class="text-slate-500 text-sm">Gerencie o que aparece na loja.</p>
+                </div>
+                <button onclick="abrirModalCadastro()" class="bg-orange-500 text-white px-6 py-3 rounded-2xl font-bold text-xs shadow-lg shadow-orange-100">+ NOVO MATERIAL</button>
             </div>
             <div id="lista-admin" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </section>
 
         <section id="aba-usuarios" class="aba-conteudo hidden">
             <h2 class="text-2xl font-bold text-slate-800 mb-6">Alunos Cadastrados</h2>
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+            <div class="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100">
                 <table class="w-full text-left text-xs">
                     <thead>
                         <tr class="text-slate-400 uppercase font-black border-b border-slate-50">
@@ -48,22 +65,27 @@
                             <th class="pb-4">Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="lista-usuarios">
+                    <tbody id="lista-usuarios" class="divide-y divide-slate-50">
                         </tbody>
                 </table>
             </div>
         </section>
 
         <section id="aba-faturamento" class="aba-conteudo hidden">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">Desempenho de Vendas</h2>
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Faturamento Detalhado</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <p class="text-slate-400 text-[10px] font-bold uppercase">Total Vendido</p>
-                    <h3 id="faturamento-total" class="text-3xl font-black text-green-600 mt-2">R$ 0,00</h3>
+                <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase mb-1">Total em Vendas</p>
+                    <h3 id="faturamento-total" class="text-3xl font-black text-green-600">R$ 0,00</h3>
                 </div>
             </div>
-            </section>
+        </section>
 
     </main>
 
-    </body>
+    <div id="modal-produto" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
