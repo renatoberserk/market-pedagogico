@@ -233,12 +233,18 @@ async function excluirUsuario(email) {
     } catch (error) { console.error(error); }
 }
 
-async function salvarOfertaUnica() {
-    const preco = document.getElementById('oferta-preco').value;
-    const link = document.getElementById('oferta-link').value;
+async function salvarOfertaGeral() {
+    const dados = {
+        titulo: document.getElementById('oferta-titulo').value.trim(),
+        preco: document.getElementById('oferta-preco').value.replace(',', '.'),
+        link: document.getElementById('oferta-link').value.trim(),
+        capa: document.getElementById('oferta-capa').value.trim(),
+        foto1: document.getElementById('oferta-foto1').value.trim(),
+        foto2: document.getElementById('oferta-foto2').value.trim()
+    };
 
-    if (!preco || !link) {
-        alert("⚠️ Preencha o preço e o link do Drive!");
+    if (!dados.preco || !dados.link || !dados.titulo) {
+        alert("⚠️ Título, Preço e Link do Drive são obrigatórios!");
         return;
     }
 
@@ -246,18 +252,39 @@ async function salvarOfertaUnica() {
         const response = await fetch('https://educamateriais.shop/api/salvar-oferta', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ preco, link })
+            body: JSON.stringify(dados)
         });
 
         if (response.ok) {
-            alert("✅ Sucesso! O produto ativo foi alterado na página de oferta.");
+            // Mostra o container de sucesso
+            document.getElementById('container-link-final').classList.remove('hidden');
+            
+            // Feedback visual no botão
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "✅ ATUALIZADO!";
+            btn.classList.replace('text-indigo-600', 'text-green-600');
+            
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.replace('text-green-600', 'text-indigo-600');
+            }, 3000);
+            
+            alert("🚀 Site atualizado com sucesso!");
         } else {
-            alert("❌ Erro ao salvar no servidor. Verifique o console.");
+            alert("❌ Erro ao salvar no servidor.");
         }
     } catch (err) {
-        console.error("Erro:", err);
-        alert("❌ Falha na conexão com o servidor.");
+        console.error(err);
+        alert("❌ Erro de conexão.");
     }
+}
+
+function copiarLinkOferta() {
+    const input = document.getElementById('link-final-input');
+    input.select();
+    navigator.clipboard.writeText(input.value);
+    alert("Link da oferta copiado!");
 }
 
 
