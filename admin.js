@@ -128,3 +128,61 @@ async function deletarProduto(id) {
         alert("Erro ao excluir.");
     }
 }
+
+// ... (resto do código igual)
+
+function prepararEdicao(id) {
+    const p = produtosAdmin.find(item => item.id == id);
+    if (!p) return;
+
+    document.getElementById('modal-titulo').innerText = "Editar Material";
+    document.getElementById('edit-id').value = p.id;
+    document.getElementById('edit-nome').value = p.nome || "";
+    document.getElementById('edit-preco').value = p.preco || "";
+    document.getElementById('edit-descricao').value = p.descricao || "";
+    document.getElementById('edit-capa').value = p.imagem_url || "";
+    // Ajustado para os nomes do banco:
+    document.getElementById('edit-foto1').value = p.foto_extra1 || "";
+    document.getElementById('edit-foto2').value = p.foto_extra2 || ""; 
+    document.getElementById('edit-categoria').value = p.categoria || "";
+    document.getElementById('edit-link').value = p.link_download || "";
+
+    document.getElementById('modal-produto').style.display = 'flex';
+}
+
+document.getElementById('form-produto').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('edit-id').value;
+    const emailAdmin = localStorage.getItem('prof_email');
+
+    const dados = {
+        email_admin: emailAdmin,
+        nome: document.getElementById('edit-nome').value,
+        preco: document.getElementById('edit-preco').value,
+        descricao: document.getElementById('edit-descricao').value,
+        imagem_url: document.getElementById('edit-capa').value,
+        foto_extra1: document.getElementById('edit-foto1').value, // Nome do banco
+        foto_extra2: document.getElementById('edit-foto2').value, // Nome do banco
+        link_download: document.getElementById('edit-link').value,
+        categoria: document.getElementById('edit-categoria').value
+    };
+
+    const metodo = id ? 'PUT' : 'POST';
+    const url = id ? `https://educamateriais.shop/produtos/${id}` : `https://educamateriais.shop/produtos`;
+
+    try {
+        const res = await fetch(url, {
+            method: metodo,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+        if (res.ok) {
+            alert("✅ Atualizado com sucesso!");
+            fecharModal();
+            carregarProdutosAdmin();
+        } else {
+            const errData = await res.json();
+            alert("❌ Erro: " + errData.erro);
+        }
+    } catch (err) { alert("Erro de conexão."); }
+});

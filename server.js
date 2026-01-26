@@ -102,116 +102,75 @@ app.get('/produtos', (req, res) => {
     });
 });
 
-app.post('/produtos', (req, res) => {
-    // 1. Desestruturação com os novos campos (descricao, foto_extra1, foto_extra2)
-    const { 
-        email_admin, 
-        nome, 
-        preco, 
-        link_download, 
-        imagem_url, 
-        categoria, 
-        descricao, 
-        foto_extra1, 
-        foto_extra2 
-    } = req.body;
 
-    // 2. Verificação de segurança (mantida)
-    if (email_admin !== process.env.ADMIN_EMAIL) {
-        return res.status(403).json({ erro: "Acesso negado" });
-    }
-
-    // 3. SQL atualizado com as 8 colunas (adicionadas descricao e fotos extras)
-    // Agora são 8 pontos de interrogação: ?, ?, ?, ?, ?, ?, ?, ?
-    const sql = `
-        INSERT INTO produtos 
-        (nome, preco, link_download, imagem_url, categoria, descricao, foto_extra1, foto_extra2) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-
-    // 4. Array de valores na ordem exata do SQL acima
-    const valores = [
-        nome, 
-        preco, 
-        link_download, 
-        imagem_url, 
-        categoria, 
-        descricao || "",       // Se vier vazio, salva string vazia
-        foto_extra1 || null,   // Se não tiver foto, salva como null
-        foto_extra2 || null    // Se não tiver foto, salva como null
-    ];
-
-    db.query(sql, valores, (err) => {
-        if (err) {
-            console.error("❌ Erro ao inserir produto completo:", err);
-            return res.status(500).json({ sucesso: false, erro: "Erro no banco de dados" });
-        }
-        res.json({ sucesso: true, mensagem: "Produto cadastrado com detalhes!" });
-    });
-});
-
+// --- ROTA PARA EDITAR PRODUTO (PUT) ---
 app.put('/produtos/:id', (req, res) => {
     const { id } = req.params;
-    
-    // Pegando TODOS os campos necessários do corpo da requisição
     const { 
-        email_admin, 
-        nome, 
-        preco, 
-        link_download, 
-        imagem_url, 
-        foto1,       // Adicionado
-        descricao,   // Adicionado
-        categoria 
+        email_admin, nome, preco, link_download, 
+        imagem_url, foto_extra1, foto_extra2, descricao, categoria 
     } = req.body;
 
-    // Verificação de segurança (essencial)
     if (email_admin !== process.env.ADMIN_EMAIL) {
-        return res.status(403).json({ erro: "Acesso negado: você não é um administrador." });
+        return res.status(403).json({ sucesso: false, erro: "Não autorizado" });
     }
 
-    // SQL atualizado com todos os campos para edição total
+    // SQL com os nomes exatos do seu DESCRIBE
     const sql = `
         UPDATE produtos 
-        SET nome=?, preco=?, link_download=?, imagem_url=?, foto1=?, descricao=?, categoria=? 
+        SET nome=?, preco=?, link_download=?, imagem_url=?, foto_extra1=?, foto_extra2=?, descricao=?, categoria=? 
         WHERE id=?
     `;
 
-    const valores = [nome, preco, link_download, imagem_url, foto1, descricao, categoria, id];
+    const valores = [nome, preco, link_download, imagem_url, foto_extra1, foto_extra2, descricao, categoria, id];
 
     db.query(sql, valores, (err) => {
         if (err) {
-            console.error("Erro ao atualizar produto no banco:", err);
-            return res.status(500).json({ sucesso: false, erro: "Erro interno no servidor" });
+            console.error("❌ Erro SQL:", err);
+            return res.status(500).json({ sucesso: false, erro: err.message });
         }
-        res.json({ sucesso: true, mensagem: "Produto atualizado com sucesso!" });
+        res.json({ sucesso: true });
     });
 });
 
+// --- ROTA PARA CADASTRAR NOVO (POST) ---
+app.post('/produtos', (req, res) => {
+    const { 
+        email_admin, nome, preco, link_download, 
+        imagem_url, foto1, descricao, categoria 
+    } = req.body;
+
+    if (email_admin !== process.env.ADMIN_EMAIL) {
+        return res.status(403).json({ sucesso: false, erro: "Não autorizado" });
+    }
+
+    const sql = `
+        INSERT INTO produtos (nome, preco, link_download, imagem_url, foto1, descricao, categoria) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const valores = [nome, preco, link_download, imagem_url, foto1, descricao, categoria];
+
+    db.query(sql, valores, (err) => {
+        if (err) {
+            console.error("❌ Erro no SQL (Insert):", err);
+            return res.status(500).json({ sucesso: false, erro: "Erro ao cadastrar no banco" });
+        }
+        res.json({ sucesso: true });
+    });
+});
+
+// --- ROTA PARA EXCLUIR (DELETE) ---
 app.delete('/produtos/:id', (req, res) => {
     const { id } = req.params;
     const { email_admin } = req.body;
 
-    // 1. Verificação rigorosa do Admin (vinda do seu .env)
-    if (!email_admin || email_admin !== process.env.ADMIN_EMAIL) {
-        console.warn(`[Segurança] Tentativa de delete negada para: ${email_admin}`);
-        return res.status(403).json({ erro: "Não autorizado", sucesso: false });
+    if (email_admin !== process.env.ADMIN_EMAIL) {
+        return res.status(403).json({ erro: "Não autorizado" });
     }
 
-    // 2. Execução da exclusão
-    const sql = "DELETE FROM produtos WHERE id = ?";
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error("Erro ao deletar produto:", err);
-            return res.status(500).json({ sucesso: false, erro: "Erro no banco de dados" });
-        }
-
-        // 3. Verifica se o ID existia (evita falso positivo)
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ sucesso: false, erro: "Produto não encontrado" });
-        }
-
-        console.log(`[Admin] Produto ${id} removido por ${email_admin}`);
+    db.query("DELETE FROM produtos WHERE id = ?", [id], (err) => {
+        if (err) return res.status(500).json({ erro: "Erro ao deletar" });
         res.json({ sucesso: true });
     });
 });
