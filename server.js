@@ -103,24 +103,50 @@ app.get('/produtos', (req, res) => {
 });
 
 app.post('/produtos', (req, res) => {
-    // 1. Adicionamos a 'categoria' na desestruturação do corpo da requisição
-    const { email_admin, nome, preco, link_download, imagem_url, categoria } = req.body;
+    // 1. Desestruturação com os novos campos (descricao, foto_extra1, foto_extra2)
+    const { 
+        email_admin, 
+        nome, 
+        preco, 
+        link_download, 
+        imagem_url, 
+        categoria, 
+        descricao, 
+        foto_extra1, 
+        foto_extra2 
+    } = req.body;
 
     // 2. Verificação de segurança (mantida)
     if (email_admin !== process.env.ADMIN_EMAIL) {
         return res.status(403).json({ erro: "Acesso negado" });
     }
 
-    // 3. SQL atualizado para incluir a coluna 'categoria' e o 5º ponto de interrogação
-    const sql = "INSERT INTO produtos (nome, preco, link_download, imagem_url, categoria) VALUES (?, ?, ?, ?, ?)";
+    // 3. SQL atualizado com as 8 colunas (adicionadas descricao e fotos extras)
+    // Agora são 8 pontos de interrogação: ?, ?, ?, ?, ?, ?, ?, ?
+    const sql = `
+        INSERT INTO produtos 
+        (nome, preco, link_download, imagem_url, categoria, descricao, foto_extra1, foto_extra2) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
 
-    // 4. Passamos os 5 valores na ordem correta
-    db.query(sql, [nome, preco, link_download, imagem_url, categoria], (err) => {
+    // 4. Array de valores na ordem exata do SQL acima
+    const valores = [
+        nome, 
+        preco, 
+        link_download, 
+        imagem_url, 
+        categoria, 
+        descricao || "",       // Se vier vazio, salva string vazia
+        foto_extra1 || null,   // Se não tiver foto, salva como null
+        foto_extra2 || null    // Se não tiver foto, salva como null
+    ];
+
+    db.query(sql, valores, (err) => {
         if (err) {
-            console.error("Erro ao inserir produto:", err);
+            console.error("❌ Erro ao inserir produto completo:", err);
             return res.status(500).json({ sucesso: false, erro: "Erro no banco de dados" });
         }
-        res.json({ sucesso: true });
+        res.json({ sucesso: true, mensagem: "Produto cadastrado com detalhes!" });
     });
 });
 

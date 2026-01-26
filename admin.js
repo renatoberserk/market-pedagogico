@@ -120,21 +120,32 @@ document.getElementById('form-produto')?.addEventListener('submit', function (e)
 });
 
 async function salvarProduto() {
+    // Capturando os campos antigos
     const nome = document.getElementById('prod-nome').value;
     const preco = document.getElementById('prod-preco').value;
-    const categoria = document.getElementById('prod-categoria').value; // Pegando a categoria
+    const categoria = document.getElementById('prod-categoria').value;
     const imagem_url = document.getElementById('prod-img').value;
     const link_download = document.getElementById('prod-link').value;
-    const email_admin = localStorage.getItem('prof_email'); // Pegando o e-mail logado
 
-    // O corpo da requisição agora tem TUDO o que o servidor pede
+    // NOVO: Capturando os novos campos de detalhes
+    // Certifique-se de que os IDs no seu HTML sejam esses abaixo:
+    const descricao = document.getElementById('prod-descricao').value;
+    const foto_extra1 = document.getElementById('prod-foto1').value;
+    const foto_extra2 = document.getElementById('prod-foto2').value;
+
+    const email_admin = localStorage.getItem('prof_email');
+
+    // Agora o objeto 'dados' está COMPLETO para o seu novo servidor
     const dados = {
         email_admin,
         nome,
         preco,
         categoria,
         imagem_url,
-        link_download
+        link_download,
+        descricao,     // <--- Enviando a descrição
+        foto_extra1,   // <--- Enviando foto 1
+        foto_extra2    // <--- Enviando foto 2
     };
 
     const url = modoEdicaoId
@@ -151,7 +162,7 @@ async function salvarProduto() {
         const resultado = await response.json();
 
         if (response.ok && resultado.sucesso) {
-            alert("Sucesso!");
+            alert("Produto salvo com todos os detalhes!");
             limparFormulario();
             carregarProdutosAdmin();
         } else {
@@ -159,6 +170,7 @@ async function salvarProduto() {
         }
     } catch (error) {
         console.error("Erro na requisição:", error);
+        alert("Erro de conexão com o servidor.");
     }
 }
 
@@ -171,12 +183,19 @@ function prepararEdicao(produto) {
         if (el) el.value = valor || "";
     };
 
+    // Preenchendo campos básicos
     setCampo('prod-nome', produto.nome);
     setCampo('prod-preco', produto.preco);
     setCampo('prod-img', produto.imagem_url);
     setCampo('prod-link', produto.link_download);
     setCampo('prod-categoria', produto.categoria);
 
+    // CORREÇÃO: Usando 'produto' em vez de 'p' e garantindo que os campos novos sejam preenchidos
+    setCampo('prod-descricao', produto.descricao);
+    setCampo('prod-foto1', produto.foto_extra1);
+    setCampo('prod-foto2', produto.foto_extra2);
+
+    // Ajustes de Interface
     document.getElementById('btn-submit').innerText = "Atualizar Material";
     document.getElementById('form-title').innerText = "Editando Material";
     document.getElementById('btn-cancelar')?.classList.remove('hidden');
@@ -186,7 +205,12 @@ function prepararEdicao(produto) {
 
 function limparFormulario() {
     modoEdicaoId = null;
-    document.getElementById('form-produto').reset();
+    
+    // O reset() já limpa todos os inputs, textareas e selects do form automaticamente
+    const form = document.getElementById('form-produto');
+    if (form) form.reset(); 
+
+    // Voltando a interface ao estado original
     document.getElementById('btn-submit').innerText = "Publicar Material";
     document.getElementById('form-title').innerText = "Cadastrar Novo PDF";
     document.getElementById('btn-cancelar')?.classList.add('hidden');
@@ -278,7 +302,7 @@ async function salvarOfertaGeral(event) {
                 btnSalvar.innerText = "✅ SITE ATUALIZADO!";
                 btnSalvar.classList.add('text-green-600');
             }
-            
+
             alert("🚀 Tudo pronto! Site atualizado.");
         } else {
             throw new Error("Erro no servidor");
