@@ -233,7 +233,14 @@ async function excluirUsuario(email) {
     } catch (error) { console.error(error); }
 }
 
-async function salvarOfertaGeral() {
+async function salvarOfertaGeral(event) {
+    // 1. Evita erro caso o evento não seja passado
+    if (event && event.preventDefault) event.preventDefault();
+
+    // 2. Tenta capturar o botão de forma segura
+    const btnSalvar = (event && event.currentTarget) ? event.currentTarget : null;
+
+    // 3. Coleta os dados dos inputs
     const dados = {
         titulo: document.getElementById('oferta-titulo').value.trim(),
         preco: document.getElementById('oferta-preco').value.replace(',', '.'),
@@ -243,12 +250,19 @@ async function salvarOfertaGeral() {
         foto2: document.getElementById('oferta-foto2').value.trim()
     };
 
-    if (!dados.preco || !dados.link || !dados.titulo) {
-        alert("⚠️ Título, Preço e Link do Drive são obrigatórios!");
+    // Validação
+    if (!dados.titulo || !dados.preco || !dados.link) {
+        alert("Preencha os campos obrigatórios: Título, Preço e Link do Drive.");
         return;
     }
 
     try {
+        // Feedback visual de carregamento
+        if (btnSalvar) {
+            btnSalvar.disabled = true;
+            btnSalvar.innerText = "⏳ SALVANDO...";
+        }
+
         const response = await fetch('https://educamateriais.shop/api/salvar-oferta', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -256,30 +270,33 @@ async function salvarOfertaGeral() {
         });
 
         if (response.ok) {
-            // Mostra o container de sucesso
-            document.getElementById('container-link-final').classList.remove('hidden');
+            // Mostra o container do link final
+            const containerLink = document.getElementById('container-link-final');
+            if (containerLink) containerLink.classList.remove('hidden');
+
+            if (btnSalvar) {
+                btnSalvar.innerText = "✅ SITE ATUALIZADO!";
+                btnSalvar.classList.add('text-green-600');
+            }
             
-            // Feedback visual no botão
-            const btn = event.target;
-            const originalText = btn.innerText;
-            btn.innerText = "✅ ATUALIZADO!";
-            btn.classList.replace('text-indigo-600', 'text-green-600');
-            
-            setTimeout(() => {
-                btn.innerText = originalText;
-                btn.classList.replace('text-green-600', 'text-indigo-600');
-            }, 3000);
-            
-            alert("🚀 Site atualizado com sucesso!");
+            alert("🚀 Tudo pronto! Site atualizado.");
         } else {
-            alert("❌ Erro ao salvar no servidor.");
+            throw new Error("Erro no servidor");
         }
     } catch (err) {
-        console.error(err);
-        alert("❌ Erro de conexão.");
+        console.error("Erro ao salvar:", err);
+        alert("Ocorreu um erro ao salvar as configurações.");
+    } finally {
+        // Restaura o botão após 3 segundos
+        if (btnSalvar) {
+            setTimeout(() => {
+                btnSalvar.disabled = false;
+                btnSalvar.innerText = "💾 SALVAR E ATUALIZAR SITE";
+                btnSalvar.classList.remove('text-green-600');
+            }, 3000);
+        }
     }
 }
-
 function copiarLinkOferta() {
     const input = document.getElementById('link-final-input');
     input.select();
