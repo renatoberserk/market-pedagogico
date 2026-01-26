@@ -24,8 +24,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
 // --- CONFIGURAÇÃO MERCADO PAGO ---
-const client = new MercadoPagoConfig({ 
-    accessToken: process.env.MP_ACCESS_TOKEN 
+const client = new MercadoPagoConfig({
+    accessToken: process.env.MP_ACCESS_TOKEN
 });
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -112,7 +112,7 @@ app.post('/produtos', (req, res) => {
 
     // 3. SQL atualizado para incluir a coluna 'categoria' e o 5º ponto de interrogação
     const sql = "INSERT INTO produtos (nome, preco, link_download, imagem_url, categoria) VALUES (?, ?, ?, ?, ?)";
-    
+
     // 4. Passamos os 5 valores na ordem correta
     db.query(sql, [nome, preco, link_download, imagem_url, categoria], (err) => {
         if (err) {
@@ -135,7 +135,7 @@ app.put('/produtos/:id', (req, res) => {
 
     // SQL atualizado para incluir a categoria
     const sql = "UPDATE produtos SET nome=?, preco=?, link_download=?, imagem_url=?, categoria=? WHERE id=?";
-    
+
     db.query(sql, [nome, preco, link_download, imagem_url, categoria, id], (err) => {
         if (err) {
             console.error(err);
@@ -178,29 +178,26 @@ app.delete('/produtos/:id', (req, res) => {
 app.post('/criar-pagamento-pix', async (req, res) => {
     try {
         const { email, total } = req.body;
-        
+
         if (!email || !total) {
             return res.status(400).json({ erro: "E-mail ou total não informados" });
         }
 
         const emailLimpo = email.trim();
-
+        // Dentro do app.post('/criar-pagamento-pix')
         const body = {
             transaction_amount: Number(parseFloat(total).toFixed(2)),
-            description: 'Compra Educa Materiais',
+            description: `Material: ${titulo}`,
             payment_method_id: 'pix',
-            // O segredo está aqui: Guardamos o e-mail em 3 lugares para não haver erro
-            payer: { 
-                email: emailLimpo 
-            },
-            external_reference: emailLimpo, // Fica visível na busca simples
+            payer: { email: email.trim() },
             metadata: {
-                email_cliente: emailLimpo // Fica gravado no histórico da transação
+                link_entrega: linkParaEsteProduto, // O link que estava no admin na hora do clique
+                email_cliente: email.trim()
             }
         };
 
         const response = await payment.create({ body });
-        
+
         // Algumas versões do SDK usam 'body', outras retornam o objeto direto
         const data = response.body || response;
 
@@ -214,9 +211,9 @@ app.post('/criar-pagamento-pix', async (req, res) => {
 
     } catch (error) {
         console.error("❌ Erro ao criar PIX:", error.message);
-        res.status(500).json({ 
-            erro: 'Erro interno no servidor', 
-            detalhes: error.message 
+        res.status(500).json({
+            erro: 'Erro interno no servidor',
+            detalhes: error.message
         });
     }
 });
@@ -239,10 +236,10 @@ app.get('/verificar-pagamento/:id', async (req, res) => {
 
             // 2. CAPTURA DO E-MAIL (Tenta o payer ou o external_reference se o payer falhar)
             let emailCliente = data.payer?.email;
-            
+
             // Se o e-mail vier mascarado (XXXX) ou vazio, tentamos o external_reference
             if (!emailCliente || !emailCliente.includes('@')) {
-                emailCliente = data.external_reference; 
+                emailCliente = data.external_reference;
             }
 
             console.log(`Tentando entregar para: ${emailCliente}`);
@@ -251,7 +248,7 @@ app.get('/verificar-pagamento/:id', async (req, res) => {
                 const configPath = path.join(__dirname, 'config-oferta.json');
                 if (fs.existsSync(configPath)) {
                     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-                    
+
                     if (config.link) {
                         await enviarEmailEntrega(emailCliente.trim(), config.link);
                         enviosRealizados.add(id); // Marca como enviado para este ID
@@ -263,7 +260,7 @@ app.get('/verificar-pagamento/:id', async (req, res) => {
             }
 
             return res.json({ status: 'approved' });
-        } 
+        }
 
         res.json({ status: data.status || 'pending' });
 
@@ -280,7 +277,7 @@ app.post('/registrar-venda', (req, res) => {
 
     const valores = produtos.map(p => [email, p.id, p.preco, new Date()]);
     const sql = "INSERT INTO vendas (usuario_email, produto_id, preco, data_venda) VALUES ?";
-    
+
     db.query(sql, [valores], (err) => {
         if (err) return res.status(500).json({ error: "Erro ao salvar" });
         res.json({ success: true });
@@ -309,7 +306,7 @@ app.get('/admin/stats', async (req, res) => {
         const [ontem] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE DATE(data_venda) = SUBDATE(CURDATE(), 1)");
         const [mesAtual] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE MONTH(data_venda) = MONTH(CURDATE()) AND YEAR(data_venda) = YEAR(CURDATE())");
         const [mesAnterior] = await dbPromise.query("SELECT SUM(preco) as total FROM vendas WHERE MONTH(data_venda) = MONTH(SUBDATE(CURDATE(), INTERVAL 1 MONTH)) AND YEAR(data_venda) = YEAR(SUBDATE(CURDATE(), INTERVAL 1 MONTH))");
-        
+
         // Consultas de Contagem
         const [totalVendas] = await dbPromise.query("SELECT COUNT(*) as qtd FROM vendas");
         const [totalClientes] = await dbPromise.query("SELECT COUNT(*) as qtd FROM usuarios");
@@ -323,8 +320,8 @@ app.get('/admin/stats', async (req, res) => {
             mes_atual: parseFloat(mesAtual[0].total) || 0,
             mes_anterior: parseFloat(mesAnterior[0].total) || 0,
             total_vendas: totalVendas[0].qtd || 0,
-            total_clientes: totalClientes[0].qtd || 0, 
-            lista_clientes: listaUltimos 
+            total_clientes: totalClientes[0].qtd || 0,
+            lista_clientes: listaUltimos
         });
     } catch (error) {
         console.error("Erro SQL Stats:", error);
@@ -354,14 +351,14 @@ app.delete('/admin/usuarios/:email', async (req, res) => {
 // Rota para o Admin Salvar
 app.post('/api/salvar-oferta', (req, res) => {
     const { preco, link, titulo, capa, foto1, foto2 } = req.body;
-    const dados = { 
-        preco, 
-        link, 
-        titulo, 
-        capa, 
-        foto1, 
-        foto2, 
-        atualizadoEm: new Date() 
+    const dados = {
+        preco,
+        link,
+        titulo,
+        capa,
+        foto1,
+        foto2,
+        atualizadoEm: new Date()
     };
     fs.writeFileSync('./config-oferta.json', JSON.stringify(dados, null, 2));
     res.json({ sucesso: true });
