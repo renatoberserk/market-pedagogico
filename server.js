@@ -254,17 +254,46 @@ app.get('/verificar-pagamento/:id', async (req, res) => {
     }
 });
 /////////////////////////////////////////////////////////
-
 app.post('/registrar-venda', (req, res) => {
     const { email, produtos } = req.body;
-    if (!produtos || produtos.length === 0) return res.status(400).json({ error: "Carrinho vazio" });
 
+    if (!produtos || produtos.length === 0) {
+        return res.status(400).json({ error: "Carrinho vazio" });
+    }
+
+    // 1. Prepara os dados para o Banco de Dados
     const valores = produtos.map(p => [email, p.id, p.preco, new Date()]);
     const sql = "INSERT INTO vendas (usuario_email, produto_id, preco, data_venda) VALUES ?";
 
-    db.query(sql, [valores], (err) => {
-        if (err) return res.status(500).json({ error: "Erro ao salvar" });
-        res.json({ success: true });
+    // 2. Salva no Banco de Dados
+    db.query(sql, [valores], async (err) => {
+        if (err) {
+            console.error("❌ Erro ao salvar no banco:", err);
+            return res.status(500).json({ error: "Erro ao salvar venda" });
+        }
+
+        console.log(`✅ Venda registrada para ${email}. Iniciando disparos de e-mail...`);
+
+        // 3. Loop para enviar um e-mail para cada produto comprado
+        // Usamos Promise.all para disparar todos e esperar a conclusão
+        try {
+            const envios = produtos.map(produto => {
+                // Chama a sua função que usa o Resend
+                return enviarEmailEntrega(email, produto.link);
+            });
+
+            await Promise.all(envios);
+            
+            res.json({ 
+                success: true, 
+                message: "Venda registrada e e-mails enviados!" 
+            });
+
+        } catch (mailErr) {
+            console.error("⚠️ Venda salva, mas houve erro no envio de e-mails:", mailErr);
+            // Retornamos sucesso pois o pagamento foi feito e salvo, o e-mail pode ser reenviado manualmente se falhar
+            res.json({ success: true, warning: "Erro parcial no envio dos e-mails" });
+        }
     });
 });
 
