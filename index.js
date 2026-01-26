@@ -37,7 +37,8 @@ async function carregarProdutosLoja() {
         renderizarProdutos(produtosOriginais);
     } catch (err) {
         console.error("Erro:", err);
-        document.getElementById('vitrine-produtos').innerHTML = "<p class='col-span-full text-center text-red-400'>Erro ao conectar com o servidor.</p>";
+        const vitrine = document.getElementById('vitrine-produtos');
+        if(vitrine) vitrine.innerHTML = "<p class='col-span-full text-center text-red-400'>Erro ao carregar produtos.</p>";
     }
 }
 
@@ -74,11 +75,20 @@ function renderizarProdutos(lista) {
     }).join('');
 }
 
-// LÓGICA DA GALERIA PREMIUM
+// GALERIA COM BARRINHAS DE PROGRESSO
 function abrirGaleria(fotos, titulo, preco, link) {
     galeriaAtual = fotos;
     indiceGaleria = 0;
     produtoSelecionadoNoModal = { id: Date.now(), nome: titulo, preco: preco, link: link };
+
+    const containerIndicadores = document.getElementById('galeria-indicadores');
+    if (containerIndicadores) {
+        containerIndicadores.innerHTML = fotos.map((_, i) => 
+            `<div class="h-1 flex-1 rounded-full bg-gray-200 transition-all duration-300">
+                <div id="barrinha-${i}" class="h-full bg-orange-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>`
+        ).join('');
+    }
 
     atualizarGaleria();
     document.getElementById('modal-galeria').style.display = 'flex';
@@ -94,11 +104,20 @@ function mudarFoto(passo) {
 
 function atualizarGaleria() {
     const img = document.getElementById('modal-img');
+    const caption = document.getElementById('caption-modal');
+    if (!img) return;
+
     img.style.opacity = 0;
+
     setTimeout(() => {
         img.src = galeriaAtual[indiceGaleria];
         img.style.opacity = 1;
-        document.getElementById('caption').innerText = `${produtoSelecionadoNoModal.nome} (${indiceGaleria + 1}/${galeriaAtual.length})`;
+        if (caption) caption.innerText = produtoSelecionadoNoModal.nome;
+        
+        galeriaAtual.forEach((_, i) => {
+            const bar = document.getElementById(`barrinha-${i}`);
+            if (bar) bar.style.width = i === indiceGaleria ? '100%' : '0%';
+        });
     }, 150);
 }
 
@@ -107,21 +126,12 @@ function fecharGaleria() {
     document.body.style.overflow = 'auto';
 }
 
-// CARRINHO E FILTROS
 function adicionarAoCarrinho(id, nome, preco, link) {
-    if (!link) return alert("Erro: Link não encontrado.");
+    if (!link || link === "") return alert("Erro: Link não encontrado.");
     localStorage.setItem('link_pendente', link);
     carrinho = [{ id, nome, preco: parseFloat(preco), link, uid: Date.now() }];
     localStorage.setItem('edu_cart', JSON.stringify(carrinho));
     window.location.href = 'checkout.html';
-}
-
-function filtrarProdutos(cat, btn) {
-    document.querySelectorAll('.filter-btn').forEach(b => b.className = "filter-btn whitespace-nowrap px-6 py-2 bg-white text-gray-600 rounded-full font-bold shadow-sm border border-gray-100 text-sm");
-    btn.className = "filter-btn active-filter whitespace-nowrap px-6 py-2 rounded-full font-bold shadow-sm transition-all text-sm bg-orange-500 text-white";
-    
-    if (cat === 'todos') renderizarProdutos(produtosOriginais);
-    else renderizarProdutos(produtosOriginais.filter(p => (p.categoria || "").toLowerCase() === cat.toLowerCase()));
 }
 
 function atualizarContadorCarrinho() {
@@ -131,7 +141,7 @@ function atualizarContadorCarrinho() {
 
 // Atalhos de teclado
 document.addEventListener('keydown', (e) => {
-    if (document.getElementById('modal-galeria').style.display === 'flex') {
+    if (document.getElementById('modal-galeria')?.style.display === 'flex') {
         if (e.key === 'Escape') fecharGaleria();
         if (e.key === 'ArrowRight') mudarFoto(1);
         if (e.key === 'ArrowLeft') mudarFoto(-1);
