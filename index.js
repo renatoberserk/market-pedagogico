@@ -10,14 +10,30 @@ window.onload = () => {
     atualizarContadorCarrinho();
 };
 
+// --- SESSÃO ---
+function verificarSessao() {
+    const nome = localStorage.getItem('prof_nome');
+    const isAdmin = localStorage.getItem('prof_admin') === 'true';
+    const authContainer = document.getElementById('header-auth');
+    if (nome && authContainer) {
+        let btnAdmin = isAdmin ? `<button onclick="location.href='admin.html'" class="bg-purple-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] mr-1">👑 Admin</button>` : '';
+        authContainer.innerHTML = `
+            <div class="flex items-center gap-2">
+                ${btnAdmin}
+                <button onclick="location.href='meus-materiais.html'" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-xl font-bold text-[10px]">Meus PDFs</button>
+                <button onclick="logout()" class="text-lg pl-1 cursor-pointer">🚪</button>
+            </div>`;
+    }
+}
+function logout() { localStorage.clear(); location.href = 'index.html'; }
+
+// --- CARREGAR LOJA ---
 async function carregarProdutosLoja() {
     try {
         const resp = await fetch('https://educamateriais.shop/produtos?t=' + new Date().getTime());
         produtosOriginais = await resp.json();
         renderizarProdutos(produtosOriginais);
-    } catch (err) {
-        console.error("Erro ao carregar produtos:", err);
-    }
+    } catch (err) { console.error("Erro:", err); }
 }
 
 function renderizarProdutos(lista) {
@@ -34,9 +50,6 @@ function renderizarProdutos(lista) {
                 <div class="relative mb-3 overflow-hidden rounded-[1.8rem] bg-gray-50 h-44 cursor-pointer" 
                      onclick="abrirGaleria(${fotosJSON}, '${nomeLimpo}', ${p.preco}, '${p.link_download}', '${descLimpa}')">
                     <img src="${p.imagem_url}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                    <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold text-[10px]">
-                        VER DETALHES
-                    </div>
                 </div>
                 <div class="flex flex-col flex-grow px-1">
                     <h3 class="font-bold text-gray-800 text-xs mb-1 line-clamp-2 h-8">${p.nome}</h3>
@@ -50,20 +63,18 @@ function renderizarProdutos(lista) {
     }).join('');
 }
 
+// --- GALERIA E DETALHES ---
 function abrirGaleria(fotos, titulo, preco, link, descricao) {
     galeriaAtual = fotos;
     indiceGaleria = 0;
     produtoSelecionadoNoModal = { id: Date.now(), nome: titulo, preco: preco, link: link };
 
-    // Preencher Textos com proteção (if)
     const elTitulo = document.getElementById('modal-titulo-detalhe');
     const elDesc = document.getElementById('modal-descricao-detalhe');
     const elIndicadores = document.getElementById('galeria-indicadores');
 
     if (elTitulo) elTitulo.innerText = titulo;
-    if (elDesc) elDesc.innerText = descricao || "Material pedagógico de alta qualidade.";
-
-    // Preencher Indicadores com proteção
+    if (elDesc) elDesc.innerText = descricao || "Material pedagógico completo.";
     if (elIndicadores) {
         elIndicadores.innerHTML = fotos.map((_, i) => 
             `<div class="h-1 flex-1 rounded-full bg-gray-200"><div id="barrinha-${i}" class="h-full bg-orange-500 rounded-full transition-all duration-300" style="width: 0%"></div></div>`
@@ -79,7 +90,6 @@ function abrirGaleria(fotos, titulo, preco, link, descricao) {
 function atualizarGaleria() {
     const img = document.getElementById('modal-img');
     if (img) img.src = galeriaAtual[indiceGaleria];
-    
     galeriaAtual.forEach((_, i) => {
         const bar = document.getElementById(`barrinha-${i}`);
         if (bar) bar.style.width = i === indiceGaleria ? '100%' : '0%';
@@ -98,24 +108,61 @@ function fecharGaleria() {
     document.body.style.overflow = 'auto';
 }
 
+// --- CARRINHO (AQUI ESTÁ O QUE CORRIGE O CLIQUE) ---
+function toggleCarrinho() {
+    const modal = document.getElementById('modal-carrinho');
+    if (!modal) return console.error("Modal do carrinho não encontrado!");
+    
+    if (modal.style.display === 'flex') {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    } else {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        renderizarItensCarrinho();
+    }
+}
+
+function renderizarItensCarrinho() {
+    const container = document.getElementById('itens-carrinho');
+    const totalElem = document.getElementById('total-carrinho');
+    if (!container || !totalElem) return;
+
+    let total = 0;
+    if (carrinho.length === 0) {
+        container.innerHTML = `<p class="text-gray-400 text-center py-10 text-xs">O seu carrinho está vazio.</p>`;
+    } else {
+        container.innerHTML = carrinho.map(item => {
+            total += item.preco;
+            return `
+                <div class="flex justify-between items-center py-4 border-b border-gray-50">
+                    <div class="flex-grow">
+                        <p class="font-bold text-gray-800 text-[11px] leading-tight">${item.nome}</p>
+                        <p class="text-green-600 font-bold text-[10px]">R$ ${item.preco.toFixed(2).replace('.', ',')}</p>
+                    </div>
+                    <button onclick="removerItemCarrinho('${item.id}')" class="text-red-400 text-xl px-2">×</button>
+                </div>`;
+        }).join('');
+    }
+    totalElem.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+}
+
 function adicionarAoCarrinho(id, nome, preco, link) {
     if (carrinho.find(item => item.id === id)) return alert("Já está no carrinho!");
     carrinho.push({ id, nome, preco: parseFloat(preco), link });
     localStorage.setItem('edu_cart', JSON.stringify(carrinho));
-    const c = document.getElementById('cart-count');
-    if (c) c.innerText = carrinho.length;
+    atualizarContadorCarrinho();
     alert("Adicionado! 🛒");
+}
+
+function removerItemCarrinho(id) {
+    carrinho = carrinho.filter(i => i.id !== id);
+    localStorage.setItem('edu_cart', JSON.stringify(carrinho));
+    atualizarContadorCarrinho();
+    renderizarItensCarrinho();
 }
 
 function atualizarContadorCarrinho() {
     const c = document.getElementById('cart-count');
     if (c) c.innerText = carrinho.length;
-}
-
-function verificarSessao() {
-    const nome = localStorage.getItem('prof_nome');
-    const authContainer = document.getElementById('header-auth');
-    if (nome && authContainer) {
-        authContainer.innerHTML = `<button onclick="location.href='meus-materiais.html'" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-xl font-bold text-[10px]">Meus PDFs</button>`;
-    }
 }

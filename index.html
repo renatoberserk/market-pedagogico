@@ -7,33 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        body { font-family: 'Quicksand', sans-serif; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         #modal-img { transition: opacity 0.2s ease-in-out; }
-        
-        /* Modal Overlay */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-        }
-
-        .animate-pop {
-            animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes pop {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
     </style>
 </head>
 
-<body class="bg-gray-50 font-['Quicksand']">
+<body class="bg-gray-50 pb-10">
     
     <header class="flex items-center justify-between p-4 bg-white shadow-sm sticky top-0 z-50">
         <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='index.html'">
@@ -44,102 +24,70 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-3">
-            <div id="header-auth" class="hidden md:flex items-center gap-2">
-                <button onclick="location.href='login.html'" class="text-xs font-bold text-gray-500 border px-3 py-2 rounded-xl">Entrar</button>
+        <div class="flex items-center gap-4">
+            <div id="header-auth"></div> <div onclick="toggleCarrinho()" class="relative cursor-pointer bg-gray-50 p-2 rounded-xl border border-gray-100">
+                <span class="text-xl">🛒</span>
+                <span id="cart-count" class="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">0</span>
             </div>
-            <button onclick="toggleCarrinho()" class="relative bg-orange-50 p-2.5 rounded-2xl text-orange-600 shadow-sm border border-orange-100 active:scale-90 transition-transform">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span id="cart-count" class="absolute -top-1 -right-1 bg-orange-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
-            </button>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto p-4">
-        <div class="flex overflow-x-auto gap-2 mb-8 no-scrollbar scroll-smooth">
-            <button onclick="filtrarProdutos('todos', this)" class="filter-btn bg-orange-500 text-white px-6 py-2 rounded-full font-bold text-xs shadow-sm">Todos</button>
-            <button onclick="filtrarProdutos('Atividades', this)" class="filter-btn bg-white text-gray-500 px-6 py-2 rounded-full font-bold text-xs border border-gray-100 shadow-sm">Atividades</button>
-            <button onclick="filtrarProdutos('Jogos', this)" class="filter-btn bg-white text-gray-500 px-6 py-2 rounded-full font-bold text-xs border border-gray-100 shadow-sm">Jogos</button>
+        <div class="flex overflow-x-auto gap-2 mb-8 no-scrollbar py-2">
+            <button onclick="filtrarProdutos('todos', this)" class="bg-orange-500 text-white px-6 py-2 rounded-full font-bold text-xs shadow-sm whitespace-nowrap">Todos</button>
+            <button onclick="filtrarProdutos('Atividades', this)" class="bg-white text-gray-500 px-6 py-2 rounded-full font-bold text-xs border border-gray-100 whitespace-nowrap">Atividades</button>
+            <button onclick="filtrarProdutos('Jogos', this)" class="bg-white text-gray-500 px-6 py-2 rounded-full font-bold text-xs border border-gray-100 whitespace-nowrap">Jogos</button>
         </div>
 
-        <div id="vitrine-produtos" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
+        <div id="vitrine-produtos" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            </div>
     </main>
 
-<div id="modal-galeria" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] hidden items-center justify-center p-4">
-    <div class="bg-white w-full max-w-4xl rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
-        
-        <div class="w-full md:w-1/2 bg-gray-100 relative h-80 md:h-auto">
-            <img id="modal-img" src="" class="w-full h-full object-cover transition-all">
-            <button onclick="mudarFoto(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/50 p-2 rounded-full">❮</button>
-            <button onclick="mudarFoto(1)" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/50 p-2 rounded-full">❯</button>
+    <div id="modal-galeria" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-4xl rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
             
-            <div id="galeria-indicadores" class="absolute bottom-4 left-6 right-6 flex gap-2"></div>
-        </div>
-
-        <div class="w-full md:w-1/2 p-8 flex flex-col">
-            <button onclick="fecharGaleria()" class="self-end text-gray-400 text-2xl">&times;</button>
-            <div class="flex-grow">
-                <h2 id="modal-titulo-detalhe" class="text-xl font-bold text-gray-800 mb-4"></h2>
-                <p id="modal-descricao-detalhe" class="text-gray-500 text-sm leading-relaxed whitespace-pre-line"></p>
+            <div class="w-full md:w-1/2 bg-gray-100 relative h-80 md:h-auto">
+                <img id="modal-img" src="" class="w-full h-full object-cover">
+                <button onclick="mudarFoto(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 w-10 h-10 rounded-full flex items-center justify-center shadow-lg font-bold">❮</button>
+                <button onclick="mudarFoto(1)" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 w-10 h-10 rounded-full flex items-center justify-center shadow-lg font-bold">❯</button>
+                <div id="galeria-indicadores" class="absolute bottom-4 left-6 right-6 flex gap-2"></div>
             </div>
-            <button onclick="fecharGaleria()" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold mt-6">ADICIONAR AO CARRINHO</button>
+
+            <div class="w-full md:w-1/2 p-8 flex flex-col">
+                <button onclick="fecharGaleria()" class="self-end text-gray-400 text-2xl hover:text-gray-600 transition-colors">&times;</button>
+                <div class="flex-grow overflow-y-auto no-scrollbar">
+                    <h2 id="modal-titulo-detalhe" class="text-2xl font-bold text-gray-800 mb-4 leading-tight"></h2>
+                    <p id="modal-descricao-detalhe" class="text-gray-500 text-sm leading-relaxed whitespace-pre-line">
+                        </p>
+                </div>
+                <button onclick="fecharGaleria()" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold mt-6 hover:bg-orange-600 transition-all shadow-lg shadow-orange-100">
+                    ADICIONAR AO CARRINHO
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-    <div id="modal-carrinho" class="modal-overlay" onclick="toggleCarrinho()">
-        <div class="bg-white w-full max-w-xs rounded-[2rem] p-6 shadow-2xl relative animate-pop" onclick="event.stopPropagation()">
-            <h2 class="font-bold text-gray-800 mb-4 flex items-center gap-2">🛒 Meu Carrinho</h2>
+    <div id="modal-carrinho" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] hidden items-center justify-end">
+        <div class="bg-white h-full w-full max-w-md p-8 shadow-2xl flex flex-col">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold text-gray-800">🛒 Meu Carrinho</h2>
+                <button onclick="toggleCarrinho()" class="text-3xl text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
             
-            <div id="itens-carrinho" class="max-h-60 overflow-y-auto mb-4 no-scrollbar">
+            <div id="itens-carrinho" class="flex-grow overflow-y-auto no-scrollbar space-y-4">
                 </div>
 
-            <div class="border-t border-gray-100 pt-4">
+            <div class="border-t pt-6 mt-6">
                 <div class="flex justify-between items-center mb-6">
-                    <span class="text-gray-500 font-bold text-xs uppercase">Total</span>
-                    <span id="total-carrinho" class="text-green-600 font-black text-lg">R$ 0,00</span>
+                    <span class="text-gray-500 font-bold uppercase text-xs">Total do Pedido</span>
+                    <span id="total-carrinho" class="text-2xl font-black text-green-600">R$ 0,00</span>
                 </div>
-                <button onclick="location.href='checkout.html'" class="w-full bg-green-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg active:scale-95 transition-all">
+                <button onclick="location.href='checkout.html'" class="w-full bg-green-500 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-green-100 hover:bg-green-600 active:scale-95 transition-all">
                     Finalizar Pedido
                 </button>
             </div>
         </div>
     </div>
-    <div id="modal-detalhes" class="fixed inset-0 bg-black/70 backdrop-blur-md z-[200] hidden items-center justify-center p-4">
-    <div class="bg-white w-full max-w-4xl rounded-[2.5rem] overflow-hidden shadow-2xl relative flex flex-col md:flex-row max-h-[90vh]">
-        <button onclick="fecharDetalhes()" class="absolute top-4 right-4 bg-white/80 w-10 h-10 rounded-full flex items-center justify-center text-gray-800 z-10 shadow-lg font-bold">&times;</button>
-        
-        <div class="w-full md:w-1/2 bg-gray-100 relative group">
-            <img id="detalhe-img-principal" src="" class="w-full h-80 md:h-full object-cover transition-all duration-500">
-            <div id="controles-galeria" class="absolute bottom-6 left-0 right-0 flex justify-center gap-2">
-                </div>
-        </div>
-
-        <div class="w-full md:w-1/2 p-8 flex flex-col">
-            <div class="flex-grow overflow-y-auto no-scrollbar">
-                <span id="detalhe-categoria" class="text-[10px] font-black text-orange-500 uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-full">CATEGORIA</span>
-                <h2 id="detalhe-nome" class="text-2xl font-bold text-gray-800 mt-2 leading-tight">Nome do Produto</h2>
-                <div class="flex items-center gap-2 my-4">
-                    <span id="detalhe-preco" class="text-3xl font-black text-green-600">R$ 0,00</span>
-                </div>
-                <div class="border-t border-gray-100 pt-4">
-                    <h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Sobre este material:</h4>
-                    <p id="detalhe-descricao" class="text-gray-600 text-sm leading-relaxed whitespace-pre-line">
-                        Descrição detalhada aqui...
-                    </p>
-                </div>
-            </div>
-
-            <div class="mt-6 pt-6 border-t border-gray-100">
-                <button id="btn-adicionar-modal" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold uppercase text-sm shadow-xl shadow-orange-100 active:scale-95 transition-all">
-                    🛒 Adicionar ao Carrinho
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
     <script src="index.js"></script>
 </body>
