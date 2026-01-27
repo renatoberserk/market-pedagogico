@@ -215,6 +215,10 @@ function configurarFormulario() {
         const id = document.getElementById('edit-id').value;
         const emailAdmin = localStorage.getItem('prof_email');
 
+        // Captura o estado do checkbox (true ou false)
+        const inputOferta = document.getElementById('edit-oferta-ativa');
+        const ofertaAtivaValor = inputOferta ? (inputOferta.checked ? 1 : 0) : 0;
+
         const dados = {
             email_admin: emailAdmin,
             nome: document.getElementById('edit-nome').value,
@@ -224,7 +228,9 @@ function configurarFormulario() {
             foto_extra1: document.getElementById('edit-foto1').value,
             foto_extra2: document.getElementById('edit-foto2').value,
             link_download: document.getElementById('edit-link').value,
-            categoria: document.getElementById('edit-categoria').value
+            categoria: document.getElementById('edit-categoria').value,
+            // ACRESCENTADO: Enviando a informação da oferta para o servidor
+            oferta_ativa: ofertaAtivaValor 
         };
 
         const url = id ? `https://educamateriais.shop/produtos/${id}` : `https://educamateriais.shop/produtos`;
@@ -242,9 +248,11 @@ function configurarFormulario() {
                 fecharModal();
                 carregarProdutosAdmin();
             } else {
-                alert("❌ Erro ao salvar.");
+                const errorData = await res.json();
+                alert("❌ Erro ao salvar: " + (errorData.error || "Erro desconhecido"));
             }
         } catch (err) {
+            console.error("Erro na requisição:", err);
             alert("💥 Erro de conexão.");
         }
     });
