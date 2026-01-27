@@ -244,9 +244,9 @@ function verificarSessao() {
     if (nome && authContainer) {
         // Criamos o botão de Meus Arquivos (para todos que estão logados)
         let htmlBotoes = `
-            <button onclick="location.href='meus-arquivos.html'" 
+            <button onclick="location.href='meus-materiais.html'" 
                 class="bg-blue-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] flex items-center gap-1 shadow-sm hover:bg-blue-700 transition-all">
-                📂 Meus Arquivos
+                📂 Meus Materiais
             </button>
         `;
 
