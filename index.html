@@ -265,18 +265,19 @@
 </head>
 
 <body class="bg-gray-50 pb-10">
-    <div class="header-container flex items-center justify-start gap-3 w-full">
-        <div id="header-auth" class="flex items-center"></div>
-        
-        <div onclick="toggleCarrinho()" class="cart-btn relative cursor-pointer p-2.5 rounded-2xl">
-            <span class="text-lg">🛒</span>
-            <span id="cart-count" class="absolute -top-1 -right-1 text-white text-[9px] font-black rounded-full w-5 h-5 flex items-center justify-center">0</span>
-        </div>
-
-        <button onclick="fazerLogout()" class="logout-btn px-4 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-sm active:scale-95">
-            Sair
-        </button>
+    <div class="header-container flex items-center justify-end gap-3 w-full">
+    
+    <div id="header-auth" class="flex items-center"></div>
+    
+    <div onclick="toggleCarrinho()" class="cart-btn relative cursor-pointer p-2.5 rounded-2xl">
+        <span class="text-lg">🛒</span>
+        <span id="cart-count" class="absolute -top-1 -right-1 text-white text-[9px] font-black rounded-full w-5 h-5 flex items-center justify-center">0</span>
     </div>
+
+    <button onclick="fazerLogout()" class="logout-btn px-4 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-sm active:scale-95">
+        Sair
+    </button>
+</div>
 
     <main class="max-w-7xl mx-auto p-4">
         <div class="category-scroll flex overflow-x-auto gap-2 mb-8 py-2 no-scrollbar">
