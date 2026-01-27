@@ -208,7 +208,7 @@ function verificarSessao() {
     const authContainer = document.getElementById('header-auth');
     if (nome && authContainer) {
         let btnAdmin = isAdmin ? `<button onclick="location.href='admin.html'" class="bg-purple-600 text-white px-3 py-2 rounded-xl font-bold text-[10px]">👑 Admin</button>` : '';
-        authContainer.innerHTML = `<div class="flex gap-2">${btnAdmin} <button onclick="logout()" class="text-sm">🚪</button></div>`;
+        headerAuth.innerHTML = `<button onclick="fazerLogout()" class="suas-classes-aqui">🚪</button>`;
     }
 }
 function logout() { localStorage.clear(); location.href = 'index.html'; }
