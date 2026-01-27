@@ -116,9 +116,26 @@ function iniciarMonitoramento(id) {
         try {
             const res = await fetch(`https://educamateriais.shop/verificar-pagamento/${id}`);
             const data = await res.json();
+            
             if (data.status === 'approved') {
                 clearInterval(monitor);
-                window.location.href = `sucesso.html?link=${encodeURIComponent(LINK_DRIVE_FINAL)}`;
+                
+                // 1. Dispara os confetes
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#f97316', '#16a34a', '#ffffff']
+                });
+
+                // 2. Esconde a área de pagamento
+                document.getElementById('area-pagamento').classList.add('hidden');
+                
+                // 3. Configura o botão de download e mostra a tela de sucesso
+                const btnDownload = document.getElementById('botao-download-direto');
+                btnDownload.href = LINK_DRIVE_FINAL;
+                
+                document.getElementById('tela-sucesso').classList.remove('hidden');
             }
         } catch (e) {
             console.error("Erro ao monitorar:", e);
