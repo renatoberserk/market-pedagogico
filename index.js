@@ -80,7 +80,15 @@ function renderizarProdutos(lista) {
 function abrirGaleria(fotos, titulo, preco, link, descricao) {
     galeriaAtual = fotos;
     indiceGaleria = 0;
-    produtoSelecionadoNoModal = { id: Date.now(), nome: titulo, preco: preco, link: link };
+    
+    // Guardamos o produto e incluímos a primeira foto para o carrinho
+    produtoSelecionadoNoModal = { 
+        id: Date.now(), 
+        nome: titulo, 
+        preco: preco, 
+        link: link,
+        imagem: fotos[0] // Adicionado para o carrinho saber qual foto exibir
+    };
 
     const elTitulo = document.getElementById('modal-titulo-detalhe');
     const elDesc = document.getElementById('modal-descricao-detalhe');
@@ -88,9 +96,12 @@ function abrirGaleria(fotos, titulo, preco, link, descricao) {
 
     if (elTitulo) elTitulo.innerText = titulo;
     if (elDesc) elDesc.innerText = descricao || "Material em PDF de alta qualidade.";
+    
     if (elIndicadores) {
         elIndicadores.innerHTML = fotos.map((_, i) => 
-            `<div class="h-1 flex-1 rounded-full bg-gray-200"><div id="barrinha-${i}" class="h-full bg-orange-500 rounded-full transition-all duration-300" style="width: 0%"></div></div>`
+            `<div class="h-1 flex-1 rounded-full bg-gray-200">
+                <div id="barrinha-${i}" class="h-full bg-orange-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>`
         ).join('');
     }
 
@@ -98,6 +109,40 @@ function abrirGaleria(fotos, titulo, preco, link, descricao) {
     document.getElementById('modal-galeria').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
+
+
+function adicionarDoModal() {
+    if (typeof adicionarAoCarrinho === "function" && produtoSelecionadoNoModal) {
+        
+        // 1. Adiciona o produto que estava guardado no modal
+        adicionarAoCarrinho(
+            produtoSelecionadoNoModal.id, 
+            produtoSelecionadoNoModal.nome, 
+            produtoSelecionadoNoModal.preco, 
+            produtoSelecionadoNoModal.imagem
+        );
+
+        // 2. Feedback visual no botão
+        const btn = document.querySelector('.add-to-cart-btn');
+        const textoOriginal = btn.innerText;
+        
+        btn.innerText = "ADICIONADO! ✅";
+        btn.style.backgroundColor = "#22c55e"; // Verde sucesso
+        btn.style.color = "white";
+
+        // 3. Fecha o modal e reseta o botão após 1 segundo
+        setTimeout(() => {
+            fecharGaleria();
+            btn.innerText = textoOriginal;
+            btn.style.backgroundColor = ""; // Volta ao CSS original
+            btn.style.color = "";
+        }, 1000);
+        
+    } else {
+        console.error("Função adicionarAoCarrinho não encontrada!");
+    }
+}
+
 
 function atualizarGaleria() {
     const img = document.getElementById('modal-img');

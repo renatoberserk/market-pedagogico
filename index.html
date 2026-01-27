@@ -272,28 +272,30 @@
 
 <body class="bg-gray-50 pb-10">
 
-   <header class="flex items-center justify-between p-4 bg-white shadow-sm px-6">
-    
-    <div class="flex items-center gap-3">
-        <img src="assets/img/logo.png" class="h-10 w-10 object-contain">
-        <h1 class="font-bold text-xl">Educa <span class="text-orange-500">Materiais</span></h1>
-    </div>
+    <header class="flex items-center justify-between p-4 bg-white shadow-sm px-6">
 
-    <div class="flex items-center gap-3">
-        
-        <div id="header-auth" class="flex items-center gap-3"></div>
-
-        <div onclick="toggleCarrinho()" class="relative cursor-pointer bg-slate-50 p-2.5 rounded-2xl border border-slate-100 hover:bg-white transition-all shadow-sm">
-            <span class="text-lg">🛒</span>
-            <span id="cart-count" class="absolute -top-1 -right-1 bg-orange-500 text-white text-[9px] font-black rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">0</span>
+        <div class="flex items-center gap-3">
+            <img src="assets/img/logo.png" class="h-10 w-10 object-contain">
+            <h1 class="font-bold text-xl">Educa <span class="text-orange-500">Materiais</span></h1>
         </div>
 
-        <button onclick="fazerLogout()" title="Sair do Painel"
-            class="bg-red-50 text-red-500 w-11 h-11 rounded-2xl border border-red-100 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90">
-            <span class="text-xl">🚪</span>
-        </button>
-    </div>
-</header>
+        <div class="flex items-center gap-3">
+
+            <div id="header-auth" class="flex items-center gap-3"></div>
+
+            <div onclick="toggleCarrinho()"
+                class="relative cursor-pointer bg-slate-50 p-2.5 rounded-2xl border border-slate-100 hover:bg-white transition-all shadow-sm">
+                <span class="text-lg">🛒</span>
+                <span id="cart-count"
+                    class="absolute -top-1 -right-1 bg-orange-500 text-white text-[9px] font-black rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">0</span>
+            </div>
+
+            <button onclick="fazerLogout()" title="Sair do Painel"
+                class="bg-red-50 text-red-500 w-11 h-11 rounded-2xl border border-red-100 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90">
+                <span class="text-xl">🚪</span>
+            </button>
+        </div>
+    </header>
 
     <div class="py-12 px-4 bg-white border-b border-slate-50 flex flex-col items-center justify-center text-center">
 
@@ -348,8 +350,8 @@
                         <!-- Descrição será inserida aqui -->
                     </p>
                 </div>
-                <button onclick="fecharGaleria()"
-                    class="add-to-cart-btn w-full py-4 rounded-2xl font-bold mt-6 transition-all shadow-lg">
+                <button onclick="adicionarDoModal()"
+                    class="add-to-cart-btn w-full py-4 rounded-2xl font-bold mt-6 transition-all shadow-lg bg-orange-500 text-white">
                     ADICIONAR AO CARRINHO
                 </button>
             </div>
