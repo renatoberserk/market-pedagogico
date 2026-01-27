@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', carregarProduto);
 async function carregarProduto() {
     try {
         // BUSCA O PRODUTO QUE ESTÁ MARCADO COMO OFERTA ATIVA NO ADM
-        const res = await fetch(`https://educamateriais.shop/api/get-oferta-ativa?t=${Date.now()}`);
+        const res = await fetch('https://educamateriais.shop/api/get-oferta-ativa');
         
         if (!res.ok) throw new Error("Não foi possível carregar a oferta ativa.");
         
