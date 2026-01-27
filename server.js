@@ -402,7 +402,6 @@ app.get('/api/config-oferta', (req, res) => {
 
 
 // ROTA PARA BUSCAR A OFERTA ATIVA
-// ROTA PARA BUSCAR A OFERTA ATIVA
 app.get('/api/get-oferta-ativa', async (req, res) => {
     try {
         // Importante: Note o uso do .promise() se não mudou o require no topo
