@@ -108,21 +108,30 @@ app.put('/produtos/:id', (req, res) => {
     const { id } = req.params;
     const { 
         email_admin, nome, preco, link_download, 
-        imagem_url, foto_extra1, foto_extra2, descricao, categoria 
+        imagem_url, foto_extra1, foto_extra2, descricao, categoria,
+        oferta_ativa // <--- ACRESCENTADO
     } = req.body;
 
     if (email_admin !== process.env.ADMIN_EMAIL) {
         return res.status(403).json({ sucesso: false, erro: "Não autorizado" });
     }
 
-    // SQL com os nomes exatos do seu DESCRIBE
+    // LÓGICA DE EXCLUSIVIDADE: Se este for a nova oferta, desativa todas as outras antes
+    if (oferta_ativa == 1) {
+        db.query("UPDATE produtos SET oferta_ativa = 0", (err) => {
+            if (err) console.error("Erro ao resetar ofertas:", err);
+        });
+    }
+
+    // SQL ATUALIZADO (Incluindo oferta_ativa)
     const sql = `
         UPDATE produtos 
-        SET nome=?, preco=?, link_download=?, imagem_url=?, foto_extra1=?, foto_extra2=?, descricao=?, categoria=? 
+        SET nome=?, preco=?, link_download=?, imagem_url=?, foto_extra1=?, foto_extra2=?, descricao=?, categoria=?, oferta_ativa=? 
         WHERE id=?
     `;
 
-    const valores = [nome, preco, link_download, imagem_url, foto_extra1, foto_extra2, descricao, categoria, id];
+    // VALORES ATUALIZADOS (Incluindo oferta_ativa)
+    const valores = [nome, preco, link_download, imagem_url, foto_extra1, foto_extra2, descricao, categoria, oferta_ativa, id];
 
     db.query(sql, valores, (err) => {
         if (err) {
