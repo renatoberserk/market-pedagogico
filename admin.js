@@ -191,20 +191,19 @@ function prepararEdicao(id) {
     document.getElementById('edit-preco').value = p.preco || "";
     document.getElementById('edit-descricao').value = p.descricao || "";
     document.getElementById('edit-capa').value = p.imagem_url || "";
+    
+    // De volta os IDs que causaram o erro:
     document.getElementById('edit-foto1').value = p.foto_extra1 || "";
     document.getElementById('edit-foto2').value = p.foto_extra2 || ""; 
+    
     document.getElementById('edit-categoria').value = p.categoria || "Atividades";
     document.getElementById('edit-link').value = p.link_download || "";
     
-    // CORREÇÃO AQUI: Define se o checkbox inicia marcado ou não
-    // Se p.oferta_ativa for 1, o checkbox fica marcado (true)
+    // Novo Checkbox
     document.getElementById('edit-oferta-ativa').checked = (p.oferta_ativa == 1);
 
     const modal = document.getElementById('modal-produto');
-    if (modal) {
-        modal.classList.remove('hidden'); // Se estiver usando classes do Tailwind
-        modal.style.display = 'flex';     // Garantia extra
-    }
+    if (modal) modal.style.display = 'flex';
 }
 
 function configurarFormulario() {

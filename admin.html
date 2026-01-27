@@ -117,14 +117,14 @@
 
     </main>
 
-  <div id="modal-produto" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+<div id="modal-produto" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
     <div class="bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
         <button onclick="fecharModal()" class="absolute top-6 right-8 text-3xl text-slate-300 hover:text-slate-500">&times;</button>
         <h3 id="modal-titulo" class="text-2xl font-black text-slate-800 mb-8">Gerenciar Material</h3>
-        
+
         <form id="form-produto" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input type="hidden" id="edit-id">
-            
+
             <div class="space-y-4">
                 <div>
                     <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Nome do Produto</label>
@@ -154,6 +154,14 @@
                     <input type="text" id="edit-capa" class="w-full bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                 </div>
                 <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Foto Extra 1 (URL)</label>
+                    <input type="text" id="edit-foto1" class="w-full bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Foto Extra 2 (URL)</label>
+                    <input type="text" id="edit-foto2" class="w-full bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                </div>
+                <div>
                     <label class="text-[10px] font-bold text-orange-500 uppercase ml-2">Link do Google Drive</label>
                     <input type="text" id="edit-link" class="w-full bg-orange-50 p-4 rounded-2xl border-2 border-orange-100 outline-none focus:border-orange-500 text-sm font-bold">
                 </div>
@@ -163,7 +171,7 @@
                         <input type="checkbox" id="edit-oferta-ativa" class="w-5 h-5 accent-orange-500">
                         <div>
                             <span class="block text-sm font-black text-slate-700">Oferta Principal</span>
-                            <span class="block text-[10px] text-orange-400 leading-tight">Ative para este produto ser a oferta principal do site.</span>
+                            <span class="block text-[10px] text-orange-400 leading-tight">Este produto será a oferta principal em oferta.html</span>
                         </div>
                     </label>
                 </div>
