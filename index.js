@@ -202,6 +202,36 @@ function switchTab(modo) {
 }
 
 
+function configurarSaudacao() {
+    const container = document.getElementById('saudacao-usuario');
+    const nomeUsuario = localStorage.getItem('prof_nome') || 'Educador(a)';
+    
+    const hora = new Date().getHours();
+    let saudacao = "";
+
+    if (hora >= 5 && hora < 12) {
+        saudacao = "☀️ Bom dia";
+    } else if (hora >= 12 && hora < 18) {
+        saudacao = "🌤️ Boa tarde";
+    } else {
+        saudacao = "🌙 Boa noite";
+    }
+
+    // Monta a frase final
+    container.innerHTML = `
+        <span>${saudacao},</span>
+        <span class="text-slate-800 font-bold">${nomeUsuario}!</span>
+        <span class="text-orange-500">✨</span>
+    `;
+}
+
+// Chame esta função junto com a sua função sazonal
+document.addEventListener('DOMContentLoaded', () => {
+    atualizarMensagemSazonal();
+    configurarSaudacao();
+});
+
+
 function atualizarMensagemSazonal() {
     const agora = new Date();
     const mes = agora.getMonth() + 1; 
