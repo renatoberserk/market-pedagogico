@@ -402,21 +402,21 @@ app.get('/api/config-oferta', (req, res) => {
 
 
 // ROTA PARA BUSCAR A OFERTA ATIVA
+// ROTA PARA BUSCAR A OFERTA ATIVA
 app.get('/api/get-oferta-ativa', async (req, res) => {
     try {
-        // Busca o único produto que está com oferta_ativa = 1
-        // Se houver mais de um (erro humano), ele pega o primeiro (LIMIT 1)
-        const [rows] = await db.query("SELECT * FROM produtos WHERE oferta_ativa = 1 LIMIT 1");
+        // Importante: Note o uso do .promise() se não mudou o require no topo
+        // Se mudou o require para 'mysql2/promise', use apenas db.query
+        const [rows] = await db.promise().query("SELECT * FROM produtos WHERE oferta_ativa = 1 LIMIT 1");
 
-        if (rows.length > 0) {
+        if (rows && rows.length > 0) {
             res.json(rows[0]);
         } else {
-            // Se não houver nenhum marcado, retorna um erro ou um produto padrão
-            res.status(404).json({ message: "Nenhuma oferta ativa encontrada" });
+            res.status(404).json({ error: "Nenhuma oferta ativa encontrada" });
         }
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Erro interno no servidor ao buscar oferta" });
+        console.error("Erro no Banco:", err);
+        res.status(500).json({ error: "Erro ao buscar oferta" });
     }
 });
 
