@@ -13,20 +13,29 @@
     <div class="max-w-xl mx-auto px-4 py-10">
         <div class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
 
+            <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
             <div class="relative h-80 bg-slate-200 overflow-hidden group">
-                <div id="carousel-container" class="flex transition-transform duration-500 ease-in-out h-full">
+                <div id="carousel-container" class="flex transition-transform duration-500 ease-in-out h-full w-full">
                 </div>
-
                 <button onclick="moverCarrossel(-1)"
-                    class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                    ❮
-                </button>
+                    class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full shadow opacity-0 group-hover:opacity-100 transition-all">❮</button>
                 <button onclick="moverCarrossel(1)"
-                    class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                    ❯
-                </button>
+                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full shadow opacity-0 group-hover:opacity-100 transition-all">❯</button>
+                <div id="carousel-dots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2"></div>
+            </div>
 
-                <div id="carousel-dots" class="absolute bottom-4 left-1/2 -translate-y-1/2 flex gap-2"></div>
+            <div id="tela-sucesso" class="hidden flex flex-col items-center text-center space-y-6 py-4">
+                <div
+                    class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl animate-bounce">
+                    ✅</div>
+                <h2 class="text-2xl font-black text-slate-800">Pagamento Aprovado!</h2>
+                <p class="text-slate-600 font-medium">O material foi enviado ao seu e-mail, mas você pode baixar agora
+                    clicando abaixo:</p>
+                <a id="botao-download-direto" href="#" target="_blank"
+                    class="w-full bg-green-600 hover:bg-green-700 text-white py-5 rounded-2xl font-black shadow-xl shadow-green-200 transition-all text-lg uppercase italic flex items-center justify-center gap-3">
+                    🚀 BAIXAR MATERIAL AGORA
+                </a>
             </div>
 
             <div class="p-8">

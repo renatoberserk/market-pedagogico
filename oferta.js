@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', carregarProduto);
 
 async function carregarProduto() {
     try {
+        // Cache busting com timestamp para garantir que pegue a oferta mais recente
         const res = await fetch(`https://educamateriais.shop/api/get-oferta-ativa?t=${Date.now()}`);
         if (!res.ok) throw new Error("Não foi possível carregar a oferta ativa.");
         
@@ -35,7 +36,7 @@ async function carregarProduto() {
             
             if (container) {
                 container.innerHTML = imagens.map(url => `
-                    <img src="${url}" class="w-full h-full object-cover flex-shrink-0">
+                    <img src="${url}" class="w-full h-full object-cover flex-shrink-0" onerror="this.src='sua-imagem-padrao.jpg'">
                 `).join('');
 
                 if (dots) {
@@ -58,22 +59,22 @@ function moverCarrossel(direcao) {
     if (totalSlides <= 1) return;
     slideAtual = (slideAtual + direcao + totalSlides) % totalSlides;
     const container = document.getElementById('carousel-container');
+    
+    // Suavidade no movimento
     if (container) container.style.transform = `translateX(-${slideAtual * 100}%)`;
     
     const dotsContainer = document.getElementById('carousel-dots');
     if (dotsContainer) {
         const dots = dotsContainer.children;
         Array.from(dots).forEach((dot, i) => {
-            dot.classList.toggle('bg-white', i === slideAtual);
-            dot.classList.toggle('w-4', i === slideAtual);
-            dot.classList.toggle('bg-white/50', i !== slideAtual);
-            dot.classList.toggle('w-2', i !== slideAtual);
+            dot.className = `w-2 h-2 rounded-full transition-all ${i === slideAtual ? 'bg-white w-4' : 'bg-white/50'}`;
         });
     }
 }
 
 async function gerarPagamentoPix() {
-    const email = document.getElementById('email-cliente').value.trim();
+    const emailInput = document.getElementById('email-cliente');
+    const email = emailInput ? emailInput.value.trim() : "";
     const btn = document.getElementById('btn-comprar');
 
     if (!email.includes('@')) {
@@ -82,7 +83,7 @@ async function gerarPagamentoPix() {
     }
     
     btn.disabled = true;
-    btn.innerHTML = `<span class="animate-pulse text-white">GERANDO PIX...</span>`;
+    btn.innerHTML = `<span class="animate-pulse text-white font-bold">GERANDO PIX...</span>`;
 
     try {
         const res = await fetch('https://educamateriais.shop/criar-pagamento-pix', {
@@ -101,7 +102,12 @@ async function gerarPagamentoPix() {
             pixCopiaECola = dados.qr_code;
             document.getElementById('etapa-email').style.display = 'none';
             document.getElementById('area-pagamento').classList.remove('hidden');
-            document.getElementById('qrcode-placeholder').innerHTML = `<img src="data:image/png;base64,${dados.qr_code_base64}" class="w-52 h-52">`;
+            
+            const qrPlaceholder = document.getElementById('qrcode-placeholder');
+            if (qrPlaceholder) {
+                qrPlaceholder.innerHTML = `<img src="data:image/png;base64,${dados.qr_code_base64}" class="w-52 h-52 mx-auto">`;
+            }
+            
             iniciarMonitoramento(dados.id);
         }
     } catch (e) { 
@@ -120,22 +126,27 @@ function iniciarMonitoramento(id) {
             if (data.status === 'approved') {
                 clearInterval(monitor);
                 
-                // 1. Dispara os confetes
-                confetti({
-                    particleCount: 150,
-                    spread: 70,
-                    origin: { y: 0.6 },
-                    colors: ['#f97316', '#16a34a', '#ffffff']
-                });
+                // Dispara os confetes (Certifique-se que o script do confetti está no HTML)
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#f97316', '#16a34a', '#ffffff']
+                    });
+                }
 
-                // 2. Esconde a área de pagamento
                 document.getElementById('area-pagamento').classList.add('hidden');
                 
-                // 3. Configura o botão de download e mostra a tela de sucesso
                 const btnDownload = document.getElementById('botao-download-direto');
-                btnDownload.href = LINK_DRIVE_FINAL;
+                if (btnDownload) {
+                    btnDownload.href = LINK_DRIVE_FINAL;
+                }
                 
-                document.getElementById('tela-sucesso').classList.remove('hidden');
+                const telaSucesso = document.getElementById('tela-sucesso');
+                if (telaSucesso) {
+                    telaSucesso.classList.remove('hidden');
+                }
             }
         } catch (e) {
             console.error("Erro ao monitorar:", e);
@@ -146,6 +157,9 @@ function iniciarMonitoramento(id) {
 function copiarPix() {
     if (!pixCopiaECola) return;
     navigator.clipboard.writeText(pixCopiaECola).then(() => {
-        alert("Código PIX copiado!");
+        const btn = document.querySelector('button[onclick="copiarPix()"]');
+        const originalText = btn.innerText;
+        btn.innerText = "✅ COPIADO!";
+        setTimeout(() => btn.innerText = originalText, 2000);
     });
 }
