@@ -201,13 +201,74 @@ function switchTab(modo) {
     document.getElementById('btn-submit').innerText = isLogin ? 'Entrar Agora' : 'Criar minha Conta';
 }
 
+
+function renderizarBotoesHeader() {
+    const authContainer = document.getElementById('header-auth');
+    const isAdmin = localStorage.getItem('prof_admin') === 'true';
+    const estaLogado = localStorage.getItem('prof_email');
+
+    if (!estaLogado) return; // Se não estiver logado, não mostra nada
+
+    let htmlBotoes = '';
+
+    // 1. Botão Meus Arquivos (Para todos os logados)
+    htmlBotoes += `
+        <button onclick="location.href='meus-arquivos.html'" 
+            class="bg-blue-50 text-blue-600 px-4 py-2.5 rounded-2xl border border-blue-100 flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-all font-bold text-xs shadow-sm">
+            <span>📂</span> Meus Arquivos
+        </button>
+    `;
+
+    // 2. Botão Admin (Apenas para você)
+    if (isAdmin) {
+        htmlBotoes += `
+            <button onclick="location.href='admin.html'" 
+                class="bg-purple-50 text-purple-600 px-4 py-2.5 rounded-2xl border border-purple-100 flex items-center gap-2 hover:bg-purple-600 hover:text-white transition-all font-bold text-xs shadow-sm">
+                <span>👑</span> Admin
+            </button>
+        `;
+    }
+
+    authContainer.innerHTML = htmlBotoes;
+}
+
+// Chame a função quando a página carregar
+document.addEventListener('DOMContentLoaded', renderizarBotoesHeader);
+
 // --- AUTH / SESSÃO ---
 function verificarSessao() {
     const nome = localStorage.getItem('prof_nome');
     const isAdmin = localStorage.getItem('prof_admin') === 'true';
     const authContainer = document.getElementById('header-auth');
+
     if (nome && authContainer) {
-        let btnAdmin = isAdmin ? `<button onclick="location.href='admin.html'" class="bg-purple-600 text-white px-3 py-2 rounded-xl font-bold text-[10px]">👑 Admin</button>` : '';
+        // Criamos o botão de Meus Arquivos (para todos que estão logados)
+        let htmlBotoes = `
+            <button onclick="location.href='meus-arquivos.html'" 
+                class="bg-blue-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] flex items-center gap-1 shadow-sm hover:bg-blue-700 transition-all">
+                📂 Meus Arquivos
+            </button>
+        `;
+
+        // Se for admin, adiciona também o botão de Admin
+        if (isAdmin) {
+            htmlBotoes += `
+                <button onclick="location.href='admin.html'" 
+                    class="bg-purple-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] flex items-center gap-1 shadow-sm hover:bg-purple-700 transition-all">
+                    👑 Admin
+                </button>
+            `;
+        }
+
+        // AGORA SIM: Inserimos os botões na tela
+        authContainer.innerHTML = htmlBotoes;
     }
 }
-function logout() { localStorage.clear(); location.href = 'index.html'; }
+
+// Chame a função para ela ser executada assim que a página abrir
+verificarSessao();
+
+function logout() { 
+    localStorage.clear(); 
+    location.href = 'login.html'; // Redireciona para o login ao sair
+}
