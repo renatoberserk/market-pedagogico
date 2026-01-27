@@ -153,21 +153,33 @@ function carregarRelatorios() {
     const fat = document.getElementById('faturamento-total');
     if (fat) fat.innerText = "R$ 1.250,00"; // Aqui você faria o fetch de vendas depois
 }
-
 // --- 4. CRUD PRODUTOS (MODAL) ---
 function abrirModalCadastro() {
     const modal = document.getElementById('modal-produto');
     const form = document.getElementById('form-produto');
+    
     if (form) form.reset();
+    
+    // 1. Garante que o ID de edição suma (para ser um novo cadastro)
     document.getElementById('edit-id').value = ""; 
+    
+    // 2. IMPORTANTE: Garante que o checkbox de oferta comece desmarcado
+    const campoOferta = document.getElementById('edit-oferta-ativa');
+    if (campoOferta) campoOferta.checked = false;
+
     document.getElementById('modal-titulo').innerText = "Novo Produto";
-    if (modal) modal.style.display = 'flex';
+    
+    if (modal) {
+        modal.classList.remove('hidden'); // Caso use Tailwind
+        modal.style.display = 'flex';
+    }
 }
 
 function fecharModal() {
     const modal = document.getElementById('modal-produto');
     if (modal) modal.style.display = 'none';
 }
+
 
 function prepararEdicao(id) {
     const p = produtosAdmin.find(item => item.id == id);
@@ -183,9 +195,16 @@ function prepararEdicao(id) {
     document.getElementById('edit-foto2').value = p.foto_extra2 || ""; 
     document.getElementById('edit-categoria').value = p.categoria || "Atividades";
     document.getElementById('edit-link').value = p.link_download || "";
+    
+    // CORREÇÃO AQUI: Define se o checkbox inicia marcado ou não
+    // Se p.oferta_ativa for 1, o checkbox fica marcado (true)
+    document.getElementById('edit-oferta-ativa').checked = (p.oferta_ativa == 1);
 
     const modal = document.getElementById('modal-produto');
-    if (modal) modal.style.display = 'flex';
+    if (modal) {
+        modal.classList.remove('hidden'); // Se estiver usando classes do Tailwind
+        modal.style.display = 'flex';     // Garantia extra
+    }
 }
 
 function configurarFormulario() {

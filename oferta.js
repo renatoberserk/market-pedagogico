@@ -81,3 +81,27 @@ function copiarPix() {
         alert("Código PIX copiado com sucesso!");
     });
 }
+
+async function carregarOfertaAtiva() {
+    try {
+        // Busca a única oferta marcada como ativa no seu banco
+        const res = await fetch(`https://educamateriais.shop/api/get-oferta-ativa`);
+        
+        if (!res.ok) throw new Error("Erro ao buscar oferta");
+
+        const dados = await res.json();
+
+        // Preenche a página automaticamente
+        document.getElementById('titulo-produto').innerText = dados.nome;
+        document.getElementById('valor-exibido').innerText = `R$ ${dados.preco}`;
+        document.getElementById('capa-produto').src = dados.imagem_url;
+        
+        // Guarda os dados para o PIX
+        LINK_DRIVE_FINAL = dados.link_download;
+        PRECO_FINAL = dados.preco;
+        TITULO_PRODUTO = dados.nome;
+
+    } catch (e) {
+        console.error("Erro:", e);
+    }
+}
