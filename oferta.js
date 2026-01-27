@@ -141,25 +141,25 @@ function sucessoTotal() {
     
     const container = document.getElementById('area-pagamento');
     if (container) {
-        // Garantimos que o link existe antes de renderizar
+        // Garantimos que o link existe
         const linkHTML = LINK_DRIVE_FINAL 
             ? `<a href="${LINK_DRIVE_FINAL}" target="_blank" rel="noopener noreferrer" 
-                  class="block w-full bg-green-500 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-green-600 transition-all text-center mb-10 text-lg hover:scale-105 active:scale-95">
+                  style="background-color: #22c55e; color: white; padding: 20px; border-radius: 16px; font-weight: 900; display: block; text-align: center; text-decoration: none; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); font-size: 18px;">
                   📥 BAIXAR MATERIAL AGORA
                </a>`
-            : `<p class="text-red-500 font-bold p-4">Erro ao resgatar link. Verifique seu e-mail!</p>`;
+            : `<p style="color: #ef4444; font-weight: bold; padding: 16px;">Erro ao resgatar link. Verifique seu e-mail!</p>`;
 
         container.innerHTML = `
-            <div class="py-10 text-center animate-bounce-short">
-                <div class="text-6xl mb-4">🎉</div>
-                <h2 class="text-2xl font-black text-slate-800 mb-2">Pagamento Confirmado!</h2>
-                <p class="text-sm text-slate-500 mb-8">Obrigado por confiar na Educa Materiais. Baixe aqui:</p>
+            <div style="padding: 40px 0; text-align: center; animation: fadeIn 0.5s ease-in-out;">
+                <div style="font-size: 60px; margin-bottom: 16px;">🎉</div>
+                <h2 style="font-size: 24px; font-weight: 900; color: #1e293b; margin-bottom: 8px;">Pagamento Confirmado!</h2>
+                <p style="font-size: 14px; color: #64748b; margin-bottom: 32px;">Obrigado por confiar na Educa Materiais. Baixe aqui:</p>
                 
                 ${linkHTML}
 
-                <div class="p-4 bg-orange-50 rounded-2xl border-2 border-dashed border-orange-200">
-                    <p class="text-orange-700 font-bold text-[10px] uppercase mb-1">Dica de Acesso:</p>
-                    <p class="text-[11px] text-orange-600 leading-tight">Enviamos também uma cópia para seu e-mail cadastrado.</p>
+                <div style="padding: 16px; background-color: #fff7ed; border-radius: 16px; border: 2px dashed #fed7aa;">
+                    <p style="color: #c2410c; font-weight: bold; font-size: 10px; text-transform: uppercase; margin-bottom: 4px;">Dica de Acesso:</p>
+                    <p style="color: #ea580c; font-size: 11px; line-height: 1.4;">Enviamos também uma cópia para seu e-mail cadastrado.</p>
                 </div>
             </div>`;
     }
