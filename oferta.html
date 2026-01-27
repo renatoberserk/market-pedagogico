@@ -29,89 +29,78 @@ document.addEventListener('DOMContentLoaded', () => {
     buscarMeusMateriais(email);
 });
 
+
 async function buscarMeusMateriais(email) {
     const container = document.getElementById('lista-materiais');
     if (!container) return;
 
-    // Feedback visual de carregamento (Spinner centralizado)
+    // Feedback de carregamento com Spinner Seguro
     container.innerHTML = `
         <div class="col-span-full text-center py-20">
-            <div class="animate-spin inline-block w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full mb-4"></div>
-            <p class="text-gray-500 font-medium">Estamos preparando seus materiais...</p>
+            <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f97316; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <p style="color: #64748b; margin-top: 10px; font-weight: 500;">Buscando seus arquivos...</p>
         </div>`;
 
     try {
         const response = await fetch(`https://educamateriais.shop/meus-materiais?email=${email}`);
-        
-        if (!response.ok) throw new Error("Erro na conexão com o servidor");
+        if (!response.ok) throw new Error("Erro na conexão");
 
         const materiais = await response.json();
 
-        // Caso não tenha materiais
         if (!materiais || materiais.length === 0) {
             container.innerHTML = `
-                <div class="col-span-full bg-white p-12 rounded-[2.5rem] text-center border-2 border-dashed border-gray-200">
-                    <div class="text-5xl mb-4">📂</div>
-                    <p class="text-gray-500 font-medium mb-6">Sua biblioteca está vazia no momento.</p>
+                <div class="col-span-full bg-white p-12 rounded-[2.5rem] text-center border-2 border-dashed border-slate-200">
+                    <div style="font-size: 50px; margin-bottom: 15px;">📂</div>
+                    <p style="color: #64748b; font-weight: 600; margin-bottom: 20px;">Sua biblioteca está vazia.</p>
                     <button onclick="location.href='index.html'" 
-                        class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-lg transition-all active:scale-95">
-                        EXPLORAR MATERIAIS
+                        style="background: #f97316; color: white; padding: 12px 30px; border-radius: 15px; font-weight: bold; border: none; cursor: pointer;">
+                        EXPLORAR LOJA
                     </button>
                 </div>`;
             return;
         }
 
-        // Renderiza a lista de materiais
         container.innerHTML = materiais.map(m => {
-            const dataFormatada = m.data_venda 
-                ? new Date(m.data_venda).toLocaleDateString('pt-BR') 
-                : 'Recente';
-            
-            // Verifica se o link é válido
+            const dataFormatada = m.data_venda ? new Date(m.data_venda).toLocaleDateString('pt-BR') : 'Disponível';
             const linkValido = m.link_download && m.link_download.length > 5;
 
             return `
-            <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-50 flex items-center justify-between hover:shadow-xl hover:-translate-y-1 transition-all group">
-                <div class="flex items-center gap-4">
-                    <div class="bg-orange-100 text-orange-600 w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-inner group-hover:bg-orange-500 group-hover:text-white transition-all duration-300">
+            <div class="group" style="background: white; padding: 20px; border-radius: 28px; border: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: all 0.3s;">
+                
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="background: #fff7ed; color: #ea580c; width: 56px; height: 56px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
                         📄
                     </div>
                     
-                    <div class="max-w-[160px] md:max-w-xs">
-                        <h3 class="font-black text-slate-800 text-sm md:text-base leading-tight line-clamp-2">${m.nome}</h3>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">PDF</span>
-                            <p class="text-[10px] text-slate-400 font-medium">${dataFormatada}</p>
+                    <div style="max-width: 250px;">
+                        <h3 style="font-weight: 900; color: #1e293b; font-size: 14px; margin: 0; line-height: 1.2;">${m.nome}</h3>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                            <span style="background: #f1f5f9; color: #64748b; font-size: 9px; padding: 2px 8px; border-radius: 20px; font-weight: bold; text-transform: uppercase;">PDF</span>
+                            <p style="font-size: 10px; color: #94a3b8; font-weight: 600; margin: 0;">${dataFormatada}</p>
                         </div>
                     </div>
                 </div>
 
                 ${linkValido ? `
                     <a href="${m.link_download}" target="_blank" rel="noopener"
-                       title="Baixar: ${m.nome}"
-                       class="bg-green-500 hover:bg-green-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                       style="background: #22c55e; color: white; width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); transition: transform 0.2s;"
+                       onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                        <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
                     </a>
                 ` : `
-                    <button onclick="alert('Link em processamento. Tente em instantes.')" 
-                        class="bg-slate-200 text-slate-400 w-12 h-12 rounded-2xl flex items-center justify-center cursor-not-allowed">
+                    <div style="background: #f1f5f9; color: #cbd5e1; width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; cursor: not-allowed;">
                         ⏳
-                    </button>
+                    </div>
                 `}
             </div>
             `;
         }).join('');
 
     } catch (err) {
-        console.error("Erro ao carregar materiais:", err);
-        container.innerHTML = `
-            <div class="col-span-full text-center py-20 bg-red-50 rounded-[2rem] border border-red-100">
-                <p class="text-red-500 font-bold mb-2">Não conseguimos carregar seus arquivos.</p>
-                <button onclick="location.reload()" class="text-sm text-red-600 underline font-medium hover:text-red-800">
-                    Tentar carregar novamente
-                </button>
-            </div>`;
+        container.innerHTML = `<p style="color: #ef4444; font-weight: bold; text-align: center; padding: 20px;">Ops! Ocorreu um erro ao carregar.</p>`;
     }
 }
+
+<div id="area-pagamento" class="hidden bg-white rounded-[2.5rem] shadow-xl p-4"></div>

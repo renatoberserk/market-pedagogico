@@ -127,30 +127,58 @@ function iniciarMonitoramento(id) {
 }
 
 /**
- * 4. SUCESSO E ENTREGA
+ * 4. TELA FINAL DE ENTREGA - VERSÃO COM ESTILOS GARANTIDOS
  */
 function sucessoTotal() {
     if (typeof confetti === 'function') {
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#ffffff', '#22c55e'] });
     }
     
     const container = document.getElementById('area-pagamento');
     if (container) {
+        // Estilo do botão de download (Verde vibrante)
+        const estiloBotao = `
+            background-color: #22c55e; 
+            color: white; 
+            padding: 22px; 
+            border-radius: 20px; 
+            font-weight: 900; 
+            display: block; 
+            text-align: center; 
+            text-decoration: none; 
+            margin-bottom: 25px; 
+            box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3); 
+            font-size: 18px;
+            transition: transform 0.2s;
+        `;
+
         const linkHTML = LINK_DRIVE_FINAL 
-            ? `<a href="${LINK_DRIVE_FINAL}" target="_blank" rel="noopener noreferrer" 
-                  style="background-color: #22c55e; color: white; padding: 20px; border-radius: 20px; font-weight: 900; display: block; text-align: center; text-decoration: none; margin-bottom: 20px; font-size: 18px; box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);">
+            ? `<a href="${LINK_DRIVE_FINAL}" target="_blank" rel="noopener noreferrer" style="${estiloBotao}" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
                   📥 BAIXAR MATERIAL AGORA
                </a>`
-            : `<p style="color: #ef4444; font-weight: bold;">Erro no link. Verifique seu e-mail.</p>`;
+            : `<p style="color: #ef4444; font-weight: bold; background: #fee2e2; padding: 15px; border-radius: 12px;">⚠️ Link não configurado. Verifique seu e-mail!</p>`;
 
         container.innerHTML = `
-            <div style="padding: 30px 0; text-align: center;">
-                <div style="font-size: 50px; margin-bottom: 10px;">✅</div>
-                <h2 style="font-size: 22px; font-weight: 900; color: #1e293b; margin-bottom: 5px;">Pago com Sucesso!</h2>
-                <p style="font-size: 14px; color: #64748b; margin-bottom: 25px;">Seu material foi liberado abaixo:</p>
+            <div style="padding: 30px 10px; text-align: center; font-family: sans-serif;">
+                <div style="font-size: 65px; margin-bottom: 20px; animation: bounce 2s infinite;">🎉</div>
+                
+                <h2 style="font-size: 26px; font-weight: 900; color: #1e293b; margin-bottom: 10px; line-height: 1.2;">
+                    Pagamento Confirmado!
+                </h2>
+                
+                <p style="font-size: 15px; color: #64748b; margin-bottom: 30px; line-height: 1.5;">
+                    Obrigado pela compra! Seu material pedagógico já está pronto para download abaixo:
+                </p>
+                
                 ${linkHTML}
-                <div style="padding: 15px; background: #fff7ed; border-radius: 15px; border: 2px dashed #fed7aa;">
-                    <p style="color: #ea580c; font-size: 11px; font-weight: bold; margin: 0;">O link também foi enviado para seu e-mail!</p>
+
+                <div style="padding: 18px; background-color: #fff7ed; border-radius: 20px; border: 2px dashed #fed7aa; display: inline-block; width: 100%; box-sizing: border-box;">
+                    <p style="color: #c2410c; font-weight: 800; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.5px;">
+                        Dica Importante:
+                    </p>
+                    <p style="color: #ea580c; font-size: 12px; line-height: 1.4; margin: 0;">
+                        Uma cópia deste acesso foi enviada para o seu e-mail. Caso não encontre na caixa de entrada, verifique o spam.
+                    </p>
                 </div>
             </div>`;
     }
