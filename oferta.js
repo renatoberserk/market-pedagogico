@@ -11,7 +11,6 @@ let TITULO_PRODUTO = "";
 async function carregarProdutoAtivo() {
     console.log("⏳ Iniciando carregamento da oferta...");
     try {
-        // Adicionado timestamp para evitar cache do navegador
         const response = await fetch(`https://educamateriais.shop/api/config-oferta?t=${Date.now()}`);
         if (!response.ok) throw new Error('Falha na comunicação com o servidor');
         
@@ -22,9 +21,7 @@ async function carregarProdutoAtivo() {
             PRECO_FINAL = dados.preco || "19.90";
             TITULO_PRODUTO = dados.nome || dados.titulo || "Material Pedagógico";
 
-            console.log("✅ DADOS RECEBIDOS:", { TITULO_PRODUTO, PRECO_FINAL, LINK_DRIVE_FINAL });
-
-            // Atualiza Interface Visual
+            // Atualização da Interface
             const elTitulo = document.getElementById('titulo-produto');
             if (elTitulo) elTitulo.innerText = TITULO_PRODUTO;
 
@@ -59,14 +56,13 @@ async function gerarPagamentoPix() {
         return;
     }
 
-    // Validação de segurança: Não deixa gerar PIX se o link de entrega estiver vazio
     if (!LINK_DRIVE_FINAL) {
-        alert("⚠️ Erro na oferta: Link de entrega não configurado. Contate o suporte.");
+        alert("⚠️ Erro na oferta: Link de entrega não configurado.");
         return;
     }
 
     btn.disabled = true;
-    btn.innerHTML = `<span class="animate-pulse">GERANDO QR CODE...</span>`;
+    btn.innerHTML = `<span style="opacity: 0.7">GERANDO QR CODE...</span>`;
 
     try {
         const response = await fetch('https://educamateriais.shop/criar-pagamento-pix', {
@@ -89,7 +85,7 @@ async function gerarPagamentoPix() {
             
             const qrPlaceholder = document.getElementById('qrcode-placeholder');
             if (qrPlaceholder) {
-                qrPlaceholder.innerHTML = `<img src="data:image/png;base64,${dados.qr_code_base64}" class="w-48 h-48 mx-auto shadow-xl rounded-2xl border-4 border-white transition-all">`;
+                qrPlaceholder.innerHTML = `<img src="data:image/png;base64,${dados.qr_code_base64}" style="width: 200px; height: 200px; margin: 0 auto; display: block; border-radius: 16px; border: 4px solid white; box-shadow: 0 10px 15px rgba(0,0,0,0.1);">`;
             }
             
             pixCopiaECola = dados.qr_code;
@@ -99,16 +95,16 @@ async function gerarPagamentoPix() {
         console.error("❌ Erro ao gerar PIX:", err);
         btn.disabled = false;
         btn.innerHTML = "COMPRAR AGORA";
-        alert("Erro ao conectar com o meio de pagamento. Tente novamente.");
+        alert("Erro ao conectar com o meio de pagamento.");
     }
 }
 
 /**
- * 3. MONITORAMENTO DO STATUS
+ * 3. MONITORAMENTO
  */
 function iniciarMonitoramento(id) {
     let tentativas = 0;
-    const maxTentativas = 240; // Monitora por 20 minutos (240 * 5s)
+    const maxTentativas = 120; // 10 minutos (120 * 5s)
 
     if (monitoramento) clearInterval(monitoramento);
     
@@ -116,7 +112,6 @@ function iniciarMonitoramento(id) {
         tentativas++;
         if (tentativas > maxTentativas) {
             clearInterval(monitoramento);
-            console.log("⌛ Tempo de espera do pagamento expirado.");
             return;
         }
 
@@ -127,72 +122,74 @@ function iniciarMonitoramento(id) {
                 clearInterval(monitoramento);
                 sucessoTotal();
             }
-        } catch (e) { /* Silencioso para não poluir o console */ }
+        } catch (e) { }
     }, 5000);
 }
 
 /**
- * 4. TELA FINAL DE ENTREGA
+ * 4. SUCESSO E ENTREGA
  */
 function sucessoTotal() {
     if (typeof confetti === 'function') {
-        confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#ffffff', '#22c55e'] });
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     }
     
     const container = document.getElementById('area-pagamento');
     if (container) {
-        // Garantimos que o link existe
         const linkHTML = LINK_DRIVE_FINAL 
             ? `<a href="${LINK_DRIVE_FINAL}" target="_blank" rel="noopener noreferrer" 
-                  style="background-color: #22c55e; color: white; padding: 20px; border-radius: 16px; font-weight: 900; display: block; text-align: center; text-decoration: none; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); font-size: 18px;">
+                  style="background-color: #22c55e; color: white; padding: 20px; border-radius: 20px; font-weight: 900; display: block; text-align: center; text-decoration: none; margin-bottom: 20px; font-size: 18px; box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);">
                   📥 BAIXAR MATERIAL AGORA
                </a>`
-            : `<p style="color: #ef4444; font-weight: bold; padding: 16px;">Erro ao resgatar link. Verifique seu e-mail!</p>`;
+            : `<p style="color: #ef4444; font-weight: bold;">Erro no link. Verifique seu e-mail.</p>`;
 
         container.innerHTML = `
-            <div style="padding: 40px 0; text-align: center; animation: fadeIn 0.5s ease-in-out;">
-                <div style="font-size: 60px; margin-bottom: 16px;">🎉</div>
-                <h2 style="font-size: 24px; font-weight: 900; color: #1e293b; margin-bottom: 8px;">Pagamento Confirmado!</h2>
-                <p style="font-size: 14px; color: #64748b; margin-bottom: 32px;">Obrigado por confiar na Educa Materiais. Baixe aqui:</p>
-                
+            <div style="padding: 30px 0; text-align: center;">
+                <div style="font-size: 50px; margin-bottom: 10px;">✅</div>
+                <h2 style="font-size: 22px; font-weight: 900; color: #1e293b; margin-bottom: 5px;">Pago com Sucesso!</h2>
+                <p style="font-size: 14px; color: #64748b; margin-bottom: 25px;">Seu material foi liberado abaixo:</p>
                 ${linkHTML}
-
-                <div style="padding: 16px; background-color: #fff7ed; border-radius: 16px; border: 2px dashed #fed7aa;">
-                    <p style="color: #c2410c; font-weight: bold; font-size: 10px; text-transform: uppercase; margin-bottom: 4px;">Dica de Acesso:</p>
-                    <p style="color: #ea580c; font-size: 11px; line-height: 1.4;">Enviamos também uma cópia para seu e-mail cadastrado.</p>
+                <div style="padding: 15px; background: #fff7ed; border-radius: 15px; border: 2px dashed #fed7aa;">
+                    <p style="color: #ea580c; font-size: 11px; font-weight: bold; margin: 0;">O link também foi enviado para seu e-mail!</p>
                 </div>
             </div>`;
     }
 }
 
+/**
+ * UTILITÁRIOS
+ */
 function copiarPix() {
     if (!pixCopiaECola) return;
     
-    const fazerCopia = (texto) => {
-        const btn = document.querySelector('button[onclick="copiarPix()"]');
-        const original = btn ? btn.innerText : "COPIAR PIX";
-        
+    const btn = document.querySelector('.btn-copiar-pix') || document.querySelector('button[onclick="copiarPix()"]');
+    const originalText = btn ? btn.innerText : "COPIAR CÓDIGO PIX";
+
+    const feedback = () => {
         if (btn) {
             btn.innerText = "✅ COPIADO!";
-            btn.classList.replace('bg-slate-800', 'bg-green-600');
+            btn.style.backgroundColor = "#22c55e";
             setTimeout(() => {
-                btn.innerText = original;
-                btn.classList.replace('bg-green-600', 'bg-slate-800');
+                btn.innerText = originalText;
+                btn.style.backgroundColor = "";
             }, 2500);
         }
     };
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(pixCopiaECola).then(fazerCopia);
+        navigator.clipboard.writeText(pixCopiaECola).then(feedback);
     } else {
-        // Fallback para navegadores antigos/mobile inseguro
         const textArea = document.createElement("textarea");
         textArea.value = pixCopiaECola;
         document.body.appendChild(textArea);
         textArea.select();
-        document.execCommand('copy');
+        try {
+            document.execCommand('copy');
+            feedback();
+        } catch (err) {
+            alert("Pressione e segure para copiar o código.");
+        }
         document.body.removeChild(textArea);
-        fazerCopia();
     }
 }
 
@@ -200,4 +197,13 @@ function validarEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-document.addEventListener('DOMContentLoaded', carregarProdutoAtivo);
+function atualizarAmostra(id, src) {
+    const img = document.getElementById(id);
+    if (!img) return;
+    if (src && src.trim() !== "") {
+        img.src = src;
+        img.parentElement.style.display = "block";
+    } else {
+        img.parentElement.style.display = "none";
+    }
+}
