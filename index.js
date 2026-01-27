@@ -354,10 +354,13 @@ function verificarSessao() {
     const authContainer = document.getElementById('header-auth');
 
     if (nome && authContainer) {
-        // Criamos o botão de Meus Arquivos (para todos que estão logados)
+        // GARANTIA: Forçamos a div a ser um flexbox com espaço entre botões
+        authContainer.className = "flex items-center gap-3";
+
+        // Botão Meus Materiais
         let htmlBotoes = `
             <button onclick="location.href='meus-materiais.html'" 
-                class="bg-blue-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] flex items-center gap-1 shadow-sm hover:bg-blue-700 transition-all">
+                class="bg-blue-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] flex items-center gap-1 shadow-sm hover:bg-blue-700 transition-all whitespace-nowrap">
                 Meus Materiais 📚
             </button>
         `;
@@ -366,16 +369,16 @@ function verificarSessao() {
         if (isAdmin) {
             htmlBotoes += `
                 <button onclick="location.href='admin.html'" 
-                    class="bg-purple-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] flex items-center gap-1 shadow-sm hover:bg-purple-700 transition-all">
+                    class="bg-purple-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] flex items-center gap-1 shadow-sm hover:bg-purple-700 transition-all whitespace-nowrap">
                     👑 Admin
                 </button>
             `;
         }
 
-        // AGORA SIM: Inserimos os botões na tela
         authContainer.innerHTML = htmlBotoes;
     }
 }
+document.addEventListener('DOMContentLoaded', verificarSessao);
 
 // Chame a função para ela ser executada assim que a página abrir
 verificarSessao();
@@ -384,3 +387,4 @@ function logout() {
     localStorage.clear(); 
     location.href = 'login.html'; // Redireciona para o login ao sair
 }
+
