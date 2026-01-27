@@ -8,60 +8,83 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // 2. Personaliza a saudação
-    if (nome) {
-        document.getElementById('user-name').innerText = nome.split(' ')[0];
+    // 2. Personaliza a saudação (Proteção contra elemento inexistente)
+    const elUserName = document.getElementById('user-name');
+    if (nome && elUserName) {
+        elUserName.innerText = nome.split(' ')[0];
     }
 
-    // 3. Mostra mensagem de sucesso se vier do checkout
+    // 3. Mensagem de sucesso do Checkout
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('sucesso')) {
-        document.getElementById('msg-sucesso').classList.remove('hidden');
+    const msgSucesso = document.getElementById('msg-sucesso');
+    if (urlParams.has('sucesso') && msgSucesso) {
+        msgSucesso.classList.remove('hidden');
+        // Opcional: Remove o 'sucesso' da URL para não repetir a mensagem no refresh
+        window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    // 4. Carrega os materiais do banco de dados
+    // 4. Inicia a busca
     buscarMeusMateriais(email);
 });
 
 async function buscarMeusMateriais(email) {
     const container = document.getElementById('lista-materiais');
+    if (!container) return;
+
+    // Feedback visual de carregamento
+    container.innerHTML = `
+        <div class="col-span-full text-center py-10">
+            <div class="animate-spin inline-block w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mb-2"></div>
+            <p class="text-gray-400 font-medium">Buscando seus arquivos...</p>
+        </div>`;
 
     try {
         const response = await fetch(`https://educamateriais.shop/meus-materiais?email=${email}`);
+        
+        if (!response.ok) throw new Error("Erro na resposta do servidor");
+
         const materiais = await response.json();
 
         if (!materiais || materiais.length === 0) {
             container.innerHTML = `
                 <div class="col-span-full bg-white p-10 rounded-[2rem] text-center border-2 border-dashed border-gray-100">
                     <p class="text-gray-400 text-sm mb-4">Você ainda não possui materiais adquiridos.</p>
-                    <button onclick="location.href='index.html'" class="bg-orange-500 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase shadow-lg">Ver Materiais na Loja</button>
+                    <button onclick="location.href='index.html'" class="bg-orange-500 text-white px-6 py-3 rounded-xl font-bold text-[10px] uppercase shadow-lg hover:scale-105 transition-transform">Ver Materiais na Loja</button>
                 </div>`;
             return;
         }
 
         // Renderiza cada material comprado
-        container.innerHTML = materiais.map(m => `
-            <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-all">
+        container.innerHTML = materiais.map(m => {
+            // Tratamento de data caso m.data_venda venha nulo
+            const dataFormatada = m.data_venda ? new Date(m.data_venda).toLocaleDateString('pt-BR') : '--/--/----';
+            
+            return `
+            <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-all group">
                 <div class="flex items-center gap-4">
-                    <div class="bg-orange-100 text-orange-600 w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                    <div class="bg-orange-100 text-orange-600 w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-inner group-hover:bg-orange-500 group-hover:text-white transition-colors">
                         📄
                     </div>
-                    <div class="max-w-[180px] md:max-w-xs">
+                    <div class="max-w-[150px] md:max-w-xs">
                         <h3 class="font-bold text-gray-800 text-sm leading-tight line-clamp-2">${m.nome}</h3>
-                        <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter">Comprado em: ${new Date(m.data_venda).toLocaleDateString('pt-BR')}</p>
+                        <p class="text-[9px] text-gray-400 mt-1 uppercase font-bold tracking-tight">Comprado em: ${dataFormatada}</p>
                     </div>
                 </div>
-                <a href="${m.link_download}" target="_blank" 
+                <a href="${m.link_download}" target="_blank" title="Baixar Arquivo"
                    class="bg-green-500 hover:bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
                 </a>
             </div>
-        `).join('');
+        `}).join('');
 
     } catch (err) {
         console.error("Erro ao carregar materiais:", err);
-        container.innerHTML = "<p class='col-span-full text-center text-red-400 font-bold'>Erro ao carregar seus materiais. Tente novamente mais tarde.</p>";
+        container.innerHTML = `
+            <div class="col-span-full text-center py-10">
+                <p class="text-red-400 font-bold mb-2">Ops! Tivemos um problema.</p>
+                <button onclick="location.reload()" class="text-xs text-gray-500 underline">Tentar novamente</button>
+            </div>`;
     }
 }

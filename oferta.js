@@ -2,37 +2,27 @@
 let pixCopiaECola = "";
 let monitoramento = null;
 let PRECO_FINAL = "19.90";
-let LINK_DRIVE_FINAL = ""; // Receberá o link exato do ADM
+let LINK_DRIVE_FINAL = ""; 
 let TITULO_PRODUTO = "";
 
 /**
  * 1. CARREGA OS DADOS DO PRODUTO ATIVO
- * Busca as configurações que você salvou no Painel Admin
  */
 async function carregarProdutoAtivo() {
     console.log("⏳ Iniciando carregamento da oferta...");
     try {
-        const response = await fetch('https://educamateriais.shop/api/config-oferta');
+        // Adicionado timestamp para evitar cache do navegador
+        const response = await fetch(`https://educamateriais.shop/api/config-oferta?t=${Date.now()}`);
         if (!response.ok) throw new Error('Falha na comunicação com o servidor');
         
         const dados = await response.json();
         
         if (dados) {
-            // CAPTURA DO LINK: Prioriza 'link_download', depois 'link'
             LINK_DRIVE_FINAL = (dados.link_download || dados.link || "").trim();
             PRECO_FINAL = dados.preco || "19.90";
             TITULO_PRODUTO = dados.nome || dados.titulo || "Material Pedagógico";
 
-            // LOG DE SUCESSO NO CARREGAMENTO
-            console.log("✅ DADOS RECEBIDOS DO ADM:");
-            console.log("👉 Título:", TITULO_PRODUTO);
-            console.log("👉 Preço:", PRECO_FINAL);
-            console.log("🔗 LINK DE ENTREGA CONFIGURADO:", LINK_DRIVE_FINAL);
-
-            // Validação simples de link
-            if (!LINK_DRIVE_FINAL.startsWith('http')) {
-                console.warn("⚠️ ATENÇÃO: O link configurado no ADM não parece ser uma URL válida!");
-            }
+            console.log("✅ DADOS RECEBIDOS:", { TITULO_PRODUTO, PRECO_FINAL, LINK_DRIVE_FINAL });
 
             // Atualiza Interface Visual
             const elTitulo = document.getElementById('titulo-produto');
@@ -56,18 +46,6 @@ async function carregarProdutoAtivo() {
     }
 }
 
-// Função auxiliar para galeria de fotos
-function atualizarAmostra(id, src) {
-    const img = document.getElementById(id);
-    if (!img) return;
-    if (src && src.trim() !== "") {
-        img.src = src;
-        img.parentElement.classList.remove('hidden');
-    } else {
-        img.parentElement.classList.add('hidden');
-    }
-}
-
 /**
  * 2. GERAÇÃO DE PAGAMENTO PIX
  */
@@ -81,11 +59,16 @@ async function gerarPagamentoPix() {
         return;
     }
 
+    // Validação de segurança: Não deixa gerar PIX se o link de entrega estiver vazio
+    if (!LINK_DRIVE_FINAL) {
+        alert("⚠️ Erro na oferta: Link de entrega não configurado. Contate o suporte.");
+        return;
+    }
+
     btn.disabled = true;
-    btn.innerHTML = `GERANDO QR CODE...`;
+    btn.innerHTML = `<span class="animate-pulse">GERANDO QR CODE...</span>`;
 
     try {
-        console.log("📡 Solicitando PIX para o servidor...");
         const response = await fetch('https://educamateriais.shop/criar-pagamento-pix', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -93,7 +76,7 @@ async function gerarPagamentoPix() {
                 email: email, 
                 total: parseFloat(PRECO_FINAL),
                 titulo: TITULO_PRODUTO,
-                link: LINK_DRIVE_FINAL, // Link enviado para o backend processar o e-mail
+                link: LINK_DRIVE_FINAL,
                 origem: 'landing_page_oferta' 
             })
         });
@@ -106,17 +89,17 @@ async function gerarPagamentoPix() {
             
             const qrPlaceholder = document.getElementById('qrcode-placeholder');
             if (qrPlaceholder) {
-                qrPlaceholder.innerHTML = `<img src="data:image/png;base64,${dados.qr_code_base64}" class="w-48 h-48 mx-auto shadow-xl rounded-2xl border-4 border-white">`;
+                qrPlaceholder.innerHTML = `<img src="data:image/png;base64,${dados.qr_code_base64}" class="w-48 h-48 mx-auto shadow-xl rounded-2xl border-4 border-white transition-all">`;
             }
             
             pixCopiaECola = dados.qr_code;
-            console.log("✅ PIX Gerado com sucesso. ID:", dados.id);
             iniciarMonitoramento(dados.id);
         }
     } catch (err) {
         console.error("❌ Erro ao gerar PIX:", err);
         btn.disabled = false;
         btn.innerHTML = "COMPRAR AGORA";
+        alert("Erro ao conectar com o meio de pagamento. Tente novamente.");
     }
 }
 
@@ -124,18 +107,27 @@ async function gerarPagamentoPix() {
  * 3. MONITORAMENTO DO STATUS
  */
 function iniciarMonitoramento(id) {
-    console.log("⏱️ Monitorando pagamento #" + id);
+    let tentativas = 0;
+    const maxTentativas = 240; // Monitora por 20 minutos (240 * 5s)
+
     if (monitoramento) clearInterval(monitoramento);
+    
     monitoramento = setInterval(async () => {
+        tentativas++;
+        if (tentativas > maxTentativas) {
+            clearInterval(monitoramento);
+            console.log("⌛ Tempo de espera do pagamento expirado.");
+            return;
+        }
+
         try {
             const res = await fetch(`https://educamateriais.shop/verificar-pagamento/${id}`);
             const data = await res.json();
             if (data.status === 'approved') {
-                console.log("💰 PAGAMENTO APROVADO! Liberando link...");
                 clearInterval(monitoramento);
                 sucessoTotal();
             }
-        } catch (e) { /* Aguardando... */ }
+        } catch (e) { /* Silencioso para não poluir o console */ }
     }, 5000);
 }
 
@@ -143,52 +135,69 @@ function iniciarMonitoramento(id) {
  * 4. TELA FINAL DE ENTREGA
  */
 function sucessoTotal() {
-    // Log final para auditoria no console
-    console.log("🚀 EXECUTANDO ENTREGA FINAL");
-    console.log("📦 Produto entregue: " + TITULO_PRODUTO);
-    console.log("🔗 Link disponibilizado: " + LINK_DRIVE_FINAL);
-
     if (typeof confetti === 'function') {
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#ffffff', '#22c55e'] });
     }
     
     const container = document.getElementById('area-pagamento');
     if (container) {
+        // Garantimos que o link existe antes de renderizar
+        const linkHTML = LINK_DRIVE_FINAL 
+            ? `<a href="${LINK_DRIVE_FINAL}" target="_blank" rel="noopener noreferrer" 
+                  class="block w-full bg-green-500 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-green-600 transition-all text-center mb-10 text-lg hover:scale-105 active:scale-95">
+                  📥 BAIXAR MATERIAL AGORA
+               </a>`
+            : `<p class="text-red-500 font-bold p-4">Erro ao resgatar link. Verifique seu e-mail!</p>`;
+
         container.innerHTML = `
-            <div class="py-10 text-center animate-fade-in">
+            <div class="py-10 text-center animate-bounce-short">
                 <div class="text-6xl mb-4">🎉</div>
                 <h2 class="text-2xl font-black text-slate-800 mb-2">Pagamento Confirmado!</h2>
-                <p class="text-sm text-slate-500 mb-8">Seu material já está disponível para download:</p>
+                <p class="text-sm text-slate-500 mb-8">Obrigado por confiar na Educa Materiais. Baixe aqui:</p>
                 
-                <a href="${LINK_DRIVE_FINAL}" target="_blank" rel="noopener noreferrer" 
-                   class="block w-full bg-green-500 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-green-600 transition-all text-center mb-10 text-lg">
-                    📥 BAIXAR MATERIAL AGORA
-                </a>
+                ${linkHTML}
 
                 <div class="p-4 bg-orange-50 rounded-2xl border-2 border-dashed border-orange-200">
-                    <p class="text-orange-700 font-bold text-xs uppercase mb-1">Dica de Acesso:</p>
-                    <p class="text-[11px] text-orange-600">O link acima leva direto ao seu material no Google Drive. Salve este link ou verifique seu e-mail para acessos futuros.</p>
+                    <p class="text-orange-700 font-bold text-[10px] uppercase mb-1">Dica de Acesso:</p>
+                    <p class="text-[11px] text-orange-600 leading-tight">Enviamos também uma cópia para seu e-mail cadastrado.</p>
                 </div>
             </div>`;
     }
 }
 
-// Utilitários auxiliares
+function copiarPix() {
+    if (!pixCopiaECola) return;
+    
+    const fazerCopia = (texto) => {
+        const btn = document.querySelector('button[onclick="copiarPix()"]');
+        const original = btn ? btn.innerText : "COPIAR PIX";
+        
+        if (btn) {
+            btn.innerText = "✅ COPIADO!";
+            btn.classList.replace('bg-slate-800', 'bg-green-600');
+            setTimeout(() => {
+                btn.innerText = original;
+                btn.classList.replace('bg-green-600', 'bg-slate-800');
+            }, 2500);
+        }
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(pixCopiaECola).then(fazerCopia);
+    } else {
+        // Fallback para navegadores antigos/mobile inseguro
+        const textArea = document.createElement("textarea");
+        textArea.value = pixCopiaECola;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        fazerCopia();
+    }
+}
+
 function validarEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function copiarPix() {
-    if (!pixCopiaECola) return;
-    navigator.clipboard.writeText(pixCopiaECola).then(() => {
-        const btn = document.querySelector('button[onclick="copiarPix()"]');
-        if (btn) {
-            const original = btn.innerText;
-            btn.innerText = "✅ COPIADO!";
-            setTimeout(() => btn.innerText = original, 2000);
-        }
-    });
-}
-
-// Inicializa a página
 document.addEventListener('DOMContentLoaded', carregarProdutoAtivo);
