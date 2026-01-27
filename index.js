@@ -213,9 +213,9 @@ function renderizarBotoesHeader() {
 
     // 1. Botão Meus Arquivos (Para todos os logados)
     htmlBotoes += `
-        <button onclick="location.href='meus-arquivos.html'" 
+        <button onclick="location.href='meus-materiais.html'" 
             class="bg-blue-50 text-blue-600 px-4 py-2.5 rounded-2xl border border-blue-100 flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-all font-bold text-xs shadow-sm">
-            <span>📂</span> Meus Arquivos
+            <span>📂</span> Meus Materiais
         </button>
     `;
 
