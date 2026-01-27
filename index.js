@@ -378,10 +378,8 @@ function verificarSessao() {
         authContainer.innerHTML = htmlBotoes;
     }
 }
+//camar a função
 document.addEventListener('DOMContentLoaded', verificarSessao);
-
-// Chame a função para ela ser executada assim que a página abrir
-verificarSessao();
 
 function logout() { 
     localStorage.clear(); 
