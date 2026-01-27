@@ -202,6 +202,87 @@ function switchTab(modo) {
 }
 
 
+function atualizarMensagemSazonal() {
+    const agora = new Date();
+    const mes = agora.getMonth() + 1; 
+    const dia = agora.getDate();
+    const container = document.getElementById('mensagem-sazonal');
+    if (!container) return;
+
+    let msg = "";
+    let css = "";
+
+    // CALENDÁRIO SAZONAL EDUCA MATERIAIS
+    if (mes === 1 && dia >= 10 || mes === 2 && dia <= 15) {
+        msg = "🎒 Volta às Aulas! Organize seu ano letivo com nossos planejamentos exclusivos! ✏️";
+        css = "bg-blue-600 text-white font-black shadow-lg shadow-blue-200";
+    } 
+    else if (mes === 3 || (mes === 4 && dia <= 12)) {
+        msg = "🐰 Páscoa Pedagógica: Atividades lúdicas para encantar seus pequenos! 🍫";
+        css = "bg-purple-500 text-white font-bold border-b-4 border-purple-700";
+    }
+    else if (mes === 5 && dia <= 12) {
+        msg = "🌸 Especial Dia das Mães: Lembrancinhas e atividades emocionantes! 💝";
+        css = "bg-pink-500 text-white font-bold italic";
+    }
+    else if (mes === 6) {
+        msg = "🔥 Arraiá de Ofertas! Materiais juninos prontinhos para imprimir! 🌽";
+        css = "bg-orange-500 text-white font-bold border-y-2 border-yellow-300";
+    }
+    else if (mes === 8 && dia <= 14) {
+        msg = "👔 Dia dos Pais: Encontre o material perfeito para esta data especial! 🏆";
+        css = "bg-cyan-700 text-white font-bold";
+    }
+    else if (mes === 9 && dia >= 20 || (mes === 10 && dia <= 12)) {
+        msg = "🎈 Semana da Criança: Diversão e aprendizado garantidos! Confira o Kit Kids. 🍦";
+        css = "bg-yellow-400 text-slate-800 font-black uppercase tracking-tight";
+    }
+    else if (mes === 10 && dia >= 13 && dia <= 15) {
+        msg = "🍎 Feliz Dia dos Professores! Descontos especiais para quem transforma o futuro! 📚";
+        css = "bg-emerald-500 text-white font-black animate-pulse shadow-lg";
+    }
+    else if (mes === 11) {
+        msg = "🖤 BLACK FRIDAY: A maior queima de materiais pedagógicos do ano! 🚀";
+        css = "bg-slate-900 text-yellow-400 font-black italic border-2 border-yellow-400";
+    }
+    else if (mes === 12) {
+        msg = "🎄 Natal na Escola: Deixe sua sala de aula mágica com nossos painéis! 🎅";
+        css = "bg-red-600 text-white font-bold shadow-md";
+    }
+    else {
+        // MENSAGEM PADRÃO (Dias sem data comemorativa)
+        msg = "✨ Novidades toda semana! Clique e confira os lançamentos pedagógicos. ✨";
+        css = "bg-slate-100 text-slate-600 text-sm font-medium";
+    }
+
+    container.innerHTML = `<div class="fade-in">${msg}</div>`;
+    container.className = `w-full text-center py-3 px-4 transition-all duration-700 ${css}`;
+}
+
+document.addEventListener('DOMContentLoaded', atualizarMensagemSazonal);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function renderizarBotoesHeader() {
     const authContainer = document.getElementById('header-auth');
     const isAdmin = localStorage.getItem('prof_admin') === 'true';
@@ -215,7 +296,7 @@ function renderizarBotoesHeader() {
     htmlBotoes += `
         <button onclick="location.href='meus-materiais.html'" 
             class="bg-blue-50 text-blue-600 px-4 py-2.5 rounded-2xl border border-blue-100 flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-all font-bold text-xs shadow-sm">
-            <span>📂</span> Meus Materiais
+            <span>📚</span> Meus Materiais
         </button>
     `;
 
@@ -235,6 +316,7 @@ function renderizarBotoesHeader() {
 // Chame a função quando a página carregar
 document.addEventListener('DOMContentLoaded', renderizarBotoesHeader);
 
+
 // --- AUTH / SESSÃO ---
 function verificarSessao() {
     const nome = localStorage.getItem('prof_nome');
@@ -246,7 +328,7 @@ function verificarSessao() {
         let htmlBotoes = `
             <button onclick="location.href='meus-materiais.html'" 
                 class="bg-blue-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] flex items-center gap-1 shadow-sm hover:bg-blue-700 transition-all">
-                📂 Meus Materiais
+                Meus Materiais 📚
             </button>
         `;
 
