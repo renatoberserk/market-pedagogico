@@ -1,0 +1,10 @@
+RewriteEngine On
+
+# Se o usuário digitar index.html, redireciona para a raiz /
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.html\ HTTP/
+RewriteRule ^index\.html$ / [R=301,L]
+
+# Permite acessar outras páginas sem o .html (ex: termos.html vira apenas /termos)
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.html -f
+RewriteRule ^(.*)$ $1.html [L]
