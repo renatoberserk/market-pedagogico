@@ -9,6 +9,14 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 
+<script>
+    // Se a URL terminar com /index.html, ele remove e deixa limpo automaticamente
+    if (window.location.pathname.endsWith('/index.html')) {
+        const cleanUrl = window.location.pathname.replace('/index.html', '/');
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
+</script>
+
 <body class="bg-slate-50 font-sans">
 
     <div class="max-w-xl mx-auto px-4 py-10">
@@ -16,7 +24,7 @@
 
             <div class="relative h-80 bg-slate-200 overflow-hidden group">
                 <div id="carousel-container" class="flex transition-transform duration-500 ease-in-out h-full w-full">
-                    </div>
+                </div>
                 <button onclick="moverCarrossel(-1)"
                     class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full shadow opacity-0 group-hover:opacity-100 transition-all z-10">❮</button>
                 <button onclick="moverCarrossel(1)"
@@ -26,17 +34,21 @@
 
             <div class="p-8">
                 <div id="container-titulo">
-                    <h1 id="titulo-produto" class="text-3xl font-black text-slate-800 mb-3 leading-tight">Carregando material...</h1>
+                    <h1 id="titulo-produto" class="text-3xl font-black text-slate-800 mb-3 leading-tight">Carregando
+                        material...</h1>
 
                     <div class="flex items-center gap-3 mb-8">
-                        <span class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Oferta Ativa</span>
+                        <span
+                            class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Oferta
+                            Ativa</span>
                         <div id="valor-exibido" class="text-3xl font-black text-green-600">R$ --,--</div>
                     </div>
                 </div>
 
                 <div id="etapa-email" class="space-y-4">
                     <div class="group">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-2 mb-1">Seu melhor e-mail:</label>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-2 mb-1">Seu melhor
+                            e-mail:</label>
                         <input type="email" id="email-cliente" placeholder="exemplo@email.com"
                             class="w-full p-5 rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-orange-500 focus:bg-white outline-none transition-all font-bold text-slate-700">
                     </div>
@@ -58,23 +70,27 @@
                     <div class="w-full h-px bg-slate-100 my-2"></div>
                     <p class="text-slate-500 font-bold text-xs uppercase tracking-widest">Escaneie o QR Code abaixo:</p>
                     <div id="qrcode-placeholder" class="bg-white p-3 rounded-3xl border-4 border-slate-50 shadow-inner">
-                        </div>
+                    </div>
                     <button onclick="copiarPix()"
                         class="w-full bg-slate-800 hover:bg-slate-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 uppercase">
                         📋 Copiar Código PIX
                     </button>
-                    <div class="flex items-center justify-center gap-3 text-green-600 font-bold text-sm bg-green-50 px-6 py-3 rounded-full animate-pulse">
+                    <div
+                        class="flex items-center justify-center gap-3 text-green-600 font-bold text-sm bg-green-50 px-6 py-3 rounded-full animate-pulse">
                         <span class="w-2 h-2 bg-green-500 rounded-full"></span>
                         Aguardando pagamento...
                     </div>
                 </div>
 
                 <div id="tela-sucesso" class="hidden flex flex-col items-center text-center py-4 space-y-6">
-                    <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl animate-bounce">✅</div>
-                    
+                    <div
+                        class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl animate-bounce">
+                        ✅</div>
+
                     <div>
                         <h2 class="text-2xl font-black text-slate-800 mb-2 uppercase italic">Pagamento Confirmado!</h2>
-                        <p class="text-slate-600 font-medium">Seu material já está no seu e-mail, mas você pode baixar agora mesmo:</p>
+                        <p class="text-slate-600 font-medium">Seu material já está no seu e-mail, mas você pode baixar
+                            agora mesmo:</p>
                     </div>
 
                     <a id="botao-download-direto" href="#" target="_blank"
@@ -82,18 +98,22 @@
                         🚀 BAIXAR MEU MATERIAL
                     </a>
 
-                    <div class="w-full p-6 bg-slate-900 rounded-3xl border-4 border-orange-500 shadow-2xl shadow-orange-100 relative overflow-hidden mt-8">
+                    <div
+                        class="w-full p-6 bg-slate-900 rounded-3xl border-4 border-orange-500 shadow-2xl shadow-orange-100 relative overflow-hidden mt-8">
                         <div class="absolute -right-4 -top-4 text-6xl opacity-20 rotate-12">🎁</div>
 
-                        <p class="text-orange-500 font-black text-xs uppercase tracking-[0.2em] mb-2">Atenção Professor(a)!</p>
-                        <h3 class="text-white text-xl font-black mb-4 leading-tight">QUER ACESSO A TODOS OS NOSSOS MATERIAIS?</h3>
+                        <p class="text-orange-500 font-black text-xs uppercase tracking-[0.2em] mb-2">Atenção
+                            Professor(a)!</p>
+                        <h3 class="text-white text-xl font-black mb-4 leading-tight">QUER ACESSO A TODOS OS NOSSOS
+                            MATERIAIS?</h3>
 
                         <a href="index.html"
                             class="w-full bg-orange-500 hover:bg-orange-400 text-white py-5 rounded-2xl font-black transition-all flex items-center justify-center gap-3 text-lg shadow-lg hover:scale-[1.02] active:scale-95 animate-pulse">
                             📦 CONHECER A LOJA COMPLETA
                         </a>
 
-                        <p class="text-slate-400 text-[10px] mt-4 uppercase font-bold">Mais de 500 recursos pedagógicos prontos para imprimir!</p>
+                        <p class="text-slate-400 text-[10px] mt-4 uppercase font-bold">Mais de 500 recursos pedagógicos
+                            prontos para imprimir!</p>
                     </div>
                 </div>
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
+
+<script>
+    // Se a URL terminar com /index.html, ele remove e deixa limpo automaticamente
+    if (window.location.pathname.endsWith('/index.html')) {
+        const cleanUrl = window.location.pathname.replace('/index.html', '/');
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
+</script>
+
 <body class="bg-gray-50 font-['Quicksand'] min-h-screen flex flex-col items-center justify-center p-4">
 
     <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-xl p-8 text-center border border-gray-100">
@@ -16,14 +26,15 @@
 
         <div class="bg-gray-50 rounded-2xl p-4 mb-6 text-left">
             <div id="lista-itens-checkout" class="mb-3 border-b border-gray-200 pb-2">
-                </div>
+            </div>
             <div class="flex justify-between items-center font-bold text-gray-800">
                 <span>Total a pagar:</span>
                 <span id="valor-final" class="text-green-600 text-lg">R$ 0,00</span>
             </div>
         </div>
 
-        <div class="relative flex justify-center mb-6 min-h-[200px] items-center bg-white border-2 border-dashed border-gray-100 rounded-3xl p-4">
+        <div
+            class="relative flex justify-center mb-6 min-h-[200px] items-center bg-white border-2 border-dashed border-gray-100 rounded-3xl p-4">
             <div id="qr-loader" class="text-orange-500 font-bold animate-pulse text-sm text-center">
                 Gerando seu código Pix...<br>
                 <span class="text-[10px] text-gray-400 font-normal">Isso leva apenas 2 segundos</span>
@@ -33,10 +44,12 @@
 
         <div class="mb-6">
             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Código Pix Copia e Cola</p>
-            <div id="pix-code" class="bg-gray-100 p-3 rounded-xl text-[9px] text-gray-500 break-all line-clamp-2 mb-3 border border-gray-200 italic">
+            <div id="pix-code"
+                class="bg-gray-100 p-3 rounded-xl text-[9px] text-gray-500 break-all line-clamp-2 mb-3 border border-gray-200 italic">
                 Aguardando geração...
             </div>
-            <button id="btn-copy" onclick="copyPix()" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg transition-all active:scale-95">
+            <button id="btn-copy" onclick="copyPix()"
+                class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg transition-all active:scale-95">
                 Copiar Código Pix
             </button>
         </div>
@@ -48,10 +61,12 @@
         </div>
     </div>
 
-    <button onclick="location.href='index.html'" class="mt-8 text-gray-400 font-bold text-xs uppercase tracking-tighter hover:text-orange-500 transition-colors">
+    <button onclick="location.href='index.html'"
+        class="mt-8 text-gray-400 font-bold text-xs uppercase tracking-tighter hover:text-orange-500 transition-colors">
         ← Cancelar e voltar para a loja
     </button>
 
     <script src="checkout.js"></script>
 </body>
+
 </html>

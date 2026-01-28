@@ -1,20 +1,35 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8"><title>Privacidade - Educa Materiais</title>
+    <meta charset="UTF-8">
+    <title>Privacidade - Educa Materiais</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
+<script>
+    // Se a URL terminar com /index.html, ele remove e deixa limpo automaticamente
+    if (window.location.pathname.endsWith('/index.html')) {
+        const cleanUrl = window.location.pathname.replace('/index.html', '/');
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
+</script>
+
 <body class="bg-slate-50 p-8 text-slate-700 leading-relaxed">
     <div class="max-w-2xl mx-auto bg-white p-10 rounded-3xl shadow-sm">
         <h1 class="text-2xl font-black mb-6">Política de Privacidade</h1>
         <p class="mb-4">Sua privacidade é importante para nós:</p>
         <ul class="list-disc pl-6 space-y-3">
-            <li><strong>Dados Coletados:</strong> Solicitamos apenas seu e-mail para o envio automático do material adquirido.</li>
-            <li><strong>Uso de Dados:</strong> Seu e-mail nunca será vendido a terceiros. Poderemos enviar ofertas de novos materiais da nossa própria loja.</li>
-            <li><strong>Segurança:</strong> O pagamento é processado via Mercado Pago, garantindo que seus dados bancários fiquem protegidos e nunca sejam armazenados em nosso site.</li>
+            <li><strong>Dados Coletados:</strong> Solicitamos apenas seu e-mail para o envio automático do material
+                adquirido.</li>
+            <li><strong>Uso de Dados:</strong> Seu e-mail nunca será vendido a terceiros. Poderemos enviar ofertas de
+                novos materiais da nossa própria loja.</li>
+            <li><strong>Segurança:</strong> O pagamento é processado via Mercado Pago, garantindo que seus dados
+                bancários fiquem protegidos e nunca sejam armazenados em nosso site.</li>
         </ul>
         <p class="mt-8 text-sm text-slate-400">Dúvidas: contato@educamateriais.shop</p>
         <a href="index.html" class="inline-block mt-6 text-orange-500 font-bold">← Voltar</a>
     </div>
 </body>
+
 </html>
