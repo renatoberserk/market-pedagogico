@@ -12,7 +12,7 @@
 <script>
     // Se a URL terminar com /index.html, ele remove e deixa limpo automaticamente
     if (window.location.pathname.endsWith('/checkout.html')) {
-        const cleanUrl = window.location.pathname.replace('/index.html', '/');
+        const cleanUrl = window.location.pathname.replace('/checkout.html', 'checkout');
         window.history.replaceState({}, document.title, cleanUrl);
     }
 </script>
